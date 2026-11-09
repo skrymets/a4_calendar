@@ -117,3 +117,27 @@ func TestDrawAndSave(t *testing.T) {
 		t.Error("Tc must be set before the spaced text and reset to 0 after it")
 	}
 }
+
+func TestNonBMPRuneOnTTF(t *testing.T) {
+	c := New(595, 842)
+	pt := TTF("PTSansNarrow", fonts.PTSansNarrow)
+	c.SetFont(pt, 10)
+	for _, s := range []string{"😀", "a𐀀b", "􏿿"} {
+		if w := c.StringWidth(s, pt, 10); w <= 0 {
+			t.Errorf("StringWidth(%q) = %v", s, w)
+		}
+		c.DrawString(10, 10, s)
+	}
+	out := filepath.Join(t.TempDir(), "e.pdf")
+	if err := c.Save(out); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestSaveFailureLeavesNoFile(t *testing.T) {
+	c := New(595, 842)
+	out := filepath.Join(t.TempDir(), "nodir", "x.pdf")
+	if err := c.Save(out); err == nil {
+		t.Error("expected error")
+	}
+}

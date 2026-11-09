@@ -1,7 +1,11 @@
 package canvas
 
 import (
+	"bytes"
 	"fmt"
+	"io"
+	"os"
+	"strings"
 
 	"github.com/go-pdf/fpdf"
 )
@@ -50,7 +54,45 @@ func (c *FPDF) enc(f Font, s string) string {
 	if f.TTF == nil {
 		return c.cp1252(s)
 	}
-	return s
+	return replaceNonBMP(s)
+}
+
+// replaceNonBMP swaps runes >= U+10000 for U+FFFD: fpdf's UTF-8 font tables
+// only cover the BMP and panic on anything beyond it.
+func replaceNonBMP(s string) string {
+	if !strings.ContainsFunc(s, func(r rune) bool { return r >= 0x10000 }) {
+		return s
+	}
+	return strings.Map(func(r rune) rune {
+		if r >= 0x10000 {
+			return 0xFFFD
+		}
+		return r
+	}, s)
+}
+
+// CheckTTF reports whether data can be used as an fpdf TrueType font. fpdf
+// panics on corrupt fonts, so it does a trial load, draw and render on a
+// throwaway document and converts any panic into an error.
+func CheckTTF(data []byte) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("%v", r)
+		}
+	}()
+	p := fpdf.New("P", "pt", "A4", "")
+	p.AddPage()
+	p.AddUTF8FontFromBytes("probe", "", data)
+	p.SetFont("probe", "", 10)
+	p.GetStringWidth("A")
+	p.Text(10, 10, "A")
+	if err := p.Error(); err != nil {
+		return err
+	}
+	if err := p.Output(io.Discard); err != nil {
+		return err
+	}
+	return p.Error()
 }
 
 func (c *FPDF) SetFillColor(col RGB) {
@@ -105,6 +147,20 @@ func (c *FPDF) StringWidth(s string, f Font, size float64) float64 {
 
 func (c *FPDF) SetTitle(s string) { c.pdf.SetTitle(s, true) }
 
-// Save writes the PDF; it also reports any error fpdf recorded earlier
-// (e.g. an unreadable TTF).
-func (c *FPDF) Save(path string) error { return c.pdf.OutputFileAndClose(path) }
+// Save renders the PDF in memory and only then writes path, so a failure
+// (including an fpdf panic) never creates or truncates the output file.
+func (c *FPDF) Save(path string) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("cannot render PDF: %v", r)
+		}
+	}()
+	var buf bytes.Buffer
+	if err := c.pdf.Output(&buf); err != nil {
+		return err
+	}
+	if err := c.pdf.Error(); err != nil {
+		return err
+	}
+	return os.WriteFile(path, buf.Bytes(), 0o644)
+}
