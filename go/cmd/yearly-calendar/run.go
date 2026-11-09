@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	_ "embed"
 	"errors"
 	"fmt"
 	"io"
@@ -19,6 +20,9 @@ import (
 	"a4calendar/internal/period"
 	"a4calendar/internal/render"
 )
+
+//go:embed THIRD_PARTY_LICENSES.txt
+var thirdPartyLicenses string
 
 // usageError is a command-line error: exit code 2, like argparse's error().
 type usageError struct{ msg string }
@@ -47,7 +51,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 	}
 	if o.licenses {
 		fmt.Fprint(stdout, "yearly-calendar embeds the PT Sans Narrow font, licensed under the\n"+
-			"SIL Open Font License, Version 1.1:\n\n"+fonts.OFL)
+			"SIL Open Font License, Version 1.1:\n\n"+fonts.OFL+
+			"\n\nThird-party software linked into this binary:\n\n"+thirdPartyLicenses)
 		return 0
 	}
 
@@ -69,6 +74,21 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	return 1
+}
+
+// buildAndSave renders and saves the PDF; as a last line of defence it turns
+// any panic from the PDF library into an ordinary error.
+func buildAndSave(cfg render.Config, output string) (res render.Result, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("cannot render PDF: %v", r)
+		}
+	}()
+	c := canvas.New(cfg.PaperW, cfg.PaperH)
+	if res, err = render.Build(cfg, c); err != nil {
+		return res, err
+	}
+	return res, c.Save(output)
 }
 
 // configure validates o in Python's order: argparse conversions and
@@ -183,7 +203,7 @@ func parseStart(s string) (time.Time, error) {
 		return period.Date(now.Year(), now.Month(), now.Day()), nil
 	}
 	t, err := time.Parse("2006-01-02", s)
-	if err != nil {
+	if err != nil || t.Year() < 1 {
 		return time.Time{}, usagef("argument --start: invalid fromisoformat value: '%s'", s)
 	}
 	return period.Date(t.Year(), t.Month(), t.Day()), nil
@@ -216,6 +236,9 @@ func loadFont(spec string) (canvas.Font, error) {
 	}
 	if !isTrueType(data) {
 		return canvas.Font{}, fmt.Errorf("--font: '%s' is not a TrueType (.ttf) font", spec)
+	}
+	if err := canvas.CheckTTF(data); err != nil {
+		return canvas.Font{}, fmt.Errorf("--font: '%s' is not a usable TrueType (.ttf) font", spec)
 	}
 	return canvas.TTF(strings.TrimSuffix(filepath.Base(spec), filepath.Ext(spec)), data), nil
 }

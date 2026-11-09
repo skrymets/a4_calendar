@@ -69,7 +69,7 @@ func newFlagSet() (*pflag.FlagSet, *options, func() string) {
 	str(&o.header, "header", "", "compact", "{compact,full}", "compact: small one-line title, slim month row (default)")
 	flag(&o.hideOutside, "hide-outside", "leave days outside the period blank instead of faint")
 	flag(&o.version, "version", "print the version and exit")
-	flag(&o.licenses, "licenses", "print the licence of the embedded PT Sans Narrow font and exit")
+	flag(&o.licenses, "licenses", "print the licences of the embedded font and bundled libraries and exit")
 
 	help := func() string {
 		var b strings.Builder

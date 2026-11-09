@@ -65,6 +65,7 @@ func TestRunUsageErrors(t *testing.T) {
 		{[]string{"--note-lines", "1.5"}, "argument --note-lines: invalid int value: '1.5'"},
 		{[]string{"--margin", "x"}, "argument --margin: invalid float value: 'x'"},
 		{[]string{"--start", "2026-13-01"}, "argument --start: invalid fromisoformat value: '2026-13-01'"},
+		{[]string{"--start", "0000-01-01"}, "argument --start: invalid fromisoformat value: '0000-01-01'"},
 		{[]string{"--bogus"}, "unknown flag: --bogus"},
 		{[]string{"extra"}, "unrecognized arguments: extra"},
 	}
@@ -141,7 +142,53 @@ func TestRunHelpVersionLicenses(t *testing.T) {
 	if code, stdout, _ := call("--version"); code != 0 || !strings.HasPrefix(stdout, "yearly-calendar ") {
 		t.Errorf("--version: exit %d, %q", code, stdout)
 	}
-	if code, stdout, _ := call("--licenses"); code != 0 || !strings.Contains(stdout, "SIL OPEN FONT LICENSE") {
-		t.Errorf("--licenses: exit %d", code)
+	code, stdout, _ = call("--licenses")
+	for _, want := range []string{"SIL OPEN FONT LICENSE", "Copyright (c) 2010, ParaType",
+		"go-pdf/fpdf v0.9.0", "spf13/pflag v1.1.0", "The Go project (Go 1.24.3)"} {
+		if code != 0 || !strings.Contains(stdout, want) {
+			t.Errorf("--licenses: exit %d, missing %q", code, want)
+		}
 	}
+}
+
+func TestRunNonBMPTextWithTTF(t *testing.T) {
+	out := filepath.Join(t.TempDir(), "e.pdf")
+	code, _, stderr := call("--start", "2027-01-01", "--font", "pt-sans-narrow",
+		"--title", "😀 TEST", "--month-names", "😀,F,M,A,M,J,J,A,S,O,N,D", "-o", out)
+	if code != 0 {
+		t.Fatalf("exit %d: %s", code, stderr)
+	}
+	if data, err := os.ReadFile(out); err != nil || !bytes.HasPrefix(data, []byte("%PDF-")) {
+		t.Errorf("no PDF written: %v", err)
+	}
+}
+
+func checkBadFont(t *testing.T, content []byte) {
+	t.Helper()
+	dir := t.TempDir()
+	font := filepath.Join(dir, "bad.ttf")
+	out := filepath.Join(dir, "keep.pdf")
+	if err := os.WriteFile(font, content, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(out, []byte("KEEP"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	code, _, stderr := call("--start", "2027-01-01", "--font", font, "-o", out)
+	if code != 1 || !strings.HasPrefix(stderr, "Error: ") || !strings.Contains(stderr, "not a usable TrueType") ||
+		strings.Contains(stderr, "goroutine") || strings.Contains(stderr, "panic") {
+		t.Errorf("exit %d, stderr %q", code, stderr)
+	}
+	if got, _ := os.ReadFile(out); string(got) != "KEEP" {
+		t.Errorf("existing output modified: %q", got)
+	}
+}
+
+func TestRunCorruptFonts(t *testing.T) {
+	checkBadFont(t, []byte{0, 1, 0, 0})
+	full, err := os.ReadFile("../../internal/fonts/PT_Sans-Narrow-Web-Regular.ttf")
+	if err != nil {
+		t.Fatal(err)
+	}
+	checkBadFont(t, full[:2000])
 }

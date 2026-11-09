@@ -23,6 +23,7 @@ try {
         Write-Host "built $out"
     }
     Copy-Item internal/fonts/OFL.txt dist/OFL.txt
+    Copy-Item cmd/yearly-calendar/THIRD_PARTY_LICENSES.txt dist/THIRD_PARTY_LICENSES.txt
 }
 finally {
     Remove-Item Env:GOOS, Env:GOARCH, Env:CGO_ENABLED -ErrorAction SilentlyContinue
