@@ -13,4 +13,7 @@ func TestEmbedded(t *testing.T) {
 	if !strings.Contains(OFL, "SIL OPEN FONT LICENSE") {
 		t.Error("OFL text missing")
 	}
+	if strings.HasPrefix(OFL, "\ufeff") {
+		t.Error("OFL starts with a BOM")
+	}
 }

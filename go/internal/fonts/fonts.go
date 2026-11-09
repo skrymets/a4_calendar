@@ -2,7 +2,10 @@
 // The licence must ship with the binary: see OFL and the --licenses flag.
 package fonts
 
-import _ "embed"
+import (
+	_ "embed"
+	"strings"
+)
 
 // PTSansNarrowKeyword selects the embedded font via --font.
 const PTSansNarrowKeyword = "pt-sans-narrow"
@@ -12,7 +15,9 @@ const PTSansNarrowKeyword = "pt-sans-narrow"
 //go:embed PT_Sans-Narrow-Web-Regular.ttf
 var PTSansNarrow []byte
 
-// OFL is the font's licence text, including the copyright notice.
-//
 //go:embed OFL.txt
-var OFL string
+var oflRaw string
+
+// OFL is the font's licence text, including the copyright notice (the
+// upstream file's UTF-8 BOM is stripped).
+var OFL = strings.TrimPrefix(oflRaw, "\ufeff")
