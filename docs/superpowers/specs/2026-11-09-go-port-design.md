@@ -21,7 +21,7 @@ go/
   internal/period/               pure date logic (unit-tested)
   internal/render/               port of build(): layout + drawing via Canvas
   internal/canvas/               Canvas interface + fpdf implementation
-  internal/fonts/                go:embed PTSansNarrow-Regular.ttf + OFL.txt
+  internal/fonts/                PT_Sans-Narrow-Web-Regular.ttf + OFL.txt (upstream file name)
   build.ps1                      cross-compile into go/dist/
 tools/parity.py                  Python vs Go visual/text parity check (dev only)
 ```
@@ -45,7 +45,8 @@ type Canvas interface {
     DrawString(x, y float64, s string)        // like c.drawString
     DrawSpaced(x, y float64, s string, spacing float64) // Tc letter-spacing, reset to 0 after
     StringWidth(s string, f Font, size float64) float64
-    SetTitle(s string); Save(path string) error
+    SetTitle(s string)
+    // Save lives on *canvas.FPDF; render never saves
 }
 ```
 
