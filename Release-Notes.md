@@ -42,3 +42,4 @@ First release.
   `yearly-calendar 0.1.0 (Go)` or `(Python)`).
 - Release archives for each platform and for the Python script, each with a SHA-256
   checksum.
+- Open source under the MIT License (`LICENSE`, included in every release archive).

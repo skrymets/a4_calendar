@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Sergii Krymets
+// SPDX-License-Identifier: MIT
+
 // Command yearly-calendar renders a one-page calendar PDF; it is the Go
 // port of yearly_calendar.py with the same options and output.
 package main

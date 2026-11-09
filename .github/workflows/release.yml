@@ -102,7 +102,7 @@ jobs:
               chmod +x "$stage/yearly-calendar"
             fi
             cp go/README.md "$stage/README.md"
-            cp go/dist/OFL.txt go/dist/THIRD_PARTY_LICENSES.txt "$stage/"
+            cp go/dist/LICENSE go/dist/OFL.txt go/dist/THIRD_PARTY_LICENSES.txt "$stage/"
             if [[ $target == windows-* ]]; then
               (cd dist && zip -qr "$name.zip" "$name")
               assets+=("$name.zip")
@@ -116,7 +116,7 @@ jobs:
           name="yearly-calendar-py-$VERSION"
           stage="dist/$name"
           mkdir -p "$stage"
-          cp py/yearly_calendar.py py/requirements.txt VERSION "$stage/"
+          cp py/yearly_calendar.py py/requirements.txt VERSION LICENSE "$stage/"
           cp py/README.md "$stage/README.md"
           (cd dist && zip -qr "$name.zip" "$name")
           assets+=("$name.zip")

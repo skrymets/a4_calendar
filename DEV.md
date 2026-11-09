@@ -5,6 +5,7 @@
 | Path | What |
 |---|---|
 | `VERSION` | the version, the only place it is written down |
+| `LICENSE` | MIT; copied into every release archive |
 | `py/yearly_calendar.py` | the Python implementation, which is the reference |
 | `go/` | the Go port: module `a4calendar`, binary `yearly-calendar` |
 | `go/build.ps1` | cross-compiles windows/amd64, linux/amd64 and linux/arm64 into `go/dist/` |
@@ -135,9 +136,9 @@ The leading `v` matters: the workflow starts on tags matching `v*`. File names d
    - `yearly-calendar-<version>-linux-amd64.tar.gz`;
    - `yearly-calendar-<version>-linux-arm64.tar.gz`;
    - `yearly-calendar-py-<version>.zip`.
-   - Each Go archive holds `yearly-calendar[.exe]`, `README.md` (from `go/`), `OFL.txt` and
-     `THIRD_PARTY_LICENSES.txt`. The Python archive holds the script, `VERSION`,
-     `requirements.txt` and `README.md` (from `py/`).
+   - Each Go archive holds `yearly-calendar[.exe]`, `README.md` (from `go/`), `LICENSE`,
+     `OFL.txt` and `THIRD_PARTY_LICENSES.txt`. The Python archive holds the script,
+     `VERSION`, `requirements.txt`, `LICENSE` and `README.md` (from `py/`).
 6. Creates the release titled `yearly-calendar <version>`. Its text is install and verify
    instructions, then the release-notes section, then GitHub's generated list of changes since
    the previous tag. A tag with a hyphen becomes a pre-release.

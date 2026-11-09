@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Copyright (c) 2026 Sergii Krymets
+# SPDX-License-Identifier: MIT
 """
 Yearly calendar PDF generator (one A4 page, months as vertical columns).
 

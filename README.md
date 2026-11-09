@@ -122,7 +122,12 @@ the repository's Releases page. How releases are made is in [DEV.md](DEV.md).
 
 ## Licences
 
-The Go binary embeds PT Sans Narrow (ParaType, SIL Open Font License 1.1) and links
+This project is released under the [MIT License](LICENSE).
+
+The Go binary also contains third-party work under its own licences. It embeds PT Sans
+Narrow (ParaType, SIL Open Font License 1.1). It links
 [go-pdf/fpdf](https://github.com/go-pdf/fpdf) (MIT), [spf13/pflag](https://github.com/spf13/pflag)
-(BSD-3-Clause) and the Go standard library (BSD-3-Clause). `yearly-calendar --licenses`
-prints all of them, and every release archive includes them.
+(BSD-3-Clause) and the Go standard library (BSD-3-Clause). The Python version uses
+[ReportLab](https://www.reportlab.com/) (BSD), installed separately.
+`yearly-calendar --licenses` prints these licences. Every release archive includes `LICENSE`,
+and the Go archives also include `OFL.txt` and `THIRD_PARTY_LICENSES.txt`.

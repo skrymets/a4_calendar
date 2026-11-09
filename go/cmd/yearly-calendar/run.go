@@ -50,7 +50,10 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return 0
 	}
 	if o.licenses {
-		fmt.Fprint(stdout, "yearly-calendar embeds the PT Sans Narrow font, licensed under the\n"+
+		fmt.Fprint(stdout, "yearly-calendar "+version+"\n"+
+			"Copyright (c) 2026 Sergii Krymets. Released under the MIT License;\n"+
+			"the full text is in the LICENSE file of the source and of every release archive.\n\n"+
+			"yearly-calendar embeds the PT Sans Narrow font, licensed under the\n"+
 			"SIL Open Font License, Version 1.1:\n\n"+fonts.OFL+
 			"\n\nThird-party software linked into this binary:\n\n"+thirdPartyLicenses)
 		return 0

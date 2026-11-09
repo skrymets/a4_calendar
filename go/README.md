@@ -16,7 +16,8 @@ Releases are on the repository's Releases page, one archive per platform:
 | Linux, ARM64 | `yearly-calendar-<version>-linux-arm64.tar.gz` |
 
 Each archive holds the program (`yearly-calendar.exe` or `yearly-calendar`), this README,
-and the licence files `OFL.txt` and `THIRD_PARTY_LICENSES.txt`.
+the project's `LICENSE` (MIT), and the third-party licence files `OFL.txt` and
+`THIRD_PARTY_LICENSES.txt`.
 
 ### Verify the download
 

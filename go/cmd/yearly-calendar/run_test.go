@@ -146,7 +146,8 @@ func TestRunHelpVersionLicenses(t *testing.T) {
 		t.Errorf("--version: exit %d, %q", code, stdout)
 	}
 	code, stdout, _ = call("--licenses")
-	for _, want := range []string{"SIL OPEN FONT LICENSE", "Copyright (c) 2010, ParaType",
+	for _, want := range []string{"Released under the MIT License",
+		"SIL OPEN FONT LICENSE", "Copyright (c) 2010, ParaType",
 		"go-pdf/fpdf v0.9.0", "spf13/pflag v1.1.0", "The Go project (Go 1.24.3)"} {
 		if code != 0 || !strings.Contains(stdout, want) {
 			t.Errorf("--licenses: exit %d, missing %q", code, want)

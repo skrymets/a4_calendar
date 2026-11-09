@@ -27,6 +27,7 @@ try {
         if ($LASTEXITCODE -ne 0) { throw "build failed for $($t.GOOS)/$($t.GOARCH)" }
         Write-Host "built $out"
     }
+    Copy-Item ../LICENSE dist/LICENSE
     Copy-Item internal/fonts/OFL.txt dist/OFL.txt
     Copy-Item cmd/yearly-calendar/THIRD_PARTY_LICENSES.txt dist/THIRD_PARTY_LICENSES.txt
 }
