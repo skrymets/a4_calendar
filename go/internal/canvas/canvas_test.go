@@ -81,14 +81,39 @@ func TestDrawAndSave(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, want := range []string{"%PDF-", "0.80 Tc", "0 Tc", "[0.40 1.20] 0.00 d", "[] 0.00 d", "1 J", "0 J", "/Helvetica"} {
+	for _, want := range []string{"%PDF-", "0.80 Tc", "[0.40 1.20] 0.00 d", "[] 0.00 d", "/Helvetica"} {
 		if !bytes.Contains(data, []byte(want)) {
 			t.Errorf("PDF lacks %q", want)
+		}
+	}
+	// Whole-line matches so that "0 J" cannot match inside "10 J" and "0 Tc"
+	// cannot match inside "0.80 Tc".
+	for _, want := range []string{"\n1 J\n", "\n0 J\n"} {
+		if !bytes.Contains(data, []byte(want)) {
+			t.Errorf("PDF lacks line %q", want)
 		}
 	}
 	// Bottom-left coordinates reach the content stream unchanged (fpdf's
 	// top-down y is flipped back internally): baseline y=100 -> "100.00".
 	if !bytes.Contains(data, []byte("BT 10.00 100.00 Td")) {
 		t.Error("text not placed with bottom-left coordinates")
+	}
+	// Tc must be set before the spaced text and reset to 0 after it.
+	i := bytes.Index(data, []byte("\n0.80 Tc\n"))
+	if i < 0 {
+		t.Fatal("PDF lacks line \"\\n0.80 Tc\\n\"")
+	}
+	j := bytes.Index(data[i:], []byte("BT 10.00 100.00 Td"))
+	if j < 0 {
+		t.Fatal("spaced text not found after its Tc")
+	}
+	j += i
+	k := bytes.Index(data[j:], []byte("\n0 Tc\n"))
+	if k < 0 {
+		t.Fatal("PDF lacks line \"\\n0 Tc\\n\" after the spaced text")
+	}
+	k += j
+	if !(i < j && j < k) {
+		t.Error("Tc must be set before the spaced text and reset to 0 after it")
 	}
 }
