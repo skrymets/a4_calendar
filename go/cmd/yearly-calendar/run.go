@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -196,6 +197,12 @@ func parseInt(flag, s string) (int, error) {
 	return n, nil
 }
 
+// isTrueType reports whether data starts with a TrueType sfnt signature
+// (0x00010000) or the legacy Apple 'true' tag.
+func isTrueType(data []byte) bool {
+	return len(data) >= 4 && (bytes.Equal(data[:4], []byte{0x00, 0x01, 0x00, 0x00}) || string(data[:4]) == "true")
+}
+
 func loadFont(spec string) (canvas.Font, error) {
 	switch spec {
 	case "":
@@ -206,6 +213,9 @@ func loadFont(spec string) (canvas.Font, error) {
 	data, err := os.ReadFile(spec)
 	if err != nil {
 		return canvas.Font{}, fmt.Errorf("cannot read --font: %w", err)
+	}
+	if !isTrueType(data) {
+		return canvas.Font{}, fmt.Errorf("--font: '%s' is not a TrueType (.ttf) font", spec)
 	}
 	return canvas.TTF(strings.TrimSuffix(filepath.Base(spec), filepath.Ext(spec)), data), nil
 }

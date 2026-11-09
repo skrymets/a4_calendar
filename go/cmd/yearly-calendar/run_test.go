@@ -78,6 +78,10 @@ func TestRunUsageErrors(t *testing.T) {
 
 func TestRunValidationErrors(t *testing.T) {
 	out := filepath.Join(t.TempDir(), "x.pdf")
+	notTTF := filepath.Join(t.TempDir(), "tiny.ttf")
+	if err := os.WriteFile(notTTF, []byte("tiny"), 0o644); err != nil {
+		t.Fatal(err)
+	}
 	cases := []struct {
 		args []string
 		want string
@@ -87,12 +91,32 @@ func TestRunValidationErrors(t *testing.T) {
 		{[]string{"--weekend", "a,b"}, "--weekend must be comma-separated weekday indexes"},
 		{[]string{"--workday-color", "nope"}, "invalid colour 'nope'"},
 		{[]string{"--font", "missing.ttf"}, "cannot read --font"},
+		{[]string{"--font", notTTF}, "--font: '" + notTTF + "' is not a TrueType (.ttf) font"},
 	}
 	for _, c := range cases {
-		code, _, stderr := call(append(c.args, "--start", "2026-11-07", "-o", out)...)
+		code, stdout, stderr := call(append(c.args, "--start", "2026-11-07", "-o", out)...)
 		if code != 1 || !strings.Contains(stderr, c.want) {
 			t.Errorf("%v: exit %d, stderr %q; want exit 1 with %q", c.args, code, stderr, c.want)
 		}
+		if stdout != "" || strings.Contains(stderr, "get metrics") {
+			t.Errorf("%v: stdout %q, stderr %q; want no stdout and no library noise", c.args, stdout, stderr)
+		}
+	}
+}
+
+func TestRunFontFromFile(t *testing.T) {
+	font, err := filepath.Abs("../../internal/fonts/PT_Sans-Narrow-Web-Regular.ttf")
+	if err != nil {
+		t.Fatal(err)
+	}
+	out := filepath.Join(t.TempDir(), "f.pdf")
+	code, _, stderr := call("--start", "2027-01-01", "--font", font,
+		"--day-letters", "ПВСЧПСН", "-o", out)
+	if code != 0 {
+		t.Fatalf("exit %d: %s", code, stderr)
+	}
+	if _, err := os.Stat(out); err != nil {
+		t.Errorf("no PDF written: %v", err)
 	}
 }
 
