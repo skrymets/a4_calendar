@@ -67,7 +67,7 @@ The fpdf implementation (`fpdfCanvas`) works like this:
 
 `Config` is plain data filled by `main`.
 
-**`internal/fonts`**: holds `PTSansNarrow-Regular.ttf` and `OFL.txt`, both from `github.com/google/fonts/tree/main/ofl/ptsansnarrow`, embedded with `go:embed`.
+**`internal/fonts`**: holds `PT_Sans-Narrow-Web-Regular.ttf` (upstream file name) and `OFL.txt`, both from `github.com/google/fonts/tree/main/ofl/ptsansnarrow`, embedded with `go:embed`.
 
 ## 2. CLI (`cmd/yearly-calendar`)
 
