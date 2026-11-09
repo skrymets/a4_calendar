@@ -1,12 +1,17 @@
 <#
 .SYNOPSIS
   Cross-compile yearly-calendar into go/dist (windows/amd64, linux/amd64, linux/arm64).
+.DESCRIPTION
+  The version stamped into the binaries (--version, PDF Creator) is read from the
+  repository's VERSION file, the single source of the version (see DEV.md).
 #>
 $ErrorActionPreference = 'Stop'
 Push-Location $PSScriptRoot
 try {
-    $version = git describe --tags --always --dirty 2>$null
-    if (-not $version) { $version = 'dev' }
+    $version = (Get-Content -Raw ../VERSION).Trim()
+    if ($version -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$') {
+        throw "VERSION holds '$version', which is not MAJOR.MINOR.PATCH[-prerelease]"
+    }
     $targets = @(
         @{ GOOS = 'windows'; GOARCH = 'amd64'; Ext = '.exe' },
         @{ GOOS = 'linux';   GOARCH = 'amd64'; Ext = '' },

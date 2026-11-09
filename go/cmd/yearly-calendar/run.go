@@ -59,13 +59,10 @@ func run(args []string, stdout, stderr io.Writer) int {
 	cfg, output, err := configure(o, fs.Changed("title"), fs.Changed("output"))
 	if err == nil {
 		var res render.Result
-		c := canvas.New(cfg.PaperW, cfg.PaperH)
-		if res, err = render.Build(cfg, c); err == nil {
-			if err = c.Save(output); err == nil {
-				fmt.Fprintf(stdout, "Wrote %s: %s → %s (%d days)\n", output,
-					res.Start.Format("2006-01-02"), res.End.Format("2006-01-02"), res.TotalDays)
-				return 0
-			}
+		if res, err = buildAndSave(cfg, output); err == nil {
+			fmt.Fprintf(stdout, "Wrote %s: %s → %s (%d days)\n", output,
+				res.Start.Format("2006-01-02"), res.End.Format("2006-01-02"), res.TotalDays)
+			return 0
 		}
 	}
 	fmt.Fprintf(stderr, "Error: %s\n", err)
@@ -85,6 +82,7 @@ func buildAndSave(cfg render.Config, output string) (res render.Result, err erro
 		}
 	}()
 	c := canvas.New(cfg.PaperW, cfg.PaperH)
+	c.SetCreator(fmt.Sprintf("yearly-calendar %s (Go)", version))
 	if res, err = render.Build(cfg, c); err != nil {
 		return res, err
 	}

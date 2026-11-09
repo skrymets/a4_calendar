@@ -14,7 +14,7 @@ for a full year starting on the 1st, 13 otherwise. Each in-range day shows:
 Weekends are shaded. Days of a touched month that fall outside the period
 are drawn faint, without the small numbers.
 
-Requires: pip install reportlab
+Requires: pip install -r requirements.txt   (reportlab)
 
 Examples:
     python yearly_calendar.py --start 2026-01-01
@@ -58,6 +58,22 @@ CELL_PAD = 1.8         # left padding inside a cell, pt
 
 DEFAULT_LETTERS = "MTWTFSS"  # Monday..Sunday (date.weekday() order)
 DEFAULT_MONTHS = "JAN,FEB,MAR,APR,MAY,JUN,JUL,AUG,SEP,OCT,NOV,DEC"
+
+
+def read_version() -> str:
+    """The version from the VERSION file: beside this script (release zip) or
+    one directory up (repository checkout); "dev" when neither exists."""
+    here = os.path.dirname(os.path.abspath(__file__))
+    for path in (os.path.join(here, "VERSION"), os.path.join(here, os.pardir, "VERSION")):
+        try:
+            with open(path, encoding="utf-8") as f:
+                return f.read().strip() or "dev"
+        except OSError:
+            continue
+    return "dev"
+
+
+VERSION = read_version()
 
 
 # ---------------------------------------------------------------- logic
@@ -171,6 +187,7 @@ def build(args):
     page_w, page_h = A4 if args.paper == "a4" else LETTER
     c = canvas.Canvas(args.output, pagesize=(page_w, page_h))
     c.setTitle(f"{args.title} {start:%Y-%m-%d} – {end:%Y-%m-%d}")
+    c.setCreator(f"yearly-calendar {VERSION} (Python)")
 
     months = list(months_between(start, end))
     multi_year = months[0][0] != months[-1][0]
@@ -347,6 +364,7 @@ def parse_args(argv=None):
                    help="compact: small one-line title, slim month row (default)")
     p.add_argument("--hide-outside", dest="show_outside", action="store_false",
                    help="leave days outside the period blank instead of faint")
+    p.add_argument("--version", action="version", version=f"%(prog)s {VERSION}")
     a = p.parse_args(argv)
     n, unit = a.period
     full_year = (n, unit) == (1, "y")

@@ -1,0 +1,182 @@
+name: Release
+
+# The tag is the release. Nothing else publishes — no branch push, no manual button — so a
+# version that shipped is always one that exists in git history under exactly that name.
+# DEV.md holds the whole procedure, including the VERSION bump that has to land first.
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  # Every CI gate, on the exact tagged tree.
+  checks:
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+
+  release:
+    needs: checks
+    runs-on: ubuntu-latest
+
+    # Creating the release and uploading its assets is the only write this needs.
+    permissions:
+      contents: write
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go/go.mod
+          cache-dependency-path: go/go.sum
+
+      # ---------------------------------------------------------------------------------
+      # Gates. All before anything is published, so a failed release leaves no release
+      # object and no assets behind — only a tag to delete.
+      # ---------------------------------------------------------------------------------
+
+      - name: Tag matches VERSION
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          v=$(tr -d '\r\n' < VERSION)
+          if [ "${TAG#v}" != "$v" ]; then
+            echo "::error::tag $TAG wants version ${TAG#v}, but VERSION holds $v. Bump VERSION and commit it, then delete and re-push the tag (DEV.md, When a release fails)."
+            exit 1
+          fi
+          echo "VERSION=$v" >> "$GITHUB_ENV"
+          echo "version $v"
+
+      # The section under "## <version>" up to the next "## " heading.
+      - name: Release notes for this version
+        run: |
+          awk -v h="## $VERSION" '
+            $0 == h { found = 1; next }
+            found && /^## / { exit }
+            found { print }
+          ' Release-Notes.md | sed -e '/./,$!d' > section.md
+          if [ ! -s section.md ]; then
+            echo "::error file=Release-Notes.md::no '## $VERSION' section (or it is empty). Add it before tagging."
+            exit 1
+          fi
+          cat section.md
+
+      - name: Build binaries
+        shell: pwsh
+        run: ./go/build.ps1
+
+      - name: Binary reports VERSION
+        run: |
+          got=$(go/dist/yearly-calendar-linux-amd64 --version)
+          if [ "$got" != "yearly-calendar $VERSION" ]; then
+            echo "::error::the binary says '$got', the tag says $VERSION"
+            exit 1
+          fi
+
+      # ---------------------------------------------------------------------------------
+      # Package. Files are named by the version, not the tag: the tag needs its `v` for the
+      # trigger above, a file name does not. Inside an archive the program keeps the stable
+      # name yearly-calendar[.exe], so unpacking a newer one over an older one changes
+      # nothing that points at it.
+      # ---------------------------------------------------------------------------------
+
+      - name: Package
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          assets=()
+
+          for target in windows-amd64 linux-amd64 linux-arm64; do
+            name="yearly-calendar-$VERSION-$target"
+            stage="dist/$name"
+            mkdir -p "$stage"
+            if [[ $target == windows-* ]]; then
+              cp "go/dist/yearly-calendar-$target.exe" "$stage/yearly-calendar.exe"
+            else
+              cp "go/dist/yearly-calendar-$target" "$stage/yearly-calendar"
+              chmod +x "$stage/yearly-calendar"
+            fi
+            cp go/README.md "$stage/README.md"
+            cp go/dist/OFL.txt go/dist/THIRD_PARTY_LICENSES.txt "$stage/"
+            if [[ $target == windows-* ]]; then
+              (cd dist && zip -qr "$name.zip" "$name")
+              assets+=("$name.zip")
+            else
+              # tar keeps the executable bit, which a zip extracted on Linux loses.
+              tar -C dist -czf "dist/$name.tar.gz" "$name"
+              assets+=("$name.tar.gz")
+            fi
+          done
+
+          name="yearly-calendar-py-$VERSION"
+          stage="dist/$name"
+          mkdir -p "$stage"
+          cp py/yearly_calendar.py py/requirements.txt VERSION "$stage/"
+          cp py/README.md "$stage/README.md"
+          (cd dist && zip -qr "$name.zip" "$name")
+          assets+=("$name.zip")
+
+          # sha256sum's own format ("<hash>  <file>"), so `sha256sum -c` verifies it as-is.
+          files=()
+          for a in "${assets[@]}"; do
+            (cd dist && sha256sum "$a" > "$a.sha256")
+            files+=("dist/$a" "dist/$a.sha256")
+            echo "SHA-256 $(cat "dist/$a.sha256")" >> "$GITHUB_STEP_SUMMARY"
+          done
+          printf '%s\n' "${files[@]}" > assets.txt
+          cat assets.txt
+
+      # ---------------------------------------------------------------------------------
+      # Publish.
+      # ---------------------------------------------------------------------------------
+
+      - name: Publish release
+        env:
+          TAG: ${{ github.ref_name }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          generated=$(gh api "repos/$GITHUB_REPOSITORY/releases/generate-notes" -f tag_name="$TAG" --jq .body)
+
+          {
+            echo "## Install"
+            echo
+            echo "- **Windows:** unzip \`yearly-calendar-$VERSION-windows-amd64.zip\` and run \`yearly-calendar.exe\`."
+            echo "- **Linux:** \`tar -xzf yearly-calendar-$VERSION-linux-amd64.tar.gz\` (or \`-linux-arm64\`) and run \`./yearly-calendar\`."
+            echo "- **Python:** unzip \`yearly-calendar-py-$VERSION.zip\`, \`pip install -r requirements.txt\`, run \`python yearly_calendar.py\`."
+            echo
+            echo "## Verify the download"
+            echo
+            echo "The binaries are unsigned, so the \`.sha256\` beside each archive is the integrity check:"
+            echo
+            echo '```sh'
+            echo "sha256sum -c yearly-calendar-$VERSION-linux-amd64.tar.gz.sha256"
+            echo '```'
+            echo
+            echo '```powershell'
+            echo "(Get-FileHash yearly-calendar-$VERSION-windows-amd64.zip -Algorithm SHA256).Hash.ToLower()"
+            echo '```'
+            echo
+            echo "## What's new in $VERSION"
+            echo
+            cat section.md
+            echo
+            echo "---"
+            echo
+            echo "$generated"
+          } > notes.md
+          cat notes.md
+
+          mapfile -t files < assets.txt
+          args=(release create "$TAG" "${files[@]}"
+                --title "yearly-calendar $VERSION"
+                --notes-file notes.md
+                --verify-tag)
+          # A tag with a hyphen in it — v0.2.0-rc.1 — is a pre-release. Plain v0.2.0 is not.
+          if [[ $TAG == *-* ]]; then args+=(--prerelease); fi
+          gh "${args[@]}"

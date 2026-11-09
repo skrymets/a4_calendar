@@ -1,0 +1,114 @@
+name: CI
+
+# Every gate the release runs, run early, so tagging is a formality rather than a gamble.
+# release.yml calls this same workflow (workflow_call) before it packages anything, so the
+# gates cannot drift apart.
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
+  workflow_call:
+
+# A second push to the same branch or PR makes the first run's answer irrelevant before it
+# has finished producing it.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    # Nothing here publishes anything.
+    permissions:
+      contents: read
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Third-party actions are on major-version tags rather than commit SHAs — see DEV.md,
+      # "Pinned actions".
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go/go.mod
+          cache-dependency-path: go/go.sum
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: py/requirements.txt
+
+      # poppler-utils: pdftoppm/pdftotext for the parity check. fonts-liberation2: Liberation
+      # Sans is metric-compatible with Helvetica, so the non-embedded core font renders with
+      # the right widths in both implementations' PDFs.
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends poppler-utils fonts-liberation2
+          python -m pip install -r py/requirements.txt
+
+      - name: VERSION is SemVer
+        run: |
+          v=$(tr -d '\r\n' < VERSION)
+          if [[ ! "$v" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error file=VERSION::'$v' is not MAJOR.MINOR.PATCH[-prerelease] (DEV.md, Versioning)"
+            exit 1
+          fi
+          echo "VERSION=$v" >> "$GITHUB_ENV"
+          echo "version $v"
+
+      - name: gofmt
+        run: |
+          out=$(gofmt -l go)
+          if [ -n "$out" ]; then
+            echo "::error::not gofmt-formatted:"
+            echo "$out"
+            exit 1
+          fi
+
+      - name: go vet
+        run: go -C go vet ./...
+
+      - name: go test
+        run: go -C go test ./...
+
+      # The same script a developer runs locally, so the binaries CI vouches for are built the
+      # way release binaries are.
+      - name: Build binaries
+        shell: pwsh
+        run: ./go/build.ps1
+
+      - name: Binary reports VERSION
+        run: |
+          got=$(go/dist/yearly-calendar-linux-amd64 --version)
+          if [ "$got" != "yearly-calendar $VERSION" ]; then
+            echo "::error::the binary says '$got', VERSION says $VERSION"
+            exit 1
+          fi
+          echo "$got"
+
+      - name: Python smoke test
+        env:
+          PYTHONIOENCODING: utf-8
+        run: |
+          got=$(python py/yearly_calendar.py --version)
+          if [ "$got" != "yearly_calendar.py $VERSION" ]; then
+            echo "::error::the script says '$got', VERSION says $VERSION"
+            exit 1
+          fi
+          python py/yearly_calendar.py --start 2026-01-01 -o "$RUNNER_TEMP/jan1.pdf"
+          python py/yearly_calendar.py --start 2026-11-07 --period 90d -o "$RUNNER_TEMP/mid.pdf"
+
+      # Renders 20 option combinations with both implementations and compares the pages
+      # pixel by pixel and the extracted text exactly. The Cyrillic case needs Windows'
+      # Arial and is skipped here.
+      - name: Python/Go parity
+        env:
+          PYTHONIOENCODING: utf-8
+        run: python tools/parity.py --go go/dist/yearly-calendar-linux-amd64

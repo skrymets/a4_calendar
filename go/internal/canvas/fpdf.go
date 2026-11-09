@@ -147,6 +147,10 @@ func (c *FPDF) StringWidth(s string, f Font, size float64) float64 {
 
 func (c *FPDF) SetTitle(s string) { c.pdf.SetTitle(s, true) }
 
+// SetCreator records the producing program in the document metadata. The
+// value is ASCII (program name and version), so it is stored as plain text.
+func (c *FPDF) SetCreator(s string) { c.pdf.SetCreator(s, false) }
+
 // Save renders the PDF in memory and only then writes path, so a failure
 // (including an fpdf panic) never creates or truncates the output file.
 func (c *FPDF) Save(path string) (err error) {

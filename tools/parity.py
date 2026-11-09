@@ -14,7 +14,7 @@ import sys
 import tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PY_SCRIPT = os.path.join(ROOT, "yearly_calendar.py")
+PY_SCRIPT = os.path.join(ROOT, "py", "yearly_calendar.py")
 ARIAL = r"C:\Windows\Fonts\arial.ttf"
 
 CHANNEL_TOL = 48      # per-channel difference that counts as a differing pixel

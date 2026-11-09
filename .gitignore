@@ -1,4 +1,25 @@
+# Python
 .venv/
 __pycache__/
-calendar_*.pdf
+*.pyc
+
+# Build output. go/build.ps1 writes the binaries to go/dist/; the release workflow stages
+# and packs the archives in dist/. Both only ever hold generated, versioned artefacts.
 go/dist/
+/dist/
+
+# Generated calendars. Both implementations write calendar_<start>[_<period>].pdf into the
+# current directory by default; the repository itself tracks no PDFs.
+calendar_*.pdf
+/*.pdf
+
+# Local tooling: assistant notes and workspaces, editors, OS noise
+CLAUDE.md
+.claude/
+.superpowers/
+.idea/
+.vscode/
+Thumbs.db
+desktop.ini
+shortcuts.txt
+docs/superpowers/
