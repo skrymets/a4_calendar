@@ -27,9 +27,9 @@ tools/parity.py                  Python vs Go visual/text parity check (dev only
 ```
 
 **`internal/period`**: a 1:1 port of the logic functions in `yearly_calendar.py`. It uses `time.Time` at UTC midnight as a date (via a small `Date` helper) and depends only on the standard library.
-- `ParsePeriod(s) (n int, unit byte, err)`: regex `^(\d+)([dwmy])$` after lowercase/trim, with `n >= 1`. The error text matches Python's.
+- `ParsePeriod(s) (Period, error)` with `Period{N int; Unit byte}`: regex `^(\d+)([dwmy])$` after lowercase/trim, with `n >= 1`. The error text matches Python's.
 - `AddMonths(d, n)`: rolls a missing day forward to the 1st of the next month.
-- `PeriodEnd(start, n, unit)`. `MaxEnd(start) = AddMonths(start,12) - 1d`.
+- `PeriodEnd(start, p Period) (time.Time, error)`. `MaxEnd(start) = AddMonths(start,12) - 1d`.
 - `WeekNumber(day, start, mode, weekStart)` for relative, iso (`time.ISOWeek`) and rolling.
 - `MonthsBetween(start, end)`.
 
@@ -50,16 +50,17 @@ type Canvas interface {
 }
 ```
 
-The fpdf implementation (`fpdfCanvas`) works like this:
+The fpdf implementation (`FPDF`) works like this:
 - **Page:** `fpdf.NewCustom` with unit `pt` and the ReportLab page sizes. A4 is 595.2756 × 841.8898; Letter is 612 × 792.
 - **Coordinates:** flips y with `pageH - y`. `Rect` converts the bottom y to a top y.
 - **Fonts:**
   - Default: core font `Helvetica`, non-embedded with WinAnsi encoding, the same as ReportLab. Strings go through `UnicodeTranslatorFromDescriptor("")`, so `–` and `·` encode as cp1252.
-  - TTF: `AddUTF8Font` for a file path, and `AddUTF8FontFromBytes` for the embedded PT Sans Narrow.
+  - TTF: both paths use `AddUTF8FontFromBytes` (a font path is read with `os.ReadFile` first). TTFs are validated up front: the `00 01 00 00` / `true` signature, then a trial load, draw and render on a throwaway document (`canvas.CheckTTF`) that converts fpdf panics into the error `is not a usable TrueType (.ttf) font`. Runes above U+FFFF are replaced with U+FFFD, since fpdf's UTF-8 tables only cover the BMP.
+  - `Save` renders into a buffer and writes the file only on success, so a failure never creates or truncates the output; panics are recovered into errors (and `run()` recovers as a last line of defence).
 - **Letter-spacing:** `RawWriteStr("<s> Tc")` before `Text`, then `0 Tc` after it. This matches `draw_spaced`. Fallback if the raw op misbehaves: draw glyph by glyph, advancing by `width(ch) + spacing`.
 - **Dashes and caps:** set and reset explicitly with `SetDashPattern`/`SetLineCapStyle`, not with q/Q. fpdf caches graphics state, so a raw restore would desync it. This replaces Python's `saveState`/`restoreState` around the guides.
 
-**`internal/render`**: `Build(cfg Config, c Canvas) (start, end, totalDays)` is a direct port of `build()`, including:
+**`internal/render`**: `Build(cfg Config, c Canvas) (Result, error)` with `Result{Start, End, TotalDays}` is a direct port of `build()`, including:
 - the styling constants (`INK` … `DIVIDER`, `MM`, `TITLE_SIZE`, `HEADER_H`, `MAIN_SIZE`, `SMALL_SIZE`, `CELL_PAD`);
 - `fit_text` and the title truncation;
 - `guide_x0_off`, computed from the widest label;
@@ -82,7 +83,12 @@ Behaviour matches Python as follows:
 - **`--weekend` and colours:** a bad `--weekend` gives a clean error, where Python shows a traceback. Colours accept `#RRGGBB` or `0xRRGGBB`, like ReportLab's `HexColor`.
 - **Defaults:** default title, default filename (`calendar_<start>[_<period>].pdf`) and the max check behave as in Python.
 - **`--font`:** a TTF path, or the keyword `pt-sans-narrow` for the embedded font. The keyword is new; Python only accepts paths.
-- **New flags:** `--version`, stamped via `-ldflags`, and `--licenses`, which prints the PT Sans Narrow copyright notice and OFL text. The OFL requires that notice to ship with the binary.
+- **New flags:** `--version`, stamped via `-ldflags`, and `--licenses`, which prints the PT Sans Narrow copyright notice and OFL text followed by the third-party notices (go-pdf/fpdf MIT, spf13/pflag BSD-3, Go standard library BSD-3) from the embedded `THIRD_PARTY_LICENSES.txt`. The OFL and the other licences require those notices to ship with the binary.
+- **Accepted message deviations from argparse:**
+  - pflag says `unknown flag: --x` (argparse: `unrecognized arguments: --x`);
+  - pflag says `flag needs an argument: --start` (argparse: `argument --start: expected one argument`);
+  - no prefix abbreviations (`--per` is rejected);
+  - `--start` accepts only `YYYY-MM-DD` (year 0 is rejected, as in Python).
 - **Success:** prints `Wrote <path>: <start> → <end> (<n> days)` and exits 0.
 
 ## 3. Build
@@ -92,7 +98,7 @@ Behaviour matches Python as follows:
 - linux/amd64
 - linux/arm64
 
-It writes `go/dist/yearly-calendar-<os>-<arch>[.exe]` and copies `OFL.txt` into `dist/`. `go/dist/` is added to `.gitignore`.
+It writes `go/dist/yearly-calendar-<os>-<arch>[.exe]` and copies `OFL.txt` and `THIRD_PARTY_LICENSES.txt` into `dist/`. `go/dist/` is added to `.gitignore`.
 
 ## 4. Testing and parity
 
@@ -102,10 +108,10 @@ It writes `go/dist/yearly-calendar-<os>-<arch>[.exe]` and copies `OFL.txt` into 
   - `cmd`: flag parsing and exit codes, via a `run(args, stdout, stderr) int` function so `main` stays thin.
 - **Parity check, `tools/parity.py`:**
   - Runs both implementations over the same case matrix with `--start` always given: Jan-1 year, mid-year, `90d`, `2w`, `--period 1d`, iso, rolling, `--week-labels all`, `--header full`, `--paper letter`, `--hide-outside`, `--note-lines 3`, `--no-footer`, `--no-note-guide`, custom colours, a long `--title`, and a Cyrillic case with `--font C:\Windows\Fonts\arial.ttf`.
-  - Rasterises both outputs with `pdftoppm -r 150`, which is installed via MiKTeX.
+  - Rasterises both outputs with `pdftoppm` (default `--dpi 100`), which is installed via MiKTeX.
   - Compares the PPM pixels in pure Python, so no Pillow is needed.
-  - Reports the share of differing pixels (channel delta > 48). It fails above a small tolerance for anti-aliasing from coordinate rounding; the threshold is tuned once and recorded. It writes diff images to a temp dir.
-  - If `pdftotext` is available, it also compares the extracted text exactly.
+  - Reports the share of differing pixels (channel delta > 48). It fails above a tolerance for anti-aliasing from coordinate rounding, tuned to 0.25% (worst observed 0.1187%). It writes diff images to a temp dir.
+  - If `pdftotext` is available, it also compares the extracted text exactly, using `pdftotext -raw` (layout mode gave false diffs from sub-point coordinate rounding).
 - **Manual check:** look at the Go PDFs with the Read tool, including `--font pt-sans-narrow` with Cyrillic day letters and month names, which has no Python counterpart.
 
 ## 5. Out of scope / next improvements
