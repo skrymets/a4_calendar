@@ -228,8 +228,8 @@ func TestRunDebugTimelineJSON(t *testing.T) {
 				t.Fatal(err)
 			}
 			opt := func(k string) string { s, _ := want.Options[k].(string); return s }
-			start, _ := time.Parse(isoDate, opt("start"))
-			end, _ := time.Parse(isoDate, opt("end"))
+			start, _ := time.Parse(time.DateOnly, opt("start"))
+			end, _ := time.Parse(time.DateOnly, opt("end"))
 			out := filepath.Join(dir, "debug.json")
 			args := []string{"--start", opt("start"), "--today", opt("today"),
 				"--period", fmt.Sprintf("%dd", int(end.Sub(start).Hours()/24)+1),

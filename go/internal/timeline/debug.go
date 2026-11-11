@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"strconv"
 	"strings"
+	"time"
 
 	"a4calendar/internal/dsl"
 )
@@ -71,7 +72,7 @@ func DebugJSON(info DebugInfo, d *Decls, r *dsl.Resolved, l *Layout) ([]byte, er
 	for _, o := range r.Milestones {
 		m := d.Milestones[o.Index]
 		doc.Resolved.Milestones = append(doc.Resolved.Milestones, debugMilestone{
-			ID: m.ID, Date: o.Date.Format(isoDate), Occurrence: occurrence(m.Rec != nil, o.Idx, o.N), Hidden: m.Hidden,
+			ID: m.ID, Date: o.Date.Format(time.DateOnly), Occurrence: occurrence(m.Rec != nil, o.Idx, o.N), Hidden: m.Hidden,
 		})
 	}
 	for _, o := range r.Intervals {
@@ -81,8 +82,8 @@ func DebugJSON(info DebugInfo, d *Decls, r *dsl.Resolved, l *Layout) ([]byte, er
 			id = &x.ID
 		}
 		doc.Resolved.Intervals = append(doc.Resolved.Intervals, debugInterval{
-			ID: id, Key: x.Key, Start: o.Start.Format(isoDate), EndExclusive: o.End.Format(isoDate),
-			LastDrawnDay: o.End.AddDate(0, 0, -1).Format(isoDate), Occurrence: occurrence(x.Rec != nil, o.Idx, o.N),
+			ID: id, Key: x.Key, Start: o.Start.Format(time.DateOnly), EndExclusive: o.End.Format(time.DateOnly),
+			LastDrawnDay: o.End.AddDate(0, 0, -1).Format(time.DateOnly), Occurrence: occurrence(x.Rec != nil, o.Idx, o.N),
 		})
 	}
 
@@ -128,8 +129,6 @@ func DebugJSON(info DebugInfo, d *Decls, r *dsl.Resolved, l *Layout) ([]byte, er
 	}
 	return json.MarshalIndent(doc, "", " ")
 }
-
-const isoDate = "2006-01-02"
 
 func occurrence(series bool, idx, n int) string {
 	if !series {

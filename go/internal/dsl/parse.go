@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 	"unicode/utf8"
+
+	"a4calendar/internal/period"
 )
 
 // utf8BOM is skipped at the start of a file.
@@ -216,7 +218,7 @@ func (p *parser) interval(src Source, line int, name, expr string, propParts []s
 	if !iv.Start.Before(iv.End) {
 		return fail(errorf("interval start %s must be before its end %s", iso(iv.Start), iso(iv.End)))
 	}
-	iv.Days = int(iv.End.Sub(iv.Start).Hours() / 24)
+	iv.Days = period.DaysBetween(iv.Start, iv.End) // not Sub: Duration saturates after ~292 years
 	if iv.Rec, err = p.recurrence(props, true); err != nil {
 		return fail(err)
 	}

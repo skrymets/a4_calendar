@@ -22,7 +22,7 @@ func goldenOptions(t *testing.T, raw map[string]any) (Options, time.Time) {
 	t.Helper()
 	date := func(k string) time.Time {
 		s, _ := raw[k].(string)
-		d, err := time.Parse(isoDate, s)
+		d, err := time.Parse(time.DateOnly, s)
 		if err != nil {
 			t.Fatalf("option %s: %v", k, err)
 		}

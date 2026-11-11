@@ -18,7 +18,7 @@ func layoutOf(t *testing.T, text, start, end string, tweak func(*Options)) *Layo
 }
 
 func d(s string) time.Time {
-	t, err := time.Parse(isoDate, s)
+	t, err := time.Parse(time.DateOnly, s)
 	if err != nil {
 		panic(err)
 	}
@@ -345,5 +345,15 @@ h=2027-02-01/2027-02-08;style=hatch;title="Holiday"`
 	}
 	if !l.Legend[4].Milestone || l.Legend[4].Mark != Ring || l.Legend[0].Swatch != SwatchBack || l.Legend[5].Swatch != SwatchHatch || l.Legend[2].Swatch != SwatchDashed {
 		t.Errorf("legend kinds = %+v", l.Legend)
+	}
+}
+
+// REQ-LG-2: an interval that started before the period sorts by its first
+// in-period day, so a milestone on that day (declared first) comes first.
+func TestLegendSortsByFirstInPeriodDay(t *testing.T) {
+	l := layoutOf(t, `m=2027-02-01;title="Start"
+x=2027-01-20/20d;title="Running"`, "2027-02-01", "2027-03-31", nil)
+	if len(l.Legend) != 2 || l.Legend[0].Title != "Start" || l.Legend[1].Title != "Running" {
+		t.Errorf("legend order = %+v", l.Legend)
 	}
 }

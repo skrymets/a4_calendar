@@ -25,6 +25,16 @@ const (
 	lgMinRow  = 6.0 * MM
 	lgCols    = 4
 	lgColsFit = 5 // fallback: key + title only
+
+	lgKeyRight   = lgSwatchW + lgGap + lgKeyW // keys are right-aligned here
+	lgTextX      = lgKeyRight + lgGap         // title start
+	lgTextMid    = 0.36                       // swatch centre above the baseline, × lgSize
+	lgDashOn     = 1.5                        // dashed swatch
+	lgDashOff    = 1.1
+	lgOutlineW   = 0.4 // hatch swatch outline
+	lgGlyphScale = 1.1 // milestone mark, × lgSize
+	lgRingR      = 0.3 // ◯, × mark size
+	lgRingW      = 0.6
 )
 
 var lgOutline = canvas.MustHex("#8C8C8C")
@@ -89,100 +99,92 @@ func (t *tlDrawer) legend(p legendPlan, x0, top, gridW float64) {
 		return
 	}
 	cw := (gridW - float64(p.cols-1)*lgColGap) / float64(p.cols)
+	cell := func(i int) (x, y float64) { // left edge and baseline of entry i
+		return x0 + float64(i%p.cols)*(cw+lgColGap), top - lgTopGap - float64(i/p.cols)*lgRowH - lgRowH*tlCapHeight
+	}
 	for i, e := range p.entries {
-		x := x0 + float64(i%p.cols)*(cw+lgColGap)
-		y := top - lgTopGap - float64(i/p.cols)*lgRowH - lgRowH*0.72 // baseline
+		x, y := cell(i)
 		t.legendEntry(e, x, y, cw, p.brief)
 	}
 	if p.more > 0 {
-		i := len(p.entries)
-		x := x0 + float64(i%p.cols)*(cw+lgColGap) + lgSwatchW + lgGap + lgKeyW + lgGap
-		y := top - lgTopGap - float64(i/p.cols)*lgRowH - lgRowH*0.72
+		x, y := cell(len(p.entries))
 		t.c.SetFillColor(InkSoft)
 		t.c.SetFont(t.bold, lgSize)
-		t.c.DrawString(x, y, fmt.Sprintf("+%d more", p.more))
+		t.c.DrawString(x+lgTextX, y, fmt.Sprintf("+%d more", p.more))
 	}
 }
 
-// legendEntry draws swatch, key, title and dates in a cell of width w.
+// legendEntry draws swatch, key, title and dates in a cell of width w; y is
+// the text baseline.
 func (t *tlDrawer) legendEntry(e timeline.LegendEntry, x, y, w float64, brief bool) {
-	c := t.c
 	col := hexColor(e.Color)
-	sy := y + lgSize*0.36 - lgSwatchH/2 // swatch centred on the text
-	c.SetFillColor(col)
+	t.c.SetFillColor(col) // swatch, key and title; only the dates are grey
+	t.legendSwatch(e, x, y)
+	t.legendKey(e, col, x+lgKeyRight, y)
+	t.legendText(e, x+lgTextX, y, x+w, brief)
+}
+
+// legendSwatch draws the small sample of the entry's rail or hatch.
+func (t *tlDrawer) legendSwatch(e timeline.LegendEntry, x, y float64) {
+	c := t.c
+	sy := y + lgSize*lgTextMid - lgSwatchH/2 // centred on the text
 	switch e.Swatch {
 	case timeline.SwatchRail, timeline.SwatchGroup:
 		c.RoundedRect(x, sy, lgSwatchW, lgSwatchH, tlCapR, tlCapR, true)
 	case timeline.SwatchDashed:
-		t.dashes(x, lgSwatchW, sy, sy+lgSwatchH, 1.5, 1.1)
+		t.dashes(x, lgSwatchW, sy, sy+lgSwatchH, lgDashOn, lgDashOff)
 	case timeline.SwatchBack:
 		c.Rect(x+(lgSwatchW-tlBackW)/2, sy, tlBackW, lgSwatchH)
 	case timeline.SwatchHatch:
 		t.hatchLines(x, sy, lgHatchW, lgSwatchH, false)
 		c.SetStrokeColor(lgOutline)
-		c.SetLineWidth(0.4)
+		c.SetLineWidth(lgOutlineW)
 		c.RoundedRect(x, sy, lgHatchW, lgSwatchH, 0, 0, false)
-	}
-
-	keyR := x + lgSwatchW + lgGap + lgKeyW // keys are right-aligned here
-	if e.Milestone {
-		size := lgSize * 1.1
-		c.SetFillColor(col)
-		if e.Mark == timeline.Ring {
-			r := 0.3 * size
-			c.SetStrokeColor(col)
-			c.SetLineWidth(0.6)
-			c.RoundedRect(keyR-2*r, y+0.33*size-r, 2*r, 2*r, r, r, false)
-		} else {
-			gw := glyphWidth(e.Mark, size)
-			drawGlyph(c, e.Mark, keyR-gw, y, size)
-		}
-	} else {
-		c.SetFillColor(col)
-		c.SetFont(t.bold, lgSize)
-		c.DrawString(keyR-c.StringWidth(e.Key, t.bold, lgSize), y, e.Key)
-	}
-
-	tx := keyR + lgGap
-	right := x + w
-	when, whenW := e.When, 0.0
-	if !brief && when != "" {
-		whenW = c.StringWidth(when, t.font, lgSize)
-		if whenW > right-tx { // dates alone are too wide: shorten them
-			when = fitText(when, right-tx, tlEllipsis, func(s string) float64 { return c.StringWidth(s, t.font, lgSize) })
-			whenW = c.StringWidth(when, t.font, lgSize)
-		}
-	}
-	maxTitle := right - tx
-	if whenW > 0 {
-		maxTitle -= whenW + lgGap
-	}
-	title := fitText(e.Title, maxTitle, tlEllipsis, func(s string) float64 { return c.StringWidth(s, t.bold, lgSize) })
-	c.SetFillColor(col)
-	c.SetFont(t.bold, lgSize)
-	c.DrawString(tx, y, title)
-	if whenW > 0 {
-		wx := tx + lgGap
-		if title != "" {
-			wx += c.StringWidth(title, t.bold, lgSize)
-		}
-		c.SetFillColor(InkSoft)
-		c.SetFont(t.font, lgSize)
-		c.DrawString(wx, y, when)
 	}
 }
 
-// glyphWidth is the width drawGlyph uses for m at size.
-func glyphWidth(m timeline.Mark, size float64) float64 {
-	switch m {
-	case timeline.Diamond:
-		return 0.6 * size
-	case timeline.Star:
-		return 2 * 0.38 * size * math.Cos(math.Pi/10)
-	case timeline.Dot:
-		return 0.48 * size
+// legendKey draws the interval or group key, or the milestone's mark (◯ for
+// a ring), right-aligned at right.
+func (t *tlDrawer) legendKey(e timeline.LegendEntry, col canvas.RGB, right, y float64) {
+	c := t.c
+	if !e.Milestone {
+		c.SetFont(t.bold, lgSize)
+		c.DrawString(right-c.StringWidth(e.Key, t.bold, lgSize), y, e.Key)
+		return
 	}
-	return 0
+	size := lgSize * lgGlyphScale
+	if e.Mark != timeline.Ring {
+		drawGlyph(c, e.Mark, right-glyphWidth(e.Mark, size), y, size)
+		return
+	}
+	r := lgRingR * size
+	c.SetStrokeColor(col)
+	c.SetLineWidth(lgRingW)
+	c.RoundedRect(right-2*r, y+glyphMid*size-r, 2*r, 2*r, r, r, false)
+}
+
+// legendText draws the bold title and the grey dates between x and right;
+// the title is shortened first, the dates only when they alone are too wide.
+func (t *tlDrawer) legendText(e timeline.LegendEntry, x, y, right float64, brief bool) {
+	c := t.c
+	boldW := func(s string) float64 { return c.StringWidth(s, t.bold, lgSize) }
+	fontW := func(s string) float64 { return c.StringWidth(s, t.font, lgSize) }
+	when := ""
+	if !brief {
+		when = fitText(e.When, right-x, tlEllipsis, fontW)
+	}
+	maxTitle := right - x
+	if when != "" {
+		maxTitle -= fontW(when) + lgGap
+	}
+	title := fitText(e.Title, maxTitle, tlEllipsis, boldW)
+	c.SetFont(t.bold, lgSize)
+	c.DrawString(x, y, title)
+	if when != "" {
+		c.SetFillColor(InkSoft)
+		c.SetFont(t.font, lgSize)
+		c.DrawString(x+boldW(title)+lgGap, y, when)
+	}
 }
 
 // sourceNames names the timeline inputs: file names, then "command line"

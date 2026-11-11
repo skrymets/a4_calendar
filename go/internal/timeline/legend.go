@@ -119,7 +119,7 @@ func (e *engine) legend() []LegendEntry {
 		case x.Style == Dashed:
 			sw = SwatchDashed
 		}
-		out = append(out, LegendEntry{Key: x.Key, Title: title, When: w, Color: x.Color, Swatch: sw, sortDay: first.s})
+		out = append(out, LegendEntry{Key: x.Key, Title: title, When: w, Color: x.Color, Swatch: sw, sortDay: max(first.s, e.start)}) // first in-period day (REQ-LG-2)
 	}
 	sort.SliceStable(out, func(i, j int) bool { return out[i].sortDay < out[j].sortDay })
 	for _, g := range e.groups {

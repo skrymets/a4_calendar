@@ -10,6 +10,7 @@ type drawn struct {
 	op, text string
 	x, y     float64
 	size     float64
+	x2       float64 // lines: end x
 }
 
 // fakeCanvas records text output; widths are 0.5*size per rune.
@@ -27,8 +28,10 @@ func (f *fakeCanvas) SetDash(float64, float64)                {}
 func (f *fakeCanvas) ClearDash()                              {}
 func (f *fakeCanvas) SetRoundCap(bool)                        {}
 func (f *fakeCanvas) Rect(float64, float64, float64, float64) {}
-func (f *fakeCanvas) Line(float64, float64, float64, float64) {}
-func (f *fakeCanvas) SetFont(_ canvas.Font, size float64)     { f.size = size }
+func (f *fakeCanvas) Line(x1, y1, x2, _ float64) {
+	f.out = append(f.out, drawn{op: "line", x: x1, y: y1, x2: x2})
+}
+func (f *fakeCanvas) SetFont(_ canvas.Font, size float64) { f.size = size }
 
 func (f *fakeCanvas) RoundedRect(x, y, w, h, _, _ float64, fill bool) {
 	op := "roundrect-stroke"
@@ -47,11 +50,11 @@ func (f *fakeCanvas) SetTitle(s string)      { f.title = s }
 func (f *fakeCanvas) SetSubject(s string)    { f.subject = s }
 
 func (f *fakeCanvas) DrawString(x, y float64, s string) {
-	f.out = append(f.out, drawn{"string", s, x, y, f.size})
+	f.out = append(f.out, drawn{op: "string", text: s, x: x, y: y, size: f.size})
 }
 
 func (f *fakeCanvas) DrawSpaced(x, y float64, s string, _ float64) {
-	f.out = append(f.out, drawn{"spaced", s, x, y, f.size})
+	f.out = append(f.out, drawn{op: "spaced", text: s, x: x, y: y, size: f.size})
 }
 
 func (f *fakeCanvas) StringWidth(s string, _ canvas.Font, size float64) float64 {

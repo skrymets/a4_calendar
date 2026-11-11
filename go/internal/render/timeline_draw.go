@@ -43,9 +43,27 @@ const (
 	tlGlyphNarrow = 5.25
 	tlCountSize   = 4.1
 	tlCountTrack  = 0.04 // em
-	tlEllipsis    = "…"
+	tlEllipsis    = "…"  // timeline text; the page title keeps "..."
 	tlSeam        = 0.15 // a running rail overlaps the next cell, so no hairline gap shows
 	tlGlyphGap    = 1.5  // after the weekday letter
+	tlMarkGap     = 0.5  // between glyphs, and between the glyphs and a title
+	tlGlyphInsetN = 0.75 // narrow page: glyph inset from guideStart
+	tlZoneGap     = 0.75 // text stops this far before the rail zone
+	tlRingPad     = 0.75 // ring: 1 px each side of the day number (02 §3)
+	tlRingBelow   = 1.6  // ring bottom below the label baseline
+	tlRingH       = 1.18 // ring height, × MainSize
+	tlCapHeight   = 0.72 // cap height as a share of the font size
+)
+
+// Vector glyphs (REQ-PG-5), as shares of the font size.
+const (
+	glyphMid     = 0.33 // centre above the baseline (diamond, star)
+	diamondHalfW = 0.3
+	diamondHalfH = 0.36
+	starOuterR   = 0.38
+	starInnerR   = 0.382 // of the outer radius
+	dotR         = 0.24
+	dotMid       = 0.3 // dot centre above the baseline
 )
 
 // tlDrawer draws a timeline.Layout into the calendar's cells.
@@ -66,6 +84,23 @@ type tlCell struct {
 	letterEnd     float64 // right of the weekday letter
 }
 
+// noteRight is where timeline text in the cell must stop: before the rail zone.
+func (g tlCell) noteRight(day *timeline.Day) float64 { return g.x0 + g.w - day.Zone - tlZoneGap }
+
+// span is the vertical extent of a rail or margin line in the cell (REQ-IV-2):
+// a capped end stops CapInset inside the cell, rounded with radius r; a
+// running bottom end overlaps the next cell by tlSeam.
+func (g tlCell) span(topCap, botCap bool, r float64) (top, bot, rTop, rBot float64) {
+	top, bot = g.yt, g.yb-tlSeam
+	if topCap {
+		top, rTop = g.yt-timeline.CapInset, r
+	}
+	if botCap {
+		bot, rBot = g.yb+timeline.CapInset, r
+	}
+	return top, bot, rTop, rBot
+}
+
 func newTLDrawer(c canvas.Canvas, t *Timeline, font canvas.Font, pageH float64) *tlDrawer {
 	if t == nil || t.Layout == nil {
 		return nil
@@ -81,6 +116,8 @@ func (t *tlDrawer) day(ci, d int) *timeline.Day {
 	return t.l.Columns[ci].Days[d-1]
 }
 
+// hexColor converts a layout colour; timeline.ReadKeys has validated every
+// colour, so the fallback is never used.
 func hexColor(s string) canvas.RGB {
 	c, err := canvas.Hex(s)
 	if err != nil {
@@ -148,15 +185,7 @@ func (t *tlDrawer) cell(ci, d int, g tlCell) {
 func (t *tlDrawer) backLines(day *timeline.Day, g tlCell) {
 	for _, b := range day.Back {
 		x := g.guideX - tlBackOff + float64(b.Slot)*tlBackStep
-		top, bot, rTop, rBot := g.yt, g.yb, 0.0, 0.0
-		if b.TopCap {
-			top, rTop = top-timeline.CapInset, tlBackW/2
-		}
-		if b.BotCap {
-			bot, rBot = bot+timeline.CapInset, tlBackW/2
-		} else {
-			bot -= tlSeam
-		}
+		top, bot, rTop, rBot := g.span(b.TopCap, b.BotCap, tlBackW/2)
 		t.c.SetFillColor(hexColor(b.Color))
 		if b.Dotted() {
 			t.dashes(x, tlBackW, bot, top, tlBackDot, tlBackDot)
@@ -169,47 +198,47 @@ func (t *tlDrawer) backLines(day *timeline.Day, g tlCell) {
 // rails draws interval rails with caps, dashes, jogs and group ticks, and
 // the overflow rail (REQ-IV-1…6, REQ-PK-4, REQ-FL-3, REQ-GR-2, -3).
 func (t *tlDrawer) rails(col *timeline.Column, day *timeline.Day, g tlCell) {
-	c := t.c
-	xR := g.x0 + g.w
-	laneRight := func(lane int) float64 { return xR - (t.l.Pad + float64(lane)*col.Step) }
+	laneRight := func(lane int) float64 { return g.x0 + g.w - (t.l.Pad + float64(lane)*col.Step) }
 	for _, r := range day.Rails {
-		w, right := col.RailW, laneRight(r.Lane)
-		if r.Thick { // grows towards the column edge
-			w, right = w+timeline.ThickExtra, right+timeline.ThickExtra
-		}
-		top, bot, rTop, rBot := g.yt, g.yb, 0.0, 0.0
-		if r.TopCap {
-			top, rTop = top-timeline.CapInset, tlCapR
-		}
-		if r.BotCap {
-			bot, rBot = bot+timeline.CapInset, tlCapR
-		} else {
-			bot -= tlSeam
-		}
-		c.SetFillColor(hexColor(r.Color))
-		if r.JogFrom >= 0 && !r.TopCap {
-			from := laneRight(r.JogFrom) + right - laneRight(r.Lane)
-			top = g.yt - timeline.JogHeight
-			c.Polygon([]canvas.Point{{X: from - w, Y: g.yt}, {X: from, Y: g.yt}, {X: right, Y: top}, {X: right - w, Y: top}})
-		}
-		if r.Dashed {
-			t.dashes(right-w, w, bot, top, tlDashOn, tlDashOff)
-		} else {
-			c.RoundedRect(right-w, bot, w, top-bot, rTop, rBot, true)
-		}
-		for _, tk := range r.Ticks {
-			tw := col.RailW + tlTickExtra
-			x := laneRight(r.Lane) + tlTickExtra/2 - tw
-			y := g.yb + timeline.CapInset
-			if tk.AtTop {
-				y = g.yt - timeline.CapInset - tlTickH
-			}
-			c.Rect(x, y, tw, tlTickH)
-		}
+		t.c.SetFillColor(hexColor(r.Color))
+		t.rail(r, col.RailW, g, laneRight)
+		t.ticks(r, col.RailW, g, laneRight(r.Lane))
 	}
 	if day.OverflowLane >= 0 {
-		c.SetFillColor(tlGrey)
+		t.c.SetFillColor(tlGrey)
 		t.dashes(laneRight(day.OverflowLane)-tlOverflowW, tlOverflowW, g.yb, g.yt, tlOverflowW, tlOverflowW)
+	}
+}
+
+// rail draws one rail segment with its caps, dashes and flow jog.
+func (t *tlDrawer) rail(r timeline.Rail, railW float64, g tlCell, laneRight func(int) float64) {
+	w, right := railW, laneRight(r.Lane)
+	if r.Thick { // grows towards the column edge
+		w, right = w+timeline.ThickExtra, right+timeline.ThickExtra
+	}
+	top, bot, rTop, rBot := g.span(r.TopCap, r.BotCap, tlCapR)
+	if r.JogFrom >= 0 && !r.TopCap { // diagonal from yesterday's lane at the cell top
+		from := laneRight(r.JogFrom) + right - laneRight(r.Lane)
+		top = g.yt - timeline.JogHeight
+		t.c.Polygon([]canvas.Point{{X: from - w, Y: g.yt}, {X: from, Y: g.yt}, {X: right, Y: top}, {X: right - w, Y: top}})
+	}
+	if r.Dashed {
+		t.dashes(right-w, w, bot, top, tlDashOn, tlDashOff)
+	} else {
+		t.c.RoundedRect(right-w, bot, w, top-bot, rTop, rBot, true)
+	}
+}
+
+// ticks marks group members starting or ending inside a running group rail
+// whose lane's right edge is at right (REQ-GR-3).
+func (t *tlDrawer) ticks(r timeline.Rail, railW float64, g tlCell, right float64) {
+	tw := railW + tlTickExtra
+	for _, tk := range r.Ticks {
+		y := g.yb + timeline.CapInset
+		if tk.AtTop {
+			y = g.yt - timeline.CapInset - tlTickH
+		}
+		t.c.Rect(right+tlTickExtra/2-tw, y, tw, tlTickH)
 	}
 }
 
@@ -222,59 +251,67 @@ func (t *tlDrawer) milestoneMarks(day *timeline.Day, g tlCell) float64 {
 	}
 	c := t.c
 	if m.Ring != "" {
-		h := MainSize * 1.18
+		h, w := MainSize*tlRingH, g.numW+2*tlRingPad
 		c.SetStrokeColor(hexColor(m.Ring))
 		c.SetLineWidth(tlRingW)
-		x, w := g.numX-0.75, g.numW+1.5 // 1 px padding (02 §3)
-		c.RoundedRect(x, g.mainY-1.6, w, h, min(w, h)/2, min(w, h)/2, false)
+		c.RoundedRect(g.numX-tlRingPad, g.mainY-tlRingBelow, w, h, min(w, h)/2, min(w, h)/2, false)
 	}
 	x, y, size := g.letterEnd+tlGlyphGap, g.mainY, tlGlyphWide
 	if t.l.Narrow {
-		x, size = g.guideX+0.75, tlGlyphNarrow
+		x, size = g.guideX+tlGlyphInsetN, tlGlyphNarrow
 	}
 	for _, mk := range m.Marks {
 		if mk.Mark == timeline.Ring {
 			continue
 		}
 		c.SetFillColor(hexColor(mk.Color))
-		x += drawGlyph(c, mk.Mark, x, y, size) + 0.5
+		x += drawGlyph(c, mk.Mark, x, y, size) + tlMarkGap
 	}
 	return x
+}
+
+// glyphWidth is the width of m's vector glyph at size; 0 for a ring.
+func glyphWidth(m timeline.Mark, size float64) float64 {
+	switch m {
+	case timeline.Diamond:
+		return 2 * diamondHalfW * size
+	case timeline.Star:
+		return 2 * starOuterR * size * math.Cos(math.Pi/10)
+	case timeline.Dot:
+		return 2 * dotR * size
+	}
+	return 0
 }
 
 // drawGlyph draws ◆ ★ ● as vector shapes (REQ-PG-5) with the left edge at x
 // and the baseline at y; it returns the width.
 func drawGlyph(c canvas.Canvas, m timeline.Mark, x, y, size float64) float64 {
-	cy := y + 0.33*size
+	w := glyphWidth(m, size)
+	cy := y + glyphMid*size
 	switch m {
 	case timeline.Diamond:
-		hw, hh := 0.3*size, 0.36*size
-		c.Polygon([]canvas.Point{{X: x + hw, Y: cy + hh}, {X: x + 2*hw, Y: cy}, {X: x + hw, Y: cy - hh}, {X: x, Y: cy}})
-		return 2 * hw
+		hh := diamondHalfH * size
+		c.Polygon([]canvas.Point{{X: x + w/2, Y: cy + hh}, {X: x + w, Y: cy}, {X: x + w/2, Y: cy - hh}, {X: x, Y: cy}})
 	case timeline.Star:
-		ro, ri := 0.38*size, 0.38*size*0.382
-		cx := x + ro*math.Cos(math.Pi/10)
+		ro := starOuterR * size
 		pts := make([]canvas.Point, 10)
 		for i := range pts {
 			r := ro
 			if i%2 == 1 {
-				r = ri
+				r = ro * starInnerR
 			}
 			a := math.Pi/2 + float64(i)*math.Pi/5
-			pts[i] = canvas.Point{X: cx + r*math.Cos(a), Y: cy + r*math.Sin(a)}
+			pts[i] = canvas.Point{X: x + w/2 + r*math.Cos(a), Y: cy + r*math.Sin(a)}
 		}
 		c.Polygon(pts)
-		return 2 * ro * math.Cos(math.Pi/10)
 	case timeline.Dot:
-		r := 0.24 * size
-		c.Circle(x+r, y+0.3*size, r)
-		return 2 * r
+		c.Circle(x+w/2, y+dotMid*size, w/2)
 	}
-	return 0
+	return w
 }
 
 // topY is the baseline of the top row (02 §2).
-func topY(g tlCell, size float64) float64 { return g.yt - tlTopFrom - 0.72*size }
+func topY(g tlCell, size float64) float64 { return g.yt - tlTopFrom - tlCapHeight*size }
 
 // countdown draws "T–N" top-left in the note area (REQ-MS-5); it returns
 // the x where the top row may start.
@@ -297,7 +334,7 @@ func (t *tlDrawer) topRow(day *timeline.Day, g tlCell, left float64) {
 	if len(day.Top) == 0 {
 		return
 	}
-	right := g.x0 + g.w - day.Zone - 0.75
+	right := g.noteRight(day)
 	if t.l.Narrow {
 		t.narrowKeys(day.Top, g, left, right)
 		return
@@ -312,8 +349,10 @@ func (t *tlDrawer) topRow(day *timeline.Day, g tlCell, left float64) {
 		}
 		return w
 	}
+	shortened := false
 	for len(items) > 0 && total() > right-left {
-		if items[0].Kind == timeline.TopLabel { // shorten the label first
+		if items[0].Kind == timeline.TopLabel && !shortened { // shorten the label once, then drop it
+			shortened = true
 			rest := total() - width(items[0].Text)
 			if s := fitText(items[0].Text, right-left-rest, tlEllipsis, width); s != "" {
 				items[0].Text = s
@@ -377,8 +416,8 @@ func (t *tlDrawer) milestoneTitle(day *timeline.Day, g tlCell, marksEnd float64)
 	if t.l.Narrow || m == nil || m.Title == "" {
 		return
 	}
-	x := max(g.guideX, marksEnd+0.5)
-	right := g.x0 + g.w - day.Zone - 0.75
+	x := max(g.guideX, marksEnd) // marksEnd already includes tlMarkGap
+	right := g.noteRight(day)
 	s := fitText(m.Title, right-x, tlEllipsis, func(s string) float64 { return t.c.StringWidth(s, t.bold, tlTitleSize) })
 	if s == "" {
 		return

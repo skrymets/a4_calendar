@@ -227,8 +227,6 @@ func configure(o *options, changed func(string) bool, stderr io.Writer) (render.
 	return cfg, output, err
 }
 
-const isoDate = "2006-01-02"
-
 // parseDate reads a YYYY-MM-DD option; empty means def, or the local
 // date when def is zero.
 func parseDate(flag, s string, def time.Time) (time.Time, error) {
@@ -239,7 +237,7 @@ func parseDate(flag, s string, def time.Time) (time.Time, error) {
 		}
 		return def, nil
 	}
-	t, err := time.Parse(isoDate, s)
+	t, err := time.Parse(time.DateOnly, s)
 	if err != nil || t.Year() < 1 {
 		return time.Time{}, usagef("argument %s: invalid fromisoformat value: '%s'", flag, s)
 	}

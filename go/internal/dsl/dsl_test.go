@@ -1,6 +1,7 @@
 package dsl
 
 import (
+	"a4calendar/internal/period"
 	"errors"
 	"strings"
 	"testing"
@@ -387,5 +388,22 @@ func TestTooManyOccurrences(t *testing.T) {
 	_, err := Expand(m, d("2027-12-31"))
 	if err == nil || !strings.Contains(err.Error(), "t.dates:1: the recurrence has more than 100000 occurrences") {
 		t.Errorf("err = %v", err)
+	}
+}
+
+// Day counts use calendar arithmetic, not time.Duration, which saturates
+// after about 292 years.
+func TestLongIntervalDays(t *testing.T) {
+	m, err := Parse(file("x=0001-01-01/2400-01-01; every=1000y; count=2"), today)
+	if err != nil {
+		t.Fatal(err)
+	}
+	r, err := Expand(m, period.Date(9999, 12, 31))
+	if err != nil {
+		t.Fatal(err)
+	}
+	// same day count (876,216) from 1001-01-01; one more leap day in between
+	if got := r.Intervals[1].End.Format("2006-01-02"); got != "3399-12-31" {
+		t.Errorf("second occurrence ends %s; want 3399-12-31", got)
 	}
 }

@@ -185,3 +185,32 @@ func TestFooterSubjectAndLegendOff(t *testing.T) {
 		t.Error("the legend did not take room from the grid")
 	}
 }
+
+// A rail zone as wide as the cell leaves no note line rather than one
+// drawn backwards over the day label.
+func TestFullRailZoneHasNoNoteLine(t *testing.T) {
+	start := period.Date(2027, 1, 1)
+	cfg := testConfig(start, period.Period{N: 1, Unit: 'y'}) // 12 columns
+	end, _ := period.PeriodEnd(start, cfg.Period)
+	var b strings.Builder
+	for i := 1; i <= 12; i++ {
+		b.WriteString("2027-03-01/20d\n")
+	}
+	m, err := dsl.Parse([]dsl.Source{{Name: "t.dates", Text: b.String()}}, start)
+	if err != nil {
+		t.Fatal(err)
+	}
+	r, _ := dsl.Expand(m, end)
+	d, _, _ := timeline.ReadKeys(m)
+	cfg.Timeline = &Timeline{Layout: timeline.Build(d, r, timeline.Options{Start: start, End: end,
+		GridWidth: cfg.GridWidth(), LaneCap: 12, Weekend: cfg.Weekend})}
+	c := &fakeCanvas{}
+	if _, err := Build(cfg, c); err != nil {
+		t.Fatal(err)
+	}
+	for _, l := range c.out {
+		if l.op == "line" && l.x2 < l.x {
+			t.Fatalf("line drawn right to left: x %.2f → %.2f at y %.2f", l.x, l.x2, l.y)
+		}
+	}
+}

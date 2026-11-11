@@ -118,7 +118,7 @@ func writeDebugJSON(o *options, srcs []dsl.Source, today time.Time, opts timelin
 		names[i] = s.Name
 	}
 	info := timeline.DebugInfo{Fixture: strings.Join(names, ", "), Options: map[string]string{
-		"start": opts.Start.Format(isoDate), "end": opts.End.Format(isoDate), "today": today.Format(isoDate),
+		"start": opts.Start.Format(time.DateOnly), "end": opts.End.Format(time.DateOnly), "today": today.Format(time.DateOnly),
 	}}
 	if opts.Flow {
 		info.Options["layout"] = "flow"
