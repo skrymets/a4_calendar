@@ -39,6 +39,7 @@ The design canvas (Design artifact "Milestones & Intervals") shows each rejected
 | Where `reference/engine.js` hard-codes a default that the requirements make configurable, the requirement wins: workdays follow `--weekend`, weekly flow compaction follows `--week-start` | The golden files use the defaults, so they agree. |
 | Inline declarations are reported as `--milestone[N]` / `--interval[N]` (1-based per option) in errors | Each argument is its own one-line source. |
 | DSL errors are collected (all lines reported); a declaration that fails is still registered by name so references to it do not cascade | REQ-ER-1 asks for one line per error. |
+| Limits: dates in the years 0001–9999; a period number above 4 000 000 is an error; one recurrence may produce at most 100 000 occurrences up to the period end (an error names the declaration) | Keeps arithmetic exact and a run bounded; a daily series started decades ago still fits. |
 
 ## Open items (not blocking v1)
 

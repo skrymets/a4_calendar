@@ -62,6 +62,30 @@ func TestAddMonths(t *testing.T) {
 	}
 }
 
+func TestAddMonthsClamped(t *testing.T) {
+	cases := []struct {
+		from time.Time
+		n    int
+		want time.Time
+	}{
+		{Date(2027, 1, 31), 1, Date(2027, 2, 28)},
+		{Date(2027, 1, 31), 2, Date(2027, 3, 31)},
+		{Date(2027, 1, 31), 3, Date(2027, 4, 30)},
+		{Date(2028, 1, 31), 1, Date(2028, 2, 29)}, // leap year
+		{Date(2028, 2, 29), 12, Date(2029, 2, 28)},
+		{Date(2027, 3, 31), -1, Date(2027, 2, 28)},
+		{Date(2027, 1, 15), -1, Date(2026, 12, 15)},
+		{Date(2027, 1, 15), -13, Date(2025, 12, 15)},
+		{Date(2026, 12, 31), 2, Date(2027, 2, 28)},
+		{Date(2026, 1, 15), 0, Date(2026, 1, 15)},
+	}
+	for _, c := range cases {
+		if got := AddMonthsClamped(c.from, c.n); !got.Equal(c.want) {
+			t.Errorf("AddMonthsClamped(%s, %d) = %s; want %s", c.from.Format("2006-01-02"), c.n, got.Format("2006-01-02"), c.want.Format("2006-01-02"))
+		}
+	}
+}
+
 func TestPeriodEnd(t *testing.T) {
 	s := Date(2026, 11, 7)
 	cases := []struct {

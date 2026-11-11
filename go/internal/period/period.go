@@ -1,5 +1,5 @@
-// Package period holds the calendar's date logic, ported 1:1 from
-// yearly_calendar.py: period parsing, period end, week numbers, months.
+// Package period holds the calendar's date logic: period parsing, period
+// end, week numbers, months, and month arithmetic.
 //
 // Dates are time.Time values at midnight UTC (see Date), so day
 // arithmetic is exact and never affected by DST.
@@ -83,6 +83,16 @@ func AddMonths(d time.Time, n int) time.Time {
 		return Date(y, m, d.Day())
 	}
 	return Date(y, m+1, 1) // m < 12 here: December has 31 days
+}
+
+// AddMonthsClamped returns d shifted by n months (n may be negative). A day
+// missing in the target month is clamped to that month's last day
+// (Jan 31 + 1 month = Feb 28; Feb 29 + 12 months = Feb 28). This is the
+// Date DSL's calendar arithmetic; --period uses AddMonths.
+func AddMonthsClamped(d time.Time, n int) time.Time {
+	total := int(d.Month()) - 1 + n
+	y, m := d.Year()+floorDiv(total, 12), time.Month(mod(total, 12)+1)
+	return Date(y, m, min(d.Day(), DaysIn(y, m)))
 }
 
 // PeriodEnd returns the inclusive last day of period p starting at start.
