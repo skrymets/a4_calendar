@@ -231,7 +231,8 @@ func (c *FPDF) StringWidth(s string, f Font, size float64) float64 {
 	return w
 }
 
-func (c *FPDF) SetTitle(s string) { c.pdf.SetTitle(s, true) }
+func (c *FPDF) SetTitle(s string)   { c.pdf.SetTitle(s, true) }
+func (c *FPDF) SetSubject(s string) { c.pdf.SetSubject(s, true) }
 
 // SetCreator records the producing program in the document metadata. The
 // value is ASCII (program name and version), so it is stored as plain text.

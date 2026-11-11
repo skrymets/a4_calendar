@@ -348,3 +348,22 @@ func TestRunStartDefaultsToToday(t *testing.T) {
 		t.Errorf("exit %d, stdout %q, stderr %q", code, stdout, stderr)
 	}
 }
+
+// REQ-LG-5: a legend that does not fit ends in "+N more" and the full list
+// goes to stderr; the run still succeeds.
+func TestRunLegendOverflow(t *testing.T) {
+	dir := t.TempDir()
+	var b strings.Builder
+	for i := 1; i <= 300; i++ {
+		fmt.Fprintf(&b, "2027-%02d-%02d/3d; title=\"Task %d\"\n", i%12+1, i%27+1, i)
+	}
+	file := filepath.Join(dir, "many.dates")
+	if err := os.WriteFile(file, []byte(b.String()), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	code, _, stderr := call("--start", "2027-01-01", "--paper", "letter", "--file", file, "-o", filepath.Join(dir, "x.pdf"))
+	lines := strings.Split(strings.TrimSuffix(stderr, "\n"), "\n")
+	if code != 0 || lines[0] != "Warning: the legend does not fit the page; all entries:" || len(lines) != 301 {
+		t.Errorf("exit %d, %d stderr lines, first %q", code, len(lines), lines[0])
+	}
+}

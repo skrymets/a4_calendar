@@ -1,8 +1,8 @@
 // Copyright (c) 2026 Sergii Krymets
 // SPDX-License-Identifier: MIT
 
-// Command yearly-calendar renders a one-page calendar PDF; it is the Go
-// port of yearly_calendar.py with the same options and output.
+// Command yearly-calendar renders a one-page calendar PDF, optionally with
+// milestones and intervals from the Date DSL (docs/timeline).
 package main
 
 import "os"

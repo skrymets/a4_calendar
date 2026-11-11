@@ -73,7 +73,10 @@ Every PDF the program writes carries the version in its metadata (Creator:
 
 ### Exit codes
 
-`0` on success, `2` for a usage error (unknown option, invalid value), `1` for anything else.
+`0` on success, `2` for a usage error (unknown option, invalid value) or an error in a
+milestone or interval declaration, `1` for anything else (for example an unreadable `--file`).
+Declaration errors are printed one per line as `file:line: message`, or
+`--milestone[2]: message` for the second `--milestone`; nothing is written.
 Options cannot be abbreviated: `--per 90d` does not work as `--period 90d`.
 
 ## Build from source

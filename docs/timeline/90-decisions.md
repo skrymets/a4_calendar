@@ -52,10 +52,12 @@ The design canvas (Design artifact "Milestones & Intervals") shows each rejected
 | The legend marks members with ` · G` only when groups are merged | REQ-LG-2 and the x20 pictures; REQ-GR-5's wording suggested it also when separate. |
 | The legend lists a merged group only if a member is in the period | An entry with nothing to point to would be noise. |
 | Legend dates use `--month-names` with only the first letter upper case (`1 Jan`, `1 Січ`) | Localised like the header, readable in the small legend type. |
+| Footer and Subject name the sources by file name, then `command line` for inline declarations (`timeline: exams.dates, command line`); a flow page says `layout: flow (weekly)` with weekly compaction; a footer too long for the grid is cut with `…` | Short, and the reader can tell where the dates came from. |
+| Legend: rows filled left to right; `+N more` takes the last cell; when even one row of 5 columns would push the grid rows below 6 mm, one row is kept anyway | The legend never disappears silently; the stderr list (`Warning: the legend does not fit the page; all entries:`) is complete. |
 | Limits: dates in the years 0001–9999; a period number above 4 000 000 is an error; one recurrence may produce at most 100 000 occurrences up to the period end (an error names the declaration) | Keeps arithmetic exact and a run bounded; a daily series started decades ago still fits. |
 
 ## Open items (not blocking v1)
 
-1. `--debug-timeline-json` naming and whether to ship it publicly.
-2. Whether the Subject metadata should also list inline declarations.
+1. ~~`--debug-timeline-json` naming and whether to ship it publicly.~~ Shipped hidden (not in `--help`), under this name.
+2. ~~Whether the Subject metadata should also list inline declarations.~~ They are named `command line`.
 3. Phase 2 DSL features (interval boundary references, indexed occurrences) will need label and legend wording; no layout change is expected.

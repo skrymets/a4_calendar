@@ -24,6 +24,8 @@ run instructions are in [go/README.md](go/README.md).
 - **Days outside the period** in a month the period touches are drawn faint, or left out
   with `--hide-outside`.
 - **Footer**: the number of days and how weeks are counted.
+- **Milestones and intervals**, if you give any: marks, titles and coloured rails on the
+  cells, and a legend under the grid ([below](#milestones-and-intervals)).
 
 ## Quick start
 
@@ -53,6 +55,76 @@ exist (31 January + 1 month), the period runs to the end of the shorter month.
 The default title follows the period: `YEARLY CALENDAR` for `1y`, otherwise for example
 `90-DAY CALENDAR`. A title too long to fit beside the period label is cut with `...`.
 
+## Milestones and intervals
+
+The calendar can carry a timeline: **milestones** (single days) and **intervals** (spans of
+days), written in a small date language, inline or in a `.dates` file.
+
+![A 120-day plan with milestones, intervals and a legend](docs/images/timeline-preview.png)
+
+```sh
+yearly-calendar --start 2026-11-11 --period 120d --file exams.dates --title "Prepare for Exams"
+yearly-calendar --milestone 'release=2027-03-15;title="Release"' \
+                --interval  'qa=@release-2w/@release;title="Final QA";color=orange'
+```
+
+A `.dates` file has one declaration per line; `#` starts a comment. Milestones come first:
+
+```
+kickoff = today;        title="Kick-off"
+exam    = 2027-03-01;   title="Final exam"; mark=star; color=red; countdown=7
+tutor   = 2026-11-19;   title="Tutor call"; every=1w; until=@exam; mark=dot
+theory  = @kickoff/5w;  title="Theory"; color=teal; length=days
+labs    = 2026-11-16/2d; title="Lab session"; every=2w; count=8; color=steel
+revision = 2w/@exam;    title="Revision"; color=orange
+```
+
+- **Dates**: `2027-03-15`, `today`, or `@name` for an earlier milestone, each optionally
+  shifted: `@exam-30d`, `today+2w`. Units are `d`, `w`, `m` and `y`; months keep the day or
+  stop at the month's end.
+- **Intervals** are `START/END`, `START/DURATION` or `DURATION/END`. The end is not
+  included: `2027-01-04/2027-01-08` covers 4–7 January. An interval may be anonymous
+  (no `name =`).
+- **Repeats**: `every=2w` (from the first start) or `gap=1w` (after the previous end), with
+  `count=8` or `until=@exam`, or until the end of the page.
+- `--today YYYY-MM-DD` sets what `today` means, and is also the default `--start`.
+
+The full language is in [docs/timeline/date-dsl-specification.md](docs/timeline/date-dsl-specification.md).
+
+![Detail: hatched holidays, interval keys, marks and countdown](docs/images/timeline-detail.png)
+
+On the page, milestones get a mark after the weekday letter and their title on the note
+line; intervals become vertical rails at the right edge of the cells, labelled at the top
+of a cell (or with a numbered key when a column is crowded). Everything drawn is listed in
+the legend under the grid, which takes its room from the rows. The footer names the
+timeline's files and counts.
+
+Optional keys on a declaration change how it is drawn; any other `key=value` is kept and
+ignored:
+
+| Key | Values (default first) | On | Effect |
+|---|---|---|---|
+| `title` | text | both | label, title and legend text (default: the name) |
+| `color` | `ink`, `red`, `teal`, `violet`, `orange`, `steel`, `ochre`, `magenta`, `grey`, `#RRGGBB` | both | colour |
+| `mark` | `diamond`, `star`, `dot`, `ring` | milestone | mark; `ring` circles the day number |
+| `countdown` | `1`–`99` | milestone | `T–7` … `T–1` on the days before (wide columns only) |
+| `style` | `solid`, `dashed`, `hatch` | interval | `hatch`: hatched cells instead of a rail |
+| `status` | `confirmed`, `tentative` | both | `tentative`: dashed rail and ` ?` after the title |
+| `length` | `days`, `workdays` | interval | adds ` · 14 d` or ` · 10 wd` (workdays skip `--weekend`) |
+| `layer` | `front`, `back` | interval | `back`: a thin line beside the day label, no rail |
+| `priority` | `normal`, `high`, `low` | interval | who gets a rail first when a column is full |
+| `group` | a name | interval | members share one rail on crowded pages (`--timeline-groups`) |
+| `hide` | `no`, `yes` | both | `yes`: usable as `@name`, never drawn |
+| `label` | `first`, `each`, `none` | both | which occurrences of a repeat get a text label |
+
+An error in a declaration stops the run before anything is written, with one
+`file:line: message` per problem and exit code 2.
+
+When a column runs out of room (6 rails on wide columns, 4 or 3 on narrower ones), further
+intervals share a dotted grey overflow rail and a grey `+N` counts them; their keys and the
+legend still name them. A legend too long for the page drops its dates, then ends with
+`+N more` and prints the full list on the terminal.
+
 ## Options
 
 | Option | Default | Meaning |
@@ -77,6 +149,15 @@ The default title follows the period: `YEARLY CALENDAR` for `1y`, otherwise for 
 | `--day-letters LLLLLLL` | `MTWTFSS` | weekday letters, Monday first |
 | `--month-names A,B,…` | `JAN,…,DEC` | 12 comma-separated month names |
 | `--font PATH.ttf` | Helvetica | a TrueType font, needed for non-Latin scripts |
+| `--file PATH` | | milestones and intervals from a `.dates` file; repeatable |
+| `--milestone DECL` | | one milestone, e.g. `'exam=2027-03-01;title="Exam"'`; repeatable |
+| `--interval DECL` | | one interval, e.g. `'qa=@exam-2w/@exam'`; repeatable |
+| `--today YYYY-MM-DD` | today | the date `today` stands for |
+| `--timeline-layout packed\|flow` | `packed` | `packed`: rails arranged per month; `flow`: rails keep their place across months and close up as intervals end |
+| `--timeline-compact daily\|weekly` | `daily` | `flow` only: close up every day, or on `--week-start` |
+| `--timeline-lanes auto\|1–12` | `auto` | rails per column before the overflow rail |
+| `--timeline-groups auto\|merge\|separate` | `auto` | one rail per `group`; `auto` merges when columns are narrow (A4: 8 or more) |
+| `--timeline-legend full\|off` | `full` | the legend under the grid |
 | `--version` | | print the version |
 
 `--help` lists them too.

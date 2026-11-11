@@ -1,6 +1,7 @@
 package render
 
 import (
+	"strconv"
 	"strings"
 	"testing"
 
@@ -10,8 +11,14 @@ import (
 )
 
 // buildTimeline renders a 5-month A4 page (wide columns) with the given
-// declarations onto a fake canvas.
+// declarations onto a fake canvas, without the legend.
 func buildTimeline(t *testing.T, dates string) *fakeCanvas {
+	t.Helper()
+	return buildTimelineWith(t, dates, func(tl *Timeline) { tl.Legend = false })
+}
+
+// buildTimelineWith is buildTimeline with a hook to change the Timeline.
+func buildTimelineWith(t *testing.T, dates string, edit func(*Timeline)) *fakeCanvas {
 	t.Helper()
 	start := period.Date(2027, 1, 1)
 	cfg := testConfig(start, period.Period{N: 5, Unit: 'm'})
@@ -30,7 +37,10 @@ func buildTimeline(t *testing.T, dates string) *fakeCanvas {
 	}
 	l := timeline.Build(d, r, timeline.Options{Start: start, End: end, GridWidth: cfg.GridWidth(),
 		Weekend: cfg.Weekend, MonthNames: cfg.MonthNames})
-	cfg.Timeline = &Timeline{Layout: l}
+	cfg.Timeline = &Timeline{Layout: l, Legend: true, Files: []string{"dir/t.dates"}, Milestones: len(m.Milestones), Intervals: len(m.Intervals)}
+	if edit != nil {
+		edit(cfg.Timeline)
+	}
 	c := &fakeCanvas{}
 	if _, err := Build(cfg, c); err != nil {
 		t.Fatal(err)
@@ -103,5 +113,75 @@ c = 2026-12-20; title="Before the period"`)
 	}
 	if strings.Contains(strings.Join(c.texts("string"), "|"), "Before the period") {
 		t.Error("milestone outside the period drawn")
+	}
+}
+
+func entries(n int) []timeline.LegendEntry {
+	es := make([]timeline.LegendEntry, n)
+	for i := range es {
+		es[i] = timeline.LegendEntry{Key: strconv.Itoa(i + 1), Title: "T", When: "1 Jan", Color: "#1F1F1F"}
+	}
+	return es
+}
+
+// REQ-LG-1, -5: 4 columns; 5 columns without dates when the grid rows
+// would drop below 6 mm; then "+N more".
+func TestPlanLegend(t *testing.T) {
+	gridH := 31*lgMinRow + lgPad + 10*lgRowH + 0.01 // room for 10 rows
+	cases := []struct {
+		n, cols, rows, more int
+		brief               bool
+	}{
+		{0, 0, 0, 0, false},
+		{40, 4, 10, 0, false},
+		{41, 5, 9, 0, true},
+		{50, 5, 10, 0, true},
+		{51, 5, 10, 2, true}, // 49 entries + "+2 more"
+	}
+	for _, c := range cases {
+		p := planLegend(entries(c.n), gridH)
+		if p.cols != c.cols || p.rows != c.rows || p.more != c.more || p.brief != c.brief {
+			t.Errorf("%d entries: cols %d rows %d more %d brief %v; want %d %d %d %v",
+				c.n, p.cols, p.rows, p.more, p.brief, c.cols, c.rows, c.more, c.brief)
+		}
+		if c.more > 0 && len(p.overflowLines(entries(c.n))) != c.n {
+			t.Errorf("%d entries: overflow list incomplete", c.n)
+		}
+	}
+	if p := planLegend(entries(500), 31*lgMinRow); p.rows != 1 || p.more != 496 {
+		t.Errorf("no room: rows %d more %d; want one row and +496 more", p.rows, p.more)
+	}
+}
+
+func TestFooterSubjectAndLegendOff(t *testing.T) {
+	const dates = "kick = 2027-01-04; title=\"Kick-off\"\nx = 2027-01-05/3d; title=\"Build\""
+	c := buildTimelineWith(t, dates, nil)
+	footer := c.out[len(c.out)-1].text
+	if want := " · timeline: t.dates — 1 milestone, 1 interval · layout: packed"; !strings.HasSuffix(footer, want) {
+		t.Errorf("footer %q; want suffix %q", footer, want)
+	}
+	if c.subject != "timeline: t.dates" {
+		t.Errorf("subject %q", c.subject)
+	}
+	texts := strings.Join(c.texts("string"), "|")
+	for _, want := range []string{"Kick-off|4 Jan", "Build|5 Jan–7 Jan · 3 d"} {
+		if !strings.Contains(texts, want) {
+			t.Errorf("legend lacks %q", want)
+		}
+	}
+	gridBottom := func(c *fakeCanvas) float64 { // y of the "31" row label in January
+		for _, d := range c.out {
+			if d.text == "031" {
+				return d.y
+			}
+		}
+		return 0
+	}
+	off := buildTimeline(t, dates)
+	if strings.Contains(strings.Join(off.texts("string"), "|"), "5 Jan–7 Jan") {
+		t.Error("legend drawn with --timeline-legend off")
+	}
+	if gridBottom(off) >= gridBottom(c) {
+		t.Error("the legend did not take room from the grid")
 	}
 }

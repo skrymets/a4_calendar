@@ -50,10 +50,11 @@ const (
 
 // tlDrawer draws a timeline.Layout into the calendar's cells.
 type tlDrawer struct {
-	c      canvas.Canvas
-	l      *timeline.Layout
-	bold   canvas.Font
-	anchor float64 // y every dash pattern is aligned to, so dashes run on across cells
+	c          canvas.Canvas
+	tl         *Timeline
+	l          *timeline.Layout
+	font, bold canvas.Font
+	anchor     float64 // y every dash pattern is aligned to, so dashes run on across cells
 }
 
 // tlCell is the geometry of one cell, from Build.
@@ -69,7 +70,7 @@ func newTLDrawer(c canvas.Canvas, t *Timeline, font canvas.Font, pageH float64) 
 	if t == nil || t.Layout == nil {
 		return nil
 	}
-	return &tlDrawer{c: c, l: t.Layout, bold: font.Bolder(), anchor: pageH}
+	return &tlDrawer{c: c, tl: t, l: t.Layout, font: font, bold: font.Bolder(), anchor: pageH}
 }
 
 // day is the timeline content of day d (1-based) in column ci, or nil.
@@ -91,9 +92,13 @@ func hexColor(s string) canvas.RGB {
 // hatch draws REQ-IV-7's 135° lines over the cell background. The lines are
 // y = x + b in page coordinates, so they continue from cell to cell.
 func (t *tlDrawer) hatch(ci, d int, x0, yb, w, h float64, onGrey bool) {
-	if day := t.day(ci, d); day == nil || !day.Hatch {
-		return
+	if day := t.day(ci, d); day != nil && day.Hatch {
+		t.hatchLines(x0, yb, w, h, onGrey)
 	}
+}
+
+// hatchLines hatches the rectangle; also the legend's hatch swatch.
+func (t *tlDrawer) hatchLines(x0, yb, w, h float64, onGrey bool) {
 	c := t.c
 	c.SetStrokeColor(tlHatch)
 	if onGrey {

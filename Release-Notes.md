@@ -8,6 +8,24 @@ publishes that section as the GitHub release text, and refuses a tag whose versi
 
 ## 0.2.0
 
+### Added
+
+- **Milestones and intervals** on the calendar, from `.dates` files (`--file`) or inline
+  (`--milestone`, `--interval`), written in a small date language: fixed dates, `today`,
+  references to earlier milestones with offsets, durations, and repeats (`every`, `gap`,
+  `count`, `until`). `--today` sets the evaluation date and is the default `--start`.
+  - Milestones: a mark (diamond, star, dot, or a ring around the day number), a title on
+    the note line, and an optional countdown.
+  - Intervals: coloured rails at the right edge of the cells, solid, dashed or hatched,
+    labelled or numbered; margin lines for background spans; merged groups on crowded
+    pages; an overflow rail with `+N` when a column is full.
+  - A legend under the grid; the rows give up the room it needs. The footer names the
+    timeline sources, and the PDF Subject lists them.
+  - Options: `--timeline-layout packed|flow`, `--timeline-compact daily|weekly`,
+    `--timeline-lanes`, `--timeline-groups auto|merge|separate`, `--timeline-legend full|off`.
+  - Errors in declarations stop the run with one `file:line: message` per problem (exit 2).
+- Without milestones or intervals the page is exactly as before.
+
 ### Changed
 
 - The PDF Creator metadata is now `yearly-calendar <version>`, without the `(Go)` suffix.

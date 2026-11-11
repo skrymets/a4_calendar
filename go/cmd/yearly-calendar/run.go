@@ -69,6 +69,12 @@ func run(args []string, stdout, stderr io.Writer) int {
 	if err == nil {
 		var res render.Result
 		if res, err = buildAndSave(cfg, output); err == nil {
+			if len(res.LegendOverflow) > 0 { // REQ-LG-5
+				fmt.Fprintln(stderr, "Warning: the legend does not fit the page; all entries:")
+				for _, l := range res.LegendOverflow {
+					fmt.Fprintln(stderr, "  "+l)
+				}
+			}
 			fmt.Fprintf(stdout, "Wrote %s: %s → %s (%d days)\n", output,
 				res.Start.Format("2006-01-02"), res.End.Format("2006-01-02"), res.TotalDays)
 			return 0

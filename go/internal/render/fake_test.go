@@ -14,9 +14,10 @@ type drawn struct {
 
 // fakeCanvas records text output; widths are 0.5*size per rune.
 type fakeCanvas struct {
-	size  float64
-	title string
-	out   []drawn
+	size    float64
+	title   string
+	subject string
+	out     []drawn
 }
 
 func (f *fakeCanvas) SetFillColor(canvas.RGB)                 {}
@@ -43,6 +44,7 @@ func (f *fakeCanvas) Polygon(pts []canvas.Point) {
 
 func (f *fakeCanvas) Circle(x, y, _ float64) { f.out = append(f.out, drawn{op: "circle", x: x, y: y}) }
 func (f *fakeCanvas) SetTitle(s string)      { f.title = s }
+func (f *fakeCanvas) SetSubject(s string)    { f.subject = s }
 
 func (f *fakeCanvas) DrawString(x, y float64, s string) {
 	f.out = append(f.out, drawn{"string", s, x, y, f.size})

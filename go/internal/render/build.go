@@ -52,6 +52,9 @@ func (cfg Config) GridWidth() float64 { return cfg.PaperW - 2*(cfg.MarginMM*MM) 
 type Result struct {
 	Start, End time.Time
 	TotalDays  int
+	// LegendOverflow is the full legend, one entry per line, when it did
+	// not fit the page and ends in "+N more" (REQ-LG-5); nil otherwise.
+	LegendOverflow []string
 }
 
 func pick(cond bool, a, b float64) float64 {
@@ -134,6 +137,13 @@ func Build(cfg Config, c canvas.Canvas) (Result, error) {
 	// --- day grid
 	gridTop := headerBot - pick(compact, 1.5, 3)
 	gridBot := marginBottom + pick(cfg.Footer, 8, 2)
+	footerY := gridBot - 8
+	tl := newTLDrawer(c, cfg.Timeline, font, pageH) // nil without a timeline
+	var legend legendPlan
+	if tl != nil && cfg.Timeline.Legend { // the grid rows shrink to make room (REQ-LG-1)
+		legend = planLegend(tl.l.Legend, gridTop-gridBot)
+		gridBot += legend.height
+	}
 	rowH := (gridTop - gridBot) / 31
 	pad := CellPad
 	// note guides start right of the widest possible label ("28W"), same x in every column
@@ -144,7 +154,6 @@ func Build(cfg Config, c canvas.Canvas) (Result, error) {
 	labelW += 0.4
 	smallW := c.StringWidth("000/00", font, SmallSize)
 	guideX0Off := pad + max(labelW, smallW) + 1.5
-	tl := newTLDrawer(c, cfg.Timeline, font, pageH) // nil without a timeline
 
 	for i, ym := range months {
 		x0 := marginX + colW*float64(i)
@@ -238,6 +247,12 @@ func Build(cfg Config, c canvas.Canvas) (Result, error) {
 	c.SetStrokeColor(Rule)
 	c.SetLineWidth(0.8)
 	c.Line(marginX, gridBot-2, pageW-marginX, gridBot-2)
+	res := Result{Start: start, End: end, TotalDays: totalDays}
+	if tl != nil {
+		tl.legend(legend, marginX, gridBot-2, gridW)
+		res.LegendOverflow = legend.overflowLines(tl.l.Legend)
+		c.SetSubject("timeline: " + cfg.Timeline.sourceNames()) // REQ-PG-4
+	}
 
 	if cfg.Footer {
 		c.SetFillColor(InkSoft)
@@ -247,9 +262,13 @@ func Build(cfg Config, c canvas.Canvas) (Result, error) {
 		if cfg.WeekMode != "iso" {
 			footer += fmt.Sprintf(" (%d weeks)", weeksTotal)
 		}
-		c.DrawString(marginX, gridBot-8, footer)
+		if tl != nil { // REQ-PG-3
+			footer = fitText(footer+cfg.Timeline.footerSuffix(), gridW, tlEllipsis,
+				func(s string) float64 { return c.StringWidth(s, font, 5.5) })
+		}
+		c.DrawString(marginX, footerY, footer)
 	}
-	return Result{Start: start, End: end, TotalDays: totalDays}, nil
+	return res, nil
 }
 
 func pickColor(cond bool, a, b canvas.RGB) canvas.RGB {

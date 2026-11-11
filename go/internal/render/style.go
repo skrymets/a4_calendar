@@ -1,5 +1,5 @@
-// Package render draws the calendar page; it is a line-by-line port of
-// build() in yearly_calendar.py and works in PDF-native coordinates.
+// Package render draws the calendar page, and the timeline on it, in
+// PDF-native coordinates.
 package render
 
 import "a4calendar/internal/canvas"

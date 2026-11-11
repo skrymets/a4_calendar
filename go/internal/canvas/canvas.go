@@ -79,4 +79,5 @@ type Canvas interface {
 	DrawSpaced(x, y float64, s string, spacing float64) // letter-spacing via Tc
 	StringWidth(s string, f Font, size float64) float64
 	SetTitle(s string)
+	SetSubject(s string)
 }
