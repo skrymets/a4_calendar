@@ -39,10 +39,19 @@ func MustHex(s string) RGB {
 }
 
 // Font is either the built-in Helvetica (TTF == nil) or an embedded TrueType font.
+// Bold selects Helvetica-Bold, or a synthetic bold for a TrueType font
+// (outline stroked in the text colour), which is loaded as a single face.
 type Font struct {
 	Name string
 	TTF  []byte
+	Bold bool
 }
+
+// Bolder returns f in bold.
+func (f Font) Bolder() Font { f.Bold = true; return f }
+
+// Point is a position in points, origin bottom-left.
+type Point struct{ X, Y float64 }
 
 // Helvetica is the PDF core font, not embedded, WinAnsi encoded.
 var Helvetica = Font{Name: "Helvetica"}
@@ -60,6 +69,11 @@ type Canvas interface {
 	SetRoundCap(round bool)
 	Rect(x, y, w, h float64) // filled, no stroke
 	Line(x1, y1, x2, y2 float64)
+	// RoundedRect fills (fill) or strokes a rectangle whose top corners
+	// have radius rTop and bottom corners rBottom.
+	RoundedRect(x, y, w, h, rTop, rBottom float64, fill bool)
+	Polygon(pts []Point)    // filled
+	Circle(x, y, r float64) // filled
 	SetFont(f Font, size float64)
 	DrawString(x, y float64, s string)
 	DrawSpaced(x, y float64, s string, spacing float64) // letter-spacing via Tc

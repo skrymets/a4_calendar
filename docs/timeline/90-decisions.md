@@ -35,6 +35,9 @@ The design canvas (Design artifact "Milestones & Intervals") shows each rejected
 | Bold text: Helvetica → core Helvetica-Bold; a TrueType font (`--font PATH`, `pt-sans-narrow`) → synthetic bold (text render mode 2, fill + thin stroke in the same colour) | TrueType fonts are loaded as a single face; no extra option needed, works for Cyrillic. |
 | Glyphs ◆ ★ ● and the legend's ◯ are always drawn as vector shapes | Identical on every font; WinAnsi Helvetica has none of them (REQ-PG-5 fallback). Debug/golden JSON still uses the Unicode characters. |
 | Countdown drawn as `T–7` (en dash) | U+2212 is not in WinAnsi. |
+| Hatch lines are #DBDBDB on white and #C6C6C6 on weekend grey | The reference pictures draw ink at 16 % opacity; a flat #DBDBDB vanishes on #E6E6E6. |
+| Dashed and dotted rails and margin lines are drawn as dashes counted from the page top; a running rail overlaps the next cell by 0.15 pt | The pattern runs on unbroken from cell to cell, and no hairline seam shows between cells. |
+| A milestone title starts at `guideStart`, or 0.5 pt after the glyphs when a wide day label (`28W ◆`) pushes them past it | The title never covers its own mark; the label block stays unchanged. |
 | `--start` defaults to the evaluation date (`--today`, else the local date), captured once | One notion of "today" per run. |
 | Where `reference/engine.js` hard-codes a default that the requirements make configurable, the requirement wins: workdays follow `--weekend`, weekly flow compaction follows `--week-start` | The golden files use the defaults, so they agree. |
 | Inline declarations are reported as `--milestone[N]` / `--interval[N]` (1-based per option) in errors | Each argument is its own one-line source. |

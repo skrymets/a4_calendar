@@ -28,7 +28,21 @@ func (f *fakeCanvas) SetRoundCap(bool)                        {}
 func (f *fakeCanvas) Rect(float64, float64, float64, float64) {}
 func (f *fakeCanvas) Line(float64, float64, float64, float64) {}
 func (f *fakeCanvas) SetFont(_ canvas.Font, size float64)     { f.size = size }
-func (f *fakeCanvas) SetTitle(s string)                       { f.title = s }
+
+func (f *fakeCanvas) RoundedRect(x, y, w, h, _, _ float64, fill bool) {
+	op := "roundrect-stroke"
+	if fill {
+		op = "roundrect"
+	}
+	f.out = append(f.out, drawn{op: op, x: x, y: y})
+}
+
+func (f *fakeCanvas) Polygon(pts []canvas.Point) {
+	f.out = append(f.out, drawn{op: "polygon", x: pts[0].X, y: pts[0].Y})
+}
+
+func (f *fakeCanvas) Circle(x, y, _ float64) { f.out = append(f.out, drawn{op: "circle", x: x, y: y}) }
+func (f *fakeCanvas) SetTitle(s string)      { f.title = s }
 
 func (f *fakeCanvas) DrawString(x, y float64, s string) {
 	f.out = append(f.out, drawn{"string", s, x, y, f.size})

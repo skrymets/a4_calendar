@@ -144,6 +144,7 @@ func Build(cfg Config, c canvas.Canvas) (Result, error) {
 	labelW += 0.4
 	smallW := c.StringWidth("000/00", font, SmallSize)
 	guideX0Off := pad + max(labelW, smallW) + 1.5
+	tl := newTLDrawer(c, cfg.Timeline, font, pageH) // nil without a timeline
 
 	for i, ym := range months {
 		x0 := marginX + colW*float64(i)
@@ -159,6 +160,7 @@ func Build(cfg Config, c canvas.Canvas) (Result, error) {
 				c.SetFillColor(WeekendBG)
 				c.Rect(x0, yb, colW, rowH)
 			}
+			tl.hatch(i, d, x0, yb, colW, rowH, isWeekend && inRange)
 			if !inRange && !cfg.ShowOutside {
 				continue
 			}
@@ -174,7 +176,8 @@ func Build(cfg Config, c canvas.Canvas) (Result, error) {
 				letterColor = pickColor(isWeekend, cfg.WeekendColor, cfg.WorkdayColor)
 			}
 			c.SetFillColor(letterColor)
-			c.DrawString(x0+pad+c.StringWidth(num, font, MainSize)+0.4, mainY, string(cfg.DayLetters[wd]))
+			numW := c.StringWidth(num, font, MainSize)
+			c.DrawString(x0+pad+numW+0.4, mainY, string(cfg.DayLetters[wd]))
 
 			if !inRange {
 				continue
@@ -183,6 +186,9 @@ func Build(cfg Config, c canvas.Canvas) (Result, error) {
 			// hairline dotted note guide(s) in the free right part of the cell
 			if cfg.NoteGuide && cfg.NoteLines > 0 {
 				gx0, gx1 := x0+guideX0Off, x0+colW-pad
+				if day := tl.day(i, d); day != nil {
+					gx1 = x0 + colW - day.Zone // the note line ends at the rail zone
+				}
 				c.SetStrokeColor(Guide)
 				c.SetLineWidth(0.25)
 				c.SetDash(0.4, 1.2)
@@ -209,6 +215,15 @@ func Build(cfg Config, c canvas.Canvas) (Result, error) {
 				small = fmt.Sprintf("%03d/%02d", idx, wk)
 			}
 			c.DrawString(x0+pad, mainY+MainSize*0.85+1.2, small)
+
+			if tl != nil {
+				letter := string(cfg.DayLetters[wd])
+				tl.cell(i, d, tlCell{
+					x0: x0, w: colW, yt: yt, yb: yb, mainY: mainY, guideX: x0 + guideX0Off,
+					numX: x0 + pad, numW: numW,
+					letterEnd: x0 + pad + numW + 0.4 + c.StringWidth(letter, font, MainSize),
+				})
+			}
 		}
 	}
 

@@ -41,13 +41,19 @@ func DrawSpaced(c canvas.Canvas, s string, x, y float64, f canvas.Font, size, sp
 
 // FitText truncates text with "..." so that width(text) <= maxW.
 func FitText(text string, maxW float64, width func(string) float64) string {
+	return fitText(text, maxW, "...", width)
+}
+
+// fitText truncates text with ell so that width(text) <= maxW; "" if
+// nothing fits.
+func fitText(text string, maxW float64, ell string, width func(string) float64) string {
 	if width(text) <= maxW {
 		return text
 	}
 	r := []rune(text)
 	for len(r) > 0 {
 		r = r[:len(r)-1]
-		cut := strings.TrimRightFunc(string(r), unicode.IsSpace) + "..."
+		cut := strings.TrimRightFunc(string(r), unicode.IsSpace) + ell
 		if width(cut) <= maxW {
 			return cut
 		}
