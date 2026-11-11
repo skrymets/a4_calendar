@@ -62,9 +62,15 @@ func Parse(sources []Source, today time.Time) (*Model, error) {
 
 // declaration parses one line and records its error, if any.
 func (p *parser) declaration(src Source, line int, text string, seenInterval *bool) {
-	if err := p.parseDecl(src, line, text, seenInterval); err != nil && !errors.Is(err, errBroken) {
-		p.errs = append(p.errs, &Error{Source: src.Name, Line: line, Msg: err.Error()})
+	err := p.parseDecl(src, line, text, seenInterval)
+	if err == nil || errors.Is(err, errBroken) {
+		return
 	}
+	msg := err.Error()
+	if src.inline() && errors.Is(err, errUnquotedSpace) {
+		msg += "; Windows PowerShell 5.1 removes the quotes unless --% comes before the arguments, or use --file"
+	}
+	p.errs = append(p.errs, &Error{Source: src.Name, Line: line, Msg: msg})
 }
 
 func (p *parser) parseDecl(src Source, line int, text string, seenInterval *bool) error {
@@ -234,11 +240,26 @@ func (p *parser) interval(src Source, line int, name, expr string, propParts []s
 
 // date resolves a date expression: an anchor (ISO date, today, @milestone,
 // or nothing = today) and at most one signed offset.
+// unsupportedRef explains a date expression that does not parse: a
+// reference to an interval's start or end, or to one occurrence of a
+// recurring milestone, is planned but not supported; anything else is
+// simply invalid.
+func unsupportedRef(expr string) error {
+	const hint = "declare a milestone for that date (hide=yes keeps it off the page) and refer to it"
+	if m := boundaryRE.FindStringSubmatch(expr); m != nil {
+		return errorf("@%s.%s: references to an interval's start or end are not supported yet; %s", m[1], m[2], hint)
+	}
+	if m := occurrenceRE.FindStringSubmatch(expr); m != nil {
+		return errorf("%s: references to one occurrence of a repeat are not supported yet; %s", m[0], hint)
+	}
+	return errorf("invalid date expression %q", expr)
+}
+
 func (p *parser) date(expr string) (time.Time, error) {
 	expr = strings.TrimSpace(expr)
 	m := dateRE.FindStringSubmatch(expr)
 	if m == nil || expr == "" {
-		return time.Time{}, errorf("invalid date expression %q", expr)
+		return time.Time{}, unsupportedRef(expr)
 	}
 	var t time.Time
 	switch {

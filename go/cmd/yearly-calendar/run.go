@@ -44,6 +44,10 @@ func run(args []string, stdout, stderr io.Writer) int {
 	}
 	if fs.NArg() > 0 {
 		fmt.Fprintf(stderr, "Error: unrecognized arguments: %s\n", strings.Join(fs.Args(), " "))
+		if slices.ContainsFunc(fs.Args(), func(a string) bool { return strings.ContainsAny(a, `";`) }) {
+			fmt.Fprintln(stderr, "Hint: a --milestone or --interval value was split at a space. Windows PowerShell 5.1 "+
+				"does this to values with double quotes unless --% comes before the arguments; or use --file.")
+		}
 		return 2
 	}
 	if o.version {

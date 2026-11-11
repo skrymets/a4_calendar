@@ -367,3 +367,13 @@ func TestRunLegendOverflow(t *testing.T) {
 		t.Errorf("exit %d, %d stderr lines, first %q", code, len(lines), lines[0])
 	}
 }
+
+func TestRunSplitDeclarationHint(t *testing.T) {
+	code, _, stderr := call("--interval", `qa=2027-01-01/2d;title="Final`, `QA";color=orange`)
+	if code != 2 || !strings.Contains(stderr, "unrecognized arguments") || !strings.Contains(stderr, "Hint: a --milestone or --interval value was split") {
+		t.Errorf("exit %d, stderr %q", code, stderr)
+	}
+	if _, _, stderr := call("extra"); strings.Contains(stderr, "Hint:") {
+		t.Errorf("hint for an unrelated argument: %q", stderr)
+	}
+}

@@ -279,6 +279,10 @@ func TestErrors(t *testing.T) {
 		{"out of range", "x=9999-12-31+1d", "outside the years 0001–9999"},
 		{"huge offset", "x=today+99999999d", "number 99999999 is too large"},
 		{"chained offsets (phase 2)", "a=2027-01-01\nb=@a+1d+2d", `t.dates:2: invalid date expression "@a+1d+2d"`},
+		{"interval boundary (phase 2)", "a=2027-01-01\nq=@a/1w\nr=@q.start+1d/2d",
+			"t.dates:3: @q.start: references to an interval's start or end are not supported yet; declare a milestone"},
+		{"occurrence (phase 2)", "a=2027-01-01; every=1w\nb=@a[3]",
+			"t.dates:2: @a[3]: references to one occurrence of a repeat are not supported yet"},
 		{"unknown reference", "x=@nope", "t.dates:1: unknown milestone @nope"},
 		{"forward reference", "x=@y\ny=2027-01-01", "t.dates:1: unknown milestone @y"},
 		{"recurring reference", "r=2027-01-01;every=1w\nx=@r+1d", "t.dates:2: @r is recurring and cannot be used as a date"},
@@ -405,5 +409,19 @@ func TestLongIntervalDays(t *testing.T) {
 	// same day count (876,216) from 1001-01-01; one more leap day in between
 	if got := r.Intervals[1].End.Format("2006-01-02"); got != "3399-12-31" {
 		t.Errorf("second occurrence ends %s; want 3399-12-31", got)
+	}
+}
+
+// Inline declarations get a hint when their quotes were probably removed by
+// the shell; files do not.
+func TestUnquotedWhitespaceHint(t *testing.T) {
+	const hint = "Windows PowerShell 5.1 removes the quotes"
+	_, err := Parse([]Source{{Name: "--interval[1]", Text: "2027-01-01/2d;title=Final QA", Expect: KindInterval}}, today)
+	if err == nil || !strings.Contains(err.Error(), hint) {
+		t.Errorf("inline: %v", err)
+	}
+	_, err = Parse(file("x=2027-01-01;title=Final QA"), today)
+	if err == nil || strings.Contains(err.Error(), hint) {
+		t.Errorf("file: %v", err)
 	}
 }

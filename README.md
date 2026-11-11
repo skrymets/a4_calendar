@@ -68,6 +68,17 @@ yearly-calendar --milestone 'release=2027-03-15;title="Release"' \
                 --interval  'qa=@release-2w/@release;title="Final QA";color=orange'
 ```
 
+In **Windows PowerShell 5.1** the double quotes inside an argument are lost, so a title
+with a space fails. Put `--%` before the arguments and escape the quotes with a backslash.
+After `--%` PowerShell passes the line on unchanged and no longer expands `$variables`:
+
+```powershell
+& .\yearly-calendar.exe --% --milestone "release=2027-03-15;title=\"Release\"" --interval "qa=@release-2w/@release;title=\"Final QA\""
+```
+
+PowerShell 7.3 and later and Unix shells need none of this, and a `.dates` file avoids
+shell quoting altogether.
+
 A `.dates` file has one declaration per line; `#` starts a comment. Milestones come first:
 
 ```
@@ -81,7 +92,9 @@ revision = 2w/@exam;    title="Revision"; color=orange
 
 - **Dates**: `2027-03-15`, `today`, or `@name` for an earlier milestone, each optionally
   shifted: `@exam-30d`, `today+2w`. Units are `d`, `w`, `m` and `y`; months keep the day or
-  stop at the month's end.
+  stop at the month's end. An interval's start or end (`@qa.start`) and one occurrence of a
+  repeat (`@review[3]`) cannot be referenced yet; give that date its own milestone, with
+  `hide=yes` to keep it off the page.
 - **Intervals** are `START/END`, `START/DURATION` or `DURATION/END`. The end is not
   included: `2027-01-04/2027-01-08` covers 4–7 January. An interval may be anonymous
   (no `name =`).
