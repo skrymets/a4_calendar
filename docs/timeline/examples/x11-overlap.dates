@@ -1,0 +1,5 @@
+review = 2027-03-08; title="Review"; color=red
+
+build = 2027-03-01/3w; title="Build"; color=teal
+test  = 2027-03-08/2w; title="Test"; color=orange
+docs  = 2027-03-10/1w; title="Docs"; color=violet

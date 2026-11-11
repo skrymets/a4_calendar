@@ -1,0 +1,15 @@
+j1 = 2027-01-04/2027-01-21; title="J1"; color=teal
+j2 = 2027-01-10/2027-01-26; title="J2"; color=violet
+f1 = 2027-02-01/10d; title="F1"; color=teal
+f2 = 2027-02-03/10d; title="F2"; color=violet
+f3 = 2027-02-05/10d; title="F3"; color=orange
+f4 = 2027-02-07/10d; title="F4"; color=steel
+f5 = 2027-02-09/10d; title="F5"; color=magenta
+m1 = 2027-03-01/12d; title="M1"; color=teal
+m2 = 2027-03-02/12d; title="M2"; color=violet
+m3 = 2027-03-03/12d; title="M3"; color=orange
+m4 = 2027-03-04/12d; title="M4"; color=steel
+m5 = 2027-03-05/12d; title="M5"; color=magenta
+m6 = 2027-03-06/12d; title="M6"; color=ochre
+m7 = 2027-03-07/12d; title="M7"; color=red
+m8 = 2027-03-08/12d; title="M8"; color=ink

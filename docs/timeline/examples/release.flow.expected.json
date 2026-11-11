@@ -1,0 +1,469 @@
+{
+ "fixture": "release.dates",
+ "options": {
+  "layout": "flow",
+  "start": "2027-01-01",
+  "end": "2027-05-31",
+  "today": "2026-11-11"
+ },
+ "resolved": {
+  "milestones": [
+   {
+    "id": "kickoff",
+    "date": "2027-01-04"
+   },
+   {
+    "id": "beta",
+    "date": "2027-03-08"
+   },
+   {
+    "id": "release",
+    "date": "2027-04-01"
+   }
+  ],
+  "intervals": [
+   {
+    "id": "okr",
+    "key": "1",
+    "start": "2027-01-04",
+    "endExclusive": "2027-04-02",
+    "lastDrawnDay": "2027-04-01"
+   },
+   {
+    "id": "sprint",
+    "key": "2",
+    "start": "2027-01-04",
+    "endExclusive": "2027-01-18",
+    "lastDrawnDay": "2027-01-17",
+    "occurrence": "1/11"
+   },
+   {
+    "id": "sprint",
+    "key": "2",
+    "start": "2027-01-18",
+    "endExclusive": "2027-02-01",
+    "lastDrawnDay": "2027-01-31",
+    "occurrence": "2/11"
+   },
+   {
+    "id": "sprint",
+    "key": "2",
+    "start": "2027-02-01",
+    "endExclusive": "2027-02-15",
+    "lastDrawnDay": "2027-02-14",
+    "occurrence": "3/11"
+   },
+   {
+    "id": "sprint",
+    "key": "2",
+    "start": "2027-02-15",
+    "endExclusive": "2027-03-01",
+    "lastDrawnDay": "2027-02-28",
+    "occurrence": "4/11"
+   },
+   {
+    "id": "sprint",
+    "key": "2",
+    "start": "2027-03-01",
+    "endExclusive": "2027-03-15",
+    "lastDrawnDay": "2027-03-14",
+    "occurrence": "5/11"
+   },
+   {
+    "id": "sprint",
+    "key": "2",
+    "start": "2027-03-15",
+    "endExclusive": "2027-03-29",
+    "lastDrawnDay": "2027-03-28",
+    "occurrence": "6/11"
+   },
+   {
+    "id": "sprint",
+    "key": "2",
+    "start": "2027-03-29",
+    "endExclusive": "2027-04-12",
+    "lastDrawnDay": "2027-04-11",
+    "occurrence": "7/11"
+   },
+   {
+    "id": "sprint",
+    "key": "2",
+    "start": "2027-04-12",
+    "endExclusive": "2027-04-26",
+    "lastDrawnDay": "2027-04-25",
+    "occurrence": "8/11"
+   },
+   {
+    "id": "sprint",
+    "key": "2",
+    "start": "2027-04-26",
+    "endExclusive": "2027-05-10",
+    "lastDrawnDay": "2027-05-09",
+    "occurrence": "9/11"
+   },
+   {
+    "id": "sprint",
+    "key": "2",
+    "start": "2027-05-10",
+    "endExclusive": "2027-05-24",
+    "lastDrawnDay": "2027-05-23",
+    "occurrence": "10/11"
+   },
+   {
+    "id": "sprint",
+    "key": "2",
+    "start": "2027-05-24",
+    "endExclusive": "2027-06-07",
+    "lastDrawnDay": "2027-06-06",
+    "occurrence": "11/11"
+   },
+   {
+    "id": "feature_a",
+    "key": "3",
+    "start": "2027-01-11",
+    "endExclusive": "2027-03-13",
+    "lastDrawnDay": "2027-03-12"
+   },
+   {
+    "id": "feature_b",
+    "key": "4",
+    "start": "2027-02-01",
+    "endExclusive": "2027-03-27",
+    "lastDrawnDay": "2027-03-26"
+   },
+   {
+    "id": "audit",
+    "key": "5",
+    "start": "2027-03-01",
+    "endExclusive": "2027-03-20",
+    "lastDrawnDay": "2027-03-19"
+   },
+   {
+    "id": "beta_prog",
+    "key": "6",
+    "start": "2027-03-08",
+    "endExclusive": "2027-04-10",
+    "lastDrawnDay": "2027-04-09"
+   },
+   {
+    "id": "docs",
+    "key": "7",
+    "start": "2027-03-10",
+    "endExclusive": "2027-04-03",
+    "lastDrawnDay": "2027-04-02"
+   },
+   {
+    "id": "freeze",
+    "key": "8",
+    "start": "2027-03-15",
+    "endExclusive": "2027-03-29",
+    "lastDrawnDay": "2027-03-28"
+   },
+   {
+    "id": "qa",
+    "key": "9",
+    "start": "2027-03-17",
+    "endExclusive": "2027-03-31",
+    "lastDrawnDay": "2027-03-30"
+   },
+   {
+    "id": "alice",
+    "key": "10",
+    "start": "2027-03-18",
+    "endExclusive": "2027-03-27",
+    "lastDrawnDay": "2027-03-26"
+   },
+   {
+    "id": "migration",
+    "key": "11",
+    "start": "2027-03-20",
+    "endExclusive": "2027-03-22",
+    "lastDrawnDay": "2027-03-21"
+   },
+   {
+    "id": "bob",
+    "key": "12",
+    "start": "2027-03-22",
+    "endExclusive": "2027-04-03",
+    "lastDrawnDay": "2027-04-02"
+   },
+   {
+    "id": "pentest",
+    "key": "13",
+    "start": "2027-03-22",
+    "endExclusive": "2027-03-27",
+    "lastDrawnDay": "2027-03-26"
+   },
+   {
+    "id": "marketing",
+    "key": "14",
+    "start": "2027-03-25",
+    "endExclusive": "2027-05-01",
+    "lastDrawnDay": "2027-04-30"
+   },
+   {
+    "id": "q2plan",
+    "key": "15",
+    "start": "2027-03-29",
+    "endExclusive": "2027-04-10",
+    "lastDrawnDay": "2027-04-09"
+   },
+   {
+    "id": "hypercare",
+    "key": "16",
+    "start": "2027-04-01",
+    "endExclusive": "2027-05-01",
+    "lastDrawnDay": "2027-04-30"
+   },
+   {
+    "id": "bugbash",
+    "key": "17",
+    "start": "2027-04-12",
+    "endExclusive": "2027-04-17",
+    "lastDrawnDay": "2027-04-16"
+   }
+  ]
+ },
+ "layout": {
+  "geometry": "wide",
+  "laneCap": 6,
+  "groupsMerged": false,
+  "layout": "flow",
+  "columns": [
+   {
+    "month": "JAN",
+    "railLanes": 2,
+    "labelMode": "text",
+    "labels": [
+     {
+      "day": 4,
+      "milestone": "◆ Kick-off"
+     },
+     {
+      "day": 5,
+      "items": [
+       "Q1 OKR CYCLE"
+      ]
+     },
+     {
+      "day": 6,
+      "items": [
+       "SPRINT #1"
+      ]
+     },
+     {
+      "day": 11,
+      "items": [
+       "FEATURE A"
+      ]
+     },
+     {
+      "day": 18,
+      "items": [
+       "#2"
+      ]
+     }
+    ]
+   },
+   {
+    "month": "FEB",
+    "railLanes": 3,
+    "labelMode": "text",
+    "labels": [
+     {
+      "day": 1,
+      "items": [
+       "Q1 OKR CYCLE (CONT.)"
+      ]
+     },
+     {
+      "day": 2,
+      "items": [
+       "FEATURE A (CONT.)"
+      ]
+     },
+     {
+      "day": 3,
+      "items": [
+       "FEATURE B"
+      ]
+     },
+     {
+      "day": 4,
+      "items": [
+       "SPRINT #3"
+      ]
+     },
+     {
+      "day": 15,
+      "items": [
+       "#4"
+      ]
+     }
+    ]
+   },
+   {
+    "month": "MAR",
+    "railLanes": 7,
+    "labelMode": "keys",
+    "labels": [
+     {
+      "day": 1,
+      "items": [
+       "1",
+       "2",
+       "3",
+       "4",
+       "5"
+      ]
+     },
+     {
+      "day": 8,
+      "items": [
+       "6"
+      ]
+     },
+     {
+      "day": 8,
+      "milestone": "● Beta launch"
+     },
+     {
+      "day": 10,
+      "items": [
+       "7"
+      ]
+     },
+     {
+      "day": 15,
+      "items": [
+       "2",
+       "8"
+      ]
+     },
+     {
+      "day": 17,
+      "items": [
+       "9",
+       "+1"
+      ]
+     },
+     {
+      "day": 18,
+      "items": [
+       "10",
+       "+2"
+      ]
+     },
+     {
+      "day": 20,
+      "items": [
+       "11"
+      ]
+     },
+     {
+      "day": 22,
+      "items": [
+       "12",
+       "13",
+       "+3"
+      ]
+     },
+     {
+      "day": 25,
+      "items": [
+       "14",
+       "+4"
+      ]
+     },
+     {
+      "day": 27,
+      "items": [
+       "+3"
+      ]
+     },
+     {
+      "day": 29,
+      "items": [
+       "2",
+       "15"
+      ]
+     },
+     {
+      "day": 31,
+      "items": [
+       "+2"
+      ]
+     }
+    ]
+   },
+   {
+    "month": "APR",
+    "railLanes": 6,
+    "labelMode": "keys",
+    "labels": [
+     {
+      "day": 1,
+      "items": [
+       "1",
+       "6",
+       "7",
+       "12",
+       "14",
+       "15",
+       "16",
+       "+2"
+      ]
+     },
+     {
+      "day": 1,
+      "milestone": "★ Release 2.0"
+     },
+     {
+      "day": 3,
+      "items": [
+       "+1"
+      ]
+     },
+     {
+      "day": 12,
+      "items": [
+       "2",
+       "17"
+      ]
+     },
+     {
+      "day": 26,
+      "items": [
+       "2"
+      ]
+     }
+    ]
+   },
+   {
+    "month": "MAY",
+    "railLanes": 1,
+    "labelMode": "text",
+    "labels": [
+     {
+      "day": 1,
+      "items": [
+       "SPRINT #9"
+      ]
+     },
+     {
+      "day": 10,
+      "items": [
+       "#10"
+      ]
+     },
+     {
+      "day": 24,
+      "items": [
+       "#11"
+      ]
+     }
+    ]
+   }
+  ]
+ }
+}

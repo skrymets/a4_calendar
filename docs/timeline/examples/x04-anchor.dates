@@ -1,0 +1,3 @@
+term   = 2027-03-08; hide=yes
+before = 2027-03-01/@term; title="Before"; color=teal
+after  = @term/1w;        title="After"; color=violet

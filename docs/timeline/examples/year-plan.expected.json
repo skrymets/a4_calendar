@@ -1,0 +1,620 @@
+{
+ "fixture": "year-plan.dates",
+ "options": {
+  "start": "2026-11-11",
+  "end": "2027-11-10",
+  "today": "2026-11-11"
+ },
+ "resolved": {
+  "milestones": [
+   {
+    "id": "kickoff",
+    "date": "2026-11-11"
+   },
+   {
+    "id": "rel2",
+    "date": "2027-04-01"
+   },
+   {
+    "id": "rel3",
+    "date": "2027-10-01"
+   }
+  ],
+  "intervals": [
+   {
+    "id": "okr1",
+    "key": "1",
+    "start": "2027-01-04",
+    "endExclusive": "2027-07-01",
+    "lastDrawnDay": "2027-06-30"
+   },
+   {
+    "id": "okr2",
+    "key": "2",
+    "start": "2027-07-01",
+    "endExclusive": "2028-01-01",
+    "lastDrawnDay": "2027-12-31"
+   },
+   {
+    "id": "migration",
+    "key": "3",
+    "start": "2026-11-16",
+    "endExclusive": "2027-02-27",
+    "lastDrawnDay": "2027-02-26"
+   },
+   {
+    "id": "xmas_freeze",
+    "key": "4",
+    "start": "2026-12-21",
+    "endExclusive": "2027-01-09",
+    "lastDrawnDay": "2027-01-08"
+   },
+   {
+    "id": "feature_a",
+    "key": "5",
+    "start": "2027-01-11",
+    "endExclusive": "2027-03-13",
+    "lastDrawnDay": "2027-03-12"
+   },
+   {
+    "id": "oncall",
+    "key": "6",
+    "start": "2027-01-11",
+    "endExclusive": "2027-01-18",
+    "lastDrawnDay": "2027-01-17",
+    "occurrence": "1/8"
+   },
+   {
+    "id": "oncall",
+    "key": "6",
+    "start": "2027-02-22",
+    "endExclusive": "2027-03-01",
+    "lastDrawnDay": "2027-02-28",
+    "occurrence": "2/8"
+   },
+   {
+    "id": "oncall",
+    "key": "6",
+    "start": "2027-04-05",
+    "endExclusive": "2027-04-12",
+    "lastDrawnDay": "2027-04-11",
+    "occurrence": "3/8"
+   },
+   {
+    "id": "oncall",
+    "key": "6",
+    "start": "2027-05-17",
+    "endExclusive": "2027-05-24",
+    "lastDrawnDay": "2027-05-23",
+    "occurrence": "4/8"
+   },
+   {
+    "id": "oncall",
+    "key": "6",
+    "start": "2027-06-28",
+    "endExclusive": "2027-07-05",
+    "lastDrawnDay": "2027-07-04",
+    "occurrence": "5/8"
+   },
+   {
+    "id": "oncall",
+    "key": "6",
+    "start": "2027-08-09",
+    "endExclusive": "2027-08-16",
+    "lastDrawnDay": "2027-08-15",
+    "occurrence": "6/8"
+   },
+   {
+    "id": "oncall",
+    "key": "6",
+    "start": "2027-09-20",
+    "endExclusive": "2027-09-27",
+    "lastDrawnDay": "2027-09-26",
+    "occurrence": "7/8"
+   },
+   {
+    "id": "oncall",
+    "key": "6",
+    "start": "2027-11-01",
+    "endExclusive": "2027-11-08",
+    "lastDrawnDay": "2027-11-07",
+    "occurrence": "8/8"
+   },
+   {
+    "id": "feature_b",
+    "key": "7",
+    "start": "2027-02-01",
+    "endExclusive": "2027-03-27",
+    "lastDrawnDay": "2027-03-26"
+   },
+   {
+    "id": "audit",
+    "key": "8",
+    "start": "2027-03-01",
+    "endExclusive": "2027-03-20",
+    "lastDrawnDay": "2027-03-19"
+   },
+   {
+    "id": "beta2",
+    "key": "9",
+    "start": "2027-03-08",
+    "endExclusive": "2027-04-10",
+    "lastDrawnDay": "2027-04-09"
+   },
+   {
+    "id": "freeze2",
+    "key": "10",
+    "start": "2027-03-15",
+    "endExclusive": "2027-03-29",
+    "lastDrawnDay": "2027-03-28"
+   },
+   {
+    "id": "qa2",
+    "key": "11",
+    "start": "2027-03-17",
+    "endExclusive": "2027-03-31",
+    "lastDrawnDay": "2027-03-30"
+   },
+   {
+    "id": "alice",
+    "key": "12",
+    "start": "2027-03-18",
+    "endExclusive": "2027-03-27",
+    "lastDrawnDay": "2027-03-26"
+   },
+   {
+    "id": "pentest",
+    "key": "13",
+    "start": "2027-03-22",
+    "endExclusive": "2027-03-27",
+    "lastDrawnDay": "2027-03-26"
+   },
+   {
+    "id": "mkt2",
+    "key": "14",
+    "start": "2027-03-25",
+    "endExclusive": "2027-05-01",
+    "lastDrawnDay": "2027-04-30"
+   },
+   {
+    "id": "care2",
+    "key": "15",
+    "start": "2027-04-01",
+    "endExclusive": "2027-05-01",
+    "lastDrawnDay": "2027-04-30"
+   },
+   {
+    "id": "feature_c",
+    "key": "16",
+    "start": "2027-06-07",
+    "endExclusive": "2027-09-11",
+    "lastDrawnDay": "2027-09-10"
+   },
+   {
+    "id": "feature_d",
+    "key": "17",
+    "start": "2027-07-05",
+    "endExclusive": "2027-09-18",
+    "lastDrawnDay": "2027-09-17"
+   },
+   {
+    "id": "bob",
+    "key": "18",
+    "start": "2027-07-19",
+    "endExclusive": "2027-08-07",
+    "lastDrawnDay": "2027-08-06"
+   },
+   {
+    "id": "alice_s",
+    "key": "19",
+    "start": "2027-08-02",
+    "endExclusive": "2027-08-21",
+    "lastDrawnDay": "2027-08-20"
+   },
+   {
+    "id": "conf",
+    "key": "20",
+    "start": "2027-09-01",
+    "endExclusive": "2027-10-14",
+    "lastDrawnDay": "2027-10-13"
+   },
+   {
+    "id": "beta3",
+    "key": "21",
+    "start": "2027-09-06",
+    "endExclusive": "2027-10-09",
+    "lastDrawnDay": "2027-10-08"
+   },
+   {
+    "id": "load",
+    "key": "22",
+    "start": "2027-09-08",
+    "endExclusive": "2027-09-22",
+    "lastDrawnDay": "2027-09-21"
+   },
+   {
+    "id": "freeze3",
+    "key": "23",
+    "start": "2027-09-13",
+    "endExclusive": "2027-09-27",
+    "lastDrawnDay": "2027-09-26"
+   },
+   {
+    "id": "carol",
+    "key": "24",
+    "start": "2027-09-13",
+    "endExclusive": "2027-09-25",
+    "lastDrawnDay": "2027-09-24"
+   },
+   {
+    "id": "qa3",
+    "key": "25",
+    "start": "2027-09-15",
+    "endExclusive": "2027-10-01",
+    "lastDrawnDay": "2027-09-30"
+   },
+   {
+    "id": "ext_audit",
+    "key": "26",
+    "start": "2027-09-20",
+    "endExclusive": "2027-10-02",
+    "lastDrawnDay": "2027-10-01"
+   },
+   {
+    "id": "care3",
+    "key": "27",
+    "start": "2027-10-01",
+    "endExclusive": "2027-11-01",
+    "lastDrawnDay": "2027-10-31"
+   },
+   {
+    "id": "planning",
+    "key": "28",
+    "start": "2027-10-18",
+    "endExclusive": "2027-11-13",
+    "lastDrawnDay": "2027-11-12"
+   }
+  ]
+ },
+ "layout": {
+  "geometry": "narrow",
+  "laneCap": 3,
+  "groupsMerged": true,
+  "layout": "packed",
+  "columns": [
+   {
+    "month": "NOV '26",
+    "railLanes": 1,
+    "labelMode": "keys",
+    "labels": [
+     {
+      "day": 11,
+      "milestone": "◆ Kick-off"
+     },
+     {
+      "day": 16,
+      "items": [
+       "3"
+      ]
+     }
+    ]
+   },
+   {
+    "month": "DEC",
+    "railLanes": 2,
+    "labelMode": "keys",
+    "labels": [
+     {
+      "day": 21,
+      "items": [
+       "R"
+      ]
+     }
+    ]
+   },
+   {
+    "month": "JAN '27",
+    "railLanes": 3,
+    "labelMode": "keys",
+    "labels": [
+     {
+      "day": 4,
+      "items": [
+       "1"
+      ]
+     },
+     {
+      "day": 11,
+      "items": [
+       "5",
+       "6"
+      ]
+     }
+    ]
+   },
+   {
+    "month": "FEB",
+    "railLanes": 4,
+    "labelMode": "keys",
+    "labels": [
+     {
+      "day": 1,
+      "items": [
+       "7"
+      ]
+     },
+     {
+      "day": 22,
+      "items": [
+       "6",
+       "+1"
+      ]
+     }
+    ]
+   },
+   {
+    "month": "MAR",
+    "railLanes": 4,
+    "labelMode": "keys",
+    "labels": [
+     {
+      "day": 1,
+      "items": [
+       "S"
+      ]
+     },
+     {
+      "day": 8,
+      "items": [
+       "9",
+       "+1"
+      ]
+     },
+     {
+      "day": 15,
+      "items": [
+       "10"
+      ]
+     },
+     {
+      "day": 17,
+      "items": [
+       "11"
+      ]
+     },
+     {
+      "day": 18,
+      "items": [
+       "P",
+       "+2"
+      ]
+     },
+     {
+      "day": 22,
+      "items": [
+       "13"
+      ]
+     },
+     {
+      "day": 25,
+      "items": [
+       "14",
+       "+3"
+      ]
+     },
+     {
+      "day": 27,
+      "items": [
+       "+2"
+      ]
+     }
+    ]
+   },
+   {
+    "month": "APR",
+    "railLanes": 4,
+    "labelMode": "keys",
+    "labels": [
+     {
+      "day": 1,
+      "items": [
+       "15"
+      ]
+     },
+     {
+      "day": 1,
+      "milestone": "★ Release 2.0"
+     },
+     {
+      "day": 5,
+      "items": [
+       "6",
+       "+1"
+      ]
+     }
+    ]
+   },
+   {
+    "month": "MAY",
+    "railLanes": 1,
+    "labelMode": "keys",
+    "labels": [
+     {
+      "day": 17,
+      "items": [
+       "6"
+      ]
+     }
+    ]
+   },
+   {
+    "month": "JUN",
+    "railLanes": 2,
+    "labelMode": "keys",
+    "labels": [
+     {
+      "day": 7,
+      "items": [
+       "16"
+      ]
+     },
+     {
+      "day": 28,
+      "items": [
+       "6"
+      ]
+     }
+    ]
+   },
+   {
+    "month": "JUL",
+    "railLanes": 3,
+    "labelMode": "keys",
+    "labels": [
+     {
+      "day": 1,
+      "items": [
+       "2"
+      ]
+     },
+     {
+      "day": 5,
+      "items": [
+       "17"
+      ]
+     },
+     {
+      "day": 19,
+      "items": [
+       "18"
+      ]
+     }
+    ]
+   },
+   {
+    "month": "AUG",
+    "railLanes": 4,
+    "labelMode": "keys",
+    "labels": [
+     {
+      "day": 2,
+      "items": [
+       "19"
+      ]
+     },
+     {
+      "day": 9,
+      "items": [
+       "6",
+       "+1"
+      ]
+     }
+    ]
+   },
+   {
+    "month": "SEP",
+    "railLanes": 4,
+    "labelMode": "keys",
+    "labels": [
+     {
+      "day": 1,
+      "items": [
+       "20"
+      ]
+     },
+     {
+      "day": 6,
+      "items": [
+       "21",
+       "+1"
+      ]
+     },
+     {
+      "day": 8,
+      "items": [
+       "22",
+       "+2"
+      ]
+     },
+     {
+      "day": 13,
+      "items": [
+       "23",
+       "24",
+       "+3"
+      ]
+     },
+     {
+      "day": 15,
+      "items": [
+       "25"
+      ]
+     },
+     {
+      "day": 20,
+      "items": [
+       "6",
+       "26",
+       "+4"
+      ]
+     },
+     {
+      "day": 22,
+      "items": [
+       "+3"
+      ]
+     },
+     {
+      "day": 25,
+      "items": [
+       "+2"
+      ]
+     },
+     {
+      "day": 27,
+      "items": [
+       "+1"
+      ]
+     }
+    ]
+   },
+   {
+    "month": "OCT",
+    "railLanes": 4,
+    "labelMode": "keys",
+    "labels": [
+     {
+      "day": 1,
+      "items": [
+       "27",
+       "+1"
+      ]
+     },
+     {
+      "day": 1,
+      "milestone": "★ Release 3.0"
+     },
+     {
+      "day": 18,
+      "items": [
+       "28"
+      ]
+     }
+    ]
+   },
+   {
+    "month": "NOV '27",
+    "railLanes": 2,
+    "labelMode": "keys",
+    "labels": [
+     {
+      "day": 1,
+      "items": [
+       "6"
+      ]
+     }
+    ]
+   }
+  ]
+ }
+}

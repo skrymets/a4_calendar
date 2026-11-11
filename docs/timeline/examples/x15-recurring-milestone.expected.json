@@ -1,0 +1,295 @@
+{
+ "fixture": "x15-recurring-milestone.dates",
+ "options": {
+  "start": "2027-01-01",
+  "end": "2027-05-31",
+  "today": "2026-11-11"
+ },
+ "resolved": {
+  "milestones": [
+   {
+    "id": "sync",
+    "date": "2027-01-04",
+    "occurrence": "1/22"
+   },
+   {
+    "id": "sync",
+    "date": "2027-01-11",
+    "occurrence": "2/22"
+   },
+   {
+    "id": "sync",
+    "date": "2027-01-18",
+    "occurrence": "3/22"
+   },
+   {
+    "id": "sync",
+    "date": "2027-01-25",
+    "occurrence": "4/22"
+   },
+   {
+    "id": "sync",
+    "date": "2027-02-01",
+    "occurrence": "5/22"
+   },
+   {
+    "id": "sync",
+    "date": "2027-02-08",
+    "occurrence": "6/22"
+   },
+   {
+    "id": "sync",
+    "date": "2027-02-15",
+    "occurrence": "7/22"
+   },
+   {
+    "id": "sync",
+    "date": "2027-02-22",
+    "occurrence": "8/22"
+   },
+   {
+    "id": "sync",
+    "date": "2027-03-01",
+    "occurrence": "9/22"
+   },
+   {
+    "id": "sync",
+    "date": "2027-03-08",
+    "occurrence": "10/22"
+   },
+   {
+    "id": "sync",
+    "date": "2027-03-15",
+    "occurrence": "11/22"
+   },
+   {
+    "id": "sync",
+    "date": "2027-03-22",
+    "occurrence": "12/22"
+   },
+   {
+    "id": "sync",
+    "date": "2027-03-29",
+    "occurrence": "13/22"
+   },
+   {
+    "id": "sync",
+    "date": "2027-04-05",
+    "occurrence": "14/22"
+   },
+   {
+    "id": "sync",
+    "date": "2027-04-12",
+    "occurrence": "15/22"
+   },
+   {
+    "id": "sync",
+    "date": "2027-04-19",
+    "occurrence": "16/22"
+   },
+   {
+    "id": "sync",
+    "date": "2027-04-26",
+    "occurrence": "17/22"
+   },
+   {
+    "id": "sync",
+    "date": "2027-05-03",
+    "occurrence": "18/22"
+   },
+   {
+    "id": "sync",
+    "date": "2027-05-10",
+    "occurrence": "19/22"
+   },
+   {
+    "id": "sync",
+    "date": "2027-05-17",
+    "occurrence": "20/22"
+   },
+   {
+    "id": "sync",
+    "date": "2027-05-24",
+    "occurrence": "21/22"
+   },
+   {
+    "id": "sync",
+    "date": "2027-05-31",
+    "occurrence": "22/22"
+   },
+   {
+    "id": "payroll",
+    "date": "2027-01-25",
+    "occurrence": "1/5"
+   },
+   {
+    "id": "payroll",
+    "date": "2027-02-25",
+    "occurrence": "2/5"
+   },
+   {
+    "id": "payroll",
+    "date": "2027-03-25",
+    "occurrence": "3/5"
+   },
+   {
+    "id": "payroll",
+    "date": "2027-04-25",
+    "occurrence": "4/5"
+   },
+   {
+    "id": "payroll",
+    "date": "2027-05-25",
+    "occurrence": "5/5"
+   }
+  ],
+  "intervals": []
+ },
+ "layout": {
+  "geometry": "wide",
+  "laneCap": 6,
+  "groupsMerged": false,
+  "layout": "packed",
+  "columns": [
+   {
+    "month": "JAN",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": [
+     {
+      "day": 4,
+      "milestone": "● Team sync"
+     },
+     {
+      "day": 11,
+      "milestone": "●"
+     },
+     {
+      "day": 18,
+      "milestone": "●"
+     },
+     {
+      "day": 25,
+      "milestone": "●◆ Payroll +1"
+     }
+    ]
+   },
+   {
+    "month": "FEB",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": [
+     {
+      "day": 1,
+      "milestone": "● Team sync"
+     },
+     {
+      "day": 8,
+      "milestone": "●"
+     },
+     {
+      "day": 15,
+      "milestone": "●"
+     },
+     {
+      "day": 22,
+      "milestone": "●"
+     },
+     {
+      "day": 25,
+      "milestone": "◆ Payroll"
+     }
+    ]
+   },
+   {
+    "month": "MAR",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": [
+     {
+      "day": 1,
+      "milestone": "● Team sync"
+     },
+     {
+      "day": 8,
+      "milestone": "●"
+     },
+     {
+      "day": 15,
+      "milestone": "●"
+     },
+     {
+      "day": 22,
+      "milestone": "●"
+     },
+     {
+      "day": 25,
+      "milestone": "◆ Payroll"
+     },
+     {
+      "day": 29,
+      "milestone": "●"
+     }
+    ]
+   },
+   {
+    "month": "APR",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": [
+     {
+      "day": 5,
+      "milestone": "● Team sync"
+     },
+     {
+      "day": 12,
+      "milestone": "●"
+     },
+     {
+      "day": 19,
+      "milestone": "●"
+     },
+     {
+      "day": 25,
+      "milestone": "◆ Payroll"
+     },
+     {
+      "day": 26,
+      "milestone": "●"
+     }
+    ]
+   },
+   {
+    "month": "MAY",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": [
+     {
+      "day": 3,
+      "milestone": "● Team sync"
+     },
+     {
+      "day": 10,
+      "milestone": "●"
+     },
+     {
+      "day": 17,
+      "milestone": "●"
+     },
+     {
+      "day": 24,
+      "milestone": "●"
+     },
+     {
+      "day": 25,
+      "milestone": "◆ Payroll"
+     },
+     {
+      "day": 31,
+      "milestone": "●"
+     }
+    ]
+   }
+  ]
+ }
+}

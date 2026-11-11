@@ -1,0 +1,2 @@
+sync    = 2027-01-04; title="Team sync"; every=1w; mark=dot; color=steel
+payroll = 2027-01-25; title="Payroll"; every=1m; label=each; color=ochre

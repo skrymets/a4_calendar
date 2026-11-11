@@ -1,0 +1,8 @@
+i1 = 2027-03-01/10d; title="Infra"; color=teal
+i2 = 2027-03-02/10d; title="API"; color=violet
+i3 = 2027-03-03/10d; title="Web"; color=orange
+i4 = 2027-03-04/10d; title="Mobile"; color=steel
+i5 = 2027-03-05/10d; title="Data"; color=magenta
+i6 = 2027-03-06/10d; title="Ops"; color=ochre
+i7 = 2027-03-07/10d; title="Docs"; color=grey
+i8 = 2027-03-08/10d; title="Security"; color=red; priority=high

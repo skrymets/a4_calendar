@@ -1,0 +1,96 @@
+{
+ "fixture": "x01-marks.dates",
+ "options": {
+  "start": "2027-01-01",
+  "end": "2027-05-31",
+  "today": "2026-11-11"
+ },
+ "resolved": {
+  "milestones": [
+   {
+    "id": "a",
+    "date": "2027-03-01"
+   },
+   {
+    "id": "b",
+    "date": "2027-03-02"
+   },
+   {
+    "id": "c",
+    "date": "2027-03-03"
+   },
+   {
+    "id": "d",
+    "date": "2027-03-04"
+   },
+   {
+    "id": "e",
+    "date": "2027-03-05"
+   },
+   {
+    "id": "f",
+    "date": "2027-03-05"
+   }
+  ],
+  "intervals": []
+ },
+ "layout": {
+  "geometry": "wide",
+  "laneCap": 6,
+  "groupsMerged": false,
+  "layout": "packed",
+  "columns": [
+   {
+    "month": "JAN",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   },
+   {
+    "month": "FEB",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   },
+   {
+    "month": "MAR",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": [
+     {
+      "day": 1,
+      "milestone": "◆ Diamond (default)"
+     },
+     {
+      "day": 2,
+      "milestone": "★ Star"
+     },
+     {
+      "day": 3,
+      "milestone": "● Dot"
+     },
+     {
+      "day": 4,
+      "milestone": " Ring"
+     },
+     {
+      "day": 5,
+      "milestone": "◆● Two on one day +1"
+     }
+    ]
+   },
+   {
+    "month": "APR",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   },
+   {
+    "month": "MAY",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   }
+  ]
+ }
+}

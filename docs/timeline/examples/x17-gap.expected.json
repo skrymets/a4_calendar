@@ -1,0 +1,136 @@
+{
+ "fixture": "x17-gap.dates",
+ "options": {
+  "start": "2027-01-01",
+  "end": "2027-05-31",
+  "today": "2026-11-11"
+ },
+ "resolved": {
+  "milestones": [],
+  "intervals": [
+   {
+    "id": "shift",
+    "key": "1",
+    "start": "2027-01-04",
+    "endExclusive": "2027-01-07",
+    "lastDrawnDay": "2027-01-06",
+    "occurrence": "1/6"
+   },
+   {
+    "id": "shift",
+    "key": "1",
+    "start": "2027-01-09",
+    "endExclusive": "2027-01-12",
+    "lastDrawnDay": "2027-01-11",
+    "occurrence": "2/6"
+   },
+   {
+    "id": "shift",
+    "key": "1",
+    "start": "2027-01-14",
+    "endExclusive": "2027-01-17",
+    "lastDrawnDay": "2027-01-16",
+    "occurrence": "3/6"
+   },
+   {
+    "id": "shift",
+    "key": "1",
+    "start": "2027-01-19",
+    "endExclusive": "2027-01-22",
+    "lastDrawnDay": "2027-01-21",
+    "occurrence": "4/6"
+   },
+   {
+    "id": "shift",
+    "key": "1",
+    "start": "2027-01-24",
+    "endExclusive": "2027-01-27",
+    "lastDrawnDay": "2027-01-26",
+    "occurrence": "5/6"
+   },
+   {
+    "id": "shift",
+    "key": "1",
+    "start": "2027-01-29",
+    "endExclusive": "2027-02-01",
+    "lastDrawnDay": "2027-01-31",
+    "occurrence": "6/6"
+   }
+  ]
+ },
+ "layout": {
+  "geometry": "wide",
+  "laneCap": 6,
+  "groupsMerged": false,
+  "layout": "packed",
+  "columns": [
+   {
+    "month": "JAN",
+    "railLanes": 1,
+    "labelMode": "text",
+    "labels": [
+     {
+      "day": 4,
+      "items": [
+       "SHIFT #1"
+      ]
+     },
+     {
+      "day": 9,
+      "items": [
+       "#2"
+      ]
+     },
+     {
+      "day": 14,
+      "items": [
+       "#3"
+      ]
+     },
+     {
+      "day": 19,
+      "items": [
+       "#4"
+      ]
+     },
+     {
+      "day": 24,
+      "items": [
+       "#5"
+      ]
+     },
+     {
+      "day": 29,
+      "items": [
+       "#6"
+      ]
+     }
+    ]
+   },
+   {
+    "month": "FEB",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   },
+   {
+    "month": "MAR",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   },
+   {
+    "month": "APR",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   },
+   {
+    "month": "MAY",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   }
+  ]
+ }
+}

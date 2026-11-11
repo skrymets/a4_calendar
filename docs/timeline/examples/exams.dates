@@ -1,0 +1,17 @@
+# exams.dates — "Prepare for Exams", 11 Nov 2026 – 10 Mar 2027, today = 2026-11-11
+# Milestones first; @references point only to earlier, non-recurring milestones.
+kickoff = today;        title="Kick-off"
+quiz    = @kickoff+5w;  title="Mock quiz"; mark=ring; color=teal
+term2   = 2027-01-07;   hide=yes
+exam    = 2027-03-01;   title="Final exam"; mark=star; color=red; countdown=7
+tutor   = 2026-11-19;   title="Tutor call"; every=1w; until=@exam; mark=dot; color=grey
+reg     = @exam-30d;    title="Registration closes"; color=red
+mock    = @exam-10d;    title="Mock exam"; mark=ring; color=orange
+results = @exam+1w;     title="Results"; mark=dot
+
+# Intervals are half-open [start, end): the end day is not drawn.
+theory   = @kickoff/5w;        title="Theory"; color=teal; length=days
+labs     = 2026-11-16/2d;      title="Lab session"; every=2w; count=8; color=steel
+holidays = 2026-12-24/@term2;  title="Holidays"; style=hatch
+practice = @term2/6w;          title="Practice sets"; color=violet; length=days
+revision = 2w/@exam;           title="Revision"; color=orange; length=days

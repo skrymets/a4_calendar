@@ -1,0 +1,2 @@
+work     = 2027-03-01/3w;         title="Work"; color=teal
+holidays = 2027-03-05/2027-03-15; title="Holidays"; style=hatch
