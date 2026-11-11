@@ -66,8 +66,7 @@ func invalidPeriod(s string) error {
 	return fmt.Errorf("invalid period '%s': use <N>d, <N>w, <N>m or 1y (N >= 1)", s)
 }
 
-// ErrOutOfRange reports a period ending after year 9999 (where Python's
-// datetime overflows).
+// ErrOutOfRange reports a period ending after year 9999.
 var ErrOutOfRange = errors.New("period end out of range")
 
 // maxUnits exceeds the number of days between years 1 and 9999, so any

@@ -1,9 +1,7 @@
 # yearly-calendar: the Go version
 
-A standalone binary for Windows and Linux. It needs no Python, no libraries and no
-installation. It has the same options and draws the same page as the
-[Python version](../py/README.md). The page and every option are described in the
-[main README](../README.md).
+A standalone binary for Windows and Linux. It needs no libraries and no installation. The
+page and every option are described in the [main README](../README.md).
 
 ## Download
 
@@ -71,20 +69,12 @@ yearly-calendar --licenses    # font and library licences
 ```
 
 Every PDF the program writes carries the version in its metadata (Creator:
-`yearly-calendar <version> (Go)`).
+`yearly-calendar <version>`).
 
-## Differences from the Python version
+### Exit codes
 
-The options, defaults, validation rules, exit codes (2 for a usage error, 1 for anything
-else) and the page itself are the same. The differences are:
-
-- `--font pt-sans-narrow`, `--licenses` are Go-only.
-- `--start` accepts only `YYYY-MM-DD`. Python also accepts the compact forms of ISO 8601.
-- Some messages are worded differently. For example, an unknown option gives
-  `unknown flag: --x` where Python says `unrecognized arguments: --x`. Options cannot be
-  abbreviated: `--per 90d` does not work as `--period 90d`.
-- An invalid `--weekend` value or colour gives an error message, where Python shows a
-  traceback.
+`0` on success, `2` for a usage error (unknown option, invalid value), `1` for anything else.
+Options cannot be abbreviated: `--per 90d` does not work as `--period 90d`.
 
 ## Build from source
 
@@ -102,5 +92,5 @@ go -C go build -o yearly-calendar ./cmd/yearly-calendar
 go -C go build -ldflags "-X main.version=$(cat VERSION)" -o yearly-calendar ./cmd/yearly-calendar
 ```
 
-Tests, the comparison against the Python version and the release procedure are in
+Tests and the release procedure are in
 [DEV.md](../DEV.md).

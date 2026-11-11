@@ -21,12 +21,12 @@ const (
 	AlignRight
 )
 
-// SpacedWidth is the width of s with letter-spacing (Python spaced_width).
+// SpacedWidth is the width of s with letter-spacing.
 func SpacedWidth(c canvas.Canvas, s string, f canvas.Font, size, spacing float64) float64 {
 	return c.StringWidth(s, f, size) + spacing*float64(utf8.RuneCountInString(s)-1)
 }
 
-// DrawSpaced draws letter-spaced text anchored at x (Python draw_spaced).
+// DrawSpaced draws letter-spaced text anchored at x.
 func DrawSpaced(c canvas.Canvas, s string, x, y float64, f canvas.Font, size, spacing float64, a Align) {
 	w := SpacedWidth(c, s, f, size, spacing)
 	switch a {
@@ -39,8 +39,7 @@ func DrawSpaced(c canvas.Canvas, s string, x, y float64, f canvas.Font, size, sp
 	c.DrawSpaced(x, y, s, spacing)
 }
 
-// FitText truncates text with "..." so that width(text) <= maxW
-// (Python fit_text).
+// FitText truncates text with "..." so that width(text) <= maxW.
 func FitText(text string, maxW float64, width func(string) float64) string {
 	if width(text) <= maxW {
 		return text

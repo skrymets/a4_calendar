@@ -6,15 +6,8 @@ period from one day up.
 
 ![A full-year calendar starting on 7 November 2026](docs/images/calendar-preview.png)
 
-There are two implementations with the same options and the same output:
-
-| | For | Needs | Read |
-|---|---|---|---|
-| **Go** | everyday use | nothing: one binary for Windows or Linux | [go/README.md](go/README.md) |
-| **Python** | the reference implementation | Python 3 and ReportLab | [py/README.md](py/README.md) |
-
-Pick the Go binary unless you already work with Python. Both print the same page; the
-differences are listed in [go/README.md](go/README.md#differences-from-the-python-version).
+It is a single binary for Windows or Linux that needs nothing installed. Download, build and
+run instructions are in [go/README.md](go/README.md).
 
 ## What is on the page
 
@@ -39,8 +32,6 @@ yearly-calendar                                # one year from today
 yearly-calendar --start 2027-01-01             # calendar year 2027 -> calendar_2027-01-01.pdf
 yearly-calendar --start 2026-11-07 --period 90d -o q4.pdf
 ```
-
-With Python, replace `yearly-calendar` with `python py/yearly_calendar.py`.
 
 The file is written to the current directory as `calendar_<start>.pdf`, or
 `calendar_<start>_<period>.pdf` for a period shorter than a year, unless `-o` names it.
@@ -109,14 +100,14 @@ yearly-calendar --start 2027-01-01 --font DejaVuSans.ttf \
     --title "КАЛЕНДАР НА РІК"
 ```
 
-The Go binary has PT Sans Narrow built in, which covers Cyrillic: use `--font pt-sans-narrow`
+The binary has PT Sans Narrow built in, which covers Cyrillic: use `--font pt-sans-narrow`
 and no font file is needed.
 
 ## Versions
 
 Releases follow [Semantic Versioning](DEV.md#versioning). The version is in the
-[`VERSION`](VERSION) file. Each implementation reports it with `--version` and writes it into
-every PDF it produces (Document Properties → Creator, e.g. `yearly-calendar 0.1.0 (Go)`).
+[`VERSION`](VERSION) file. The program reports it with `--version` and writes it into
+every PDF it produces (Document Properties → Creator, e.g. `yearly-calendar 0.2.0`).
 What changed in each release is in [Release-Notes.md](Release-Notes.md). Downloads are on
 the repository's Releases page. How releases are made is in [DEV.md](DEV.md).
 
@@ -124,10 +115,9 @@ the repository's Releases page. How releases are made is in [DEV.md](DEV.md).
 
 This project is released under the [MIT License](LICENSE).
 
-The Go binary also contains third-party work under its own licences. It embeds PT Sans
+The binary also contains third-party work under its own licences. It embeds PT Sans
 Narrow (ParaType, SIL Open Font License 1.1). It links
 [go-pdf/fpdf](https://github.com/go-pdf/fpdf) (MIT), [spf13/pflag](https://github.com/spf13/pflag)
-(BSD-3-Clause) and the Go standard library (BSD-3-Clause). The Python version uses
-[ReportLab](https://www.reportlab.com/) (BSD), installed separately.
+(BSD-3-Clause) and the Go standard library (BSD-3-Clause).
 `yearly-calendar --licenses` prints these licences. Every release archive includes `LICENSE`,
-and the Go archives also include `OFL.txt` and `THIRD_PARTY_LICENSES.txt`.
+`OFL.txt` and `THIRD_PARTY_LICENSES.txt`.

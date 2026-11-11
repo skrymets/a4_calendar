@@ -27,8 +27,8 @@ func TestRunWritesPDF(t *testing.T) {
 	if err != nil || !bytes.HasPrefix(data, []byte("%PDF-")) {
 		t.Errorf("no PDF written: %v", err)
 	}
-	if !bytes.Contains(data, []byte("/Creator (yearly-calendar dev \\(Go\\))")) {
-		t.Error("PDF metadata lacks Creator 'yearly-calendar dev (Go)'")
+	if !bytes.Contains(data, []byte("/Creator (yearly-calendar dev)")) {
+		t.Error("PDF metadata lacks Creator 'yearly-calendar dev'")
 	}
 }
 

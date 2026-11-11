@@ -128,7 +128,7 @@ func (c *FPDF) DrawString(x, y float64, s string) {
 }
 
 // DrawSpaced draws with letter-spacing via the Tc operator and resets it,
-// since Tc persists in the text state (as draw_spaced in Python).
+// since Tc persists in the text state.
 func (c *FPDF) DrawSpaced(x, y float64, s string, spacing float64) {
 	c.pdf.RawWriteStr(fmt.Sprintf("%.2f Tc", spacing)) // RawWriteStr appends "\n"
 	c.DrawString(x, y, s)

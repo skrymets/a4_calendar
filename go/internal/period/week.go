@@ -2,7 +2,7 @@ package period
 
 import "time"
 
-// Weekday returns Monday=0 .. Sunday=6, like Python's date.weekday().
+// Weekday returns Monday=0 .. Sunday=6.
 func Weekday(d time.Time) int { return (int(d.Weekday()) + 6) % 7 }
 
 // WeekNumber numbers the week of day in a calendar starting at start:
@@ -24,7 +24,7 @@ func WeekNumber(day, start time.Time, mode string, weekStart int) int {
 	return floorDiv(DaysBetween(anchor(start), anchor(day)), 7) + 1
 }
 
-// mod and floorDiv follow Python's % and // semantics for negatives.
+// mod and floorDiv round towards negative infinity (floored division).
 func mod(a, b int) int { return ((a % b) + b) % b }
 
 func floorDiv(a, b int) int {

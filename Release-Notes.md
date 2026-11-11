@@ -6,6 +6,18 @@ MINOR release may change behaviour you rely on, and says so under **Changed**.
 Each release has a section headed by its bare version (`## 0.1.0`). The release workflow
 publishes that section as the GitHub release text, and refuses a tag whose version has none.
 
+## 0.2.0
+
+### Changed
+
+- The PDF Creator metadata is now `yearly-calendar <version>`, without the `(Go)` suffix.
+
+### Removed
+
+- **The Python version** (`py/yearly_calendar.py`) and its release archive
+  (`yearly-calendar-py-<version>.zip`). The Go binary prints the same page with the same
+  options. The Python/Go comparison tool (`tools/parity.py`) is gone with it.
+
 ## 0.1.0
 
 First release.

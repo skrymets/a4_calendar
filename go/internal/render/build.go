@@ -177,7 +177,7 @@ func Build(cfg Config, c canvas.Canvas) (Result, error) {
 					gy := mainY + float64(k)*step
 					c.Line(gx0, gy, gx1, gy)
 				}
-				c.ClearDash() // instead of Python's saveState/restoreState
+				c.ClearDash()
 				c.SetRoundCap(false)
 			}
 

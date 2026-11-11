@@ -13,8 +13,8 @@ const (
 	defaultMonths  = "JAN,FEB,MAR,APR,MAY,JUN,JUL,AUG,SEP,OCT,NOV,DEC"
 )
 
-// options holds raw flag values. Values that argparse converts (int, float,
-// date, choices) are kept as strings so the messages can match Python.
+// options holds raw flag values. Values that need converting (int, float,
+// date, choices) are kept as strings and validated in configure.
 type options struct {
 	start, period, output, weekMode, weekStart, weekLabels, weekend string
 	title, dayLetters, monthNames, font, paper, noteLines           string
@@ -22,8 +22,7 @@ type options struct {
 	noFooter, noNoteGuide, hideOutside, version, licenses           bool
 }
 
-// newFlagSet defines the CLI (same names, defaults and help as Python) and
-// returns a function rendering argparse-like help text.
+// newFlagSet defines the CLI and returns a function rendering the help text.
 func newFlagSet() (*pflag.FlagSet, *options, func() string) {
 	o := &options{}
 	fs := pflag.NewFlagSet("yearly-calendar", pflag.ContinueOnError)

@@ -124,14 +124,6 @@ jobs:
             fi
           done
 
-          name="yearly-calendar-py-$VERSION"
-          stage="dist/$name"
-          mkdir -p "$stage"
-          cp py/yearly_calendar.py py/requirements.txt VERSION LICENSE "$stage/"
-          cp py/README.md "$stage/README.md"
-          (cd dist && zip -qr "$name.zip" "$name")
-          assets+=("$name.zip")
-
           # sha256sum's own format ("<hash>  <file>"), so `sha256sum -c` verifies it as-is.
           files=()
           for a in "${assets[@]}"; do
@@ -159,7 +151,6 @@ jobs:
             echo
             echo "- **Windows:** unzip \`yearly-calendar-$VERSION-windows-amd64.zip\` and run \`yearly-calendar.exe\`."
             echo "- **Linux:** \`tar -xzf yearly-calendar-$VERSION-linux-amd64.tar.gz\` (or \`-linux-arm64\`) and run \`./yearly-calendar\`."
-            echo "- **Python:** unzip \`yearly-calendar-py-$VERSION.zip\`, \`pip install -r requirements.txt\`, run \`python yearly_calendar.py\`."
             echo
             echo "## Verify the download"
             echo

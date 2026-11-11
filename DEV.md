@@ -6,10 +6,8 @@
 |---|---|
 | `VERSION` | the version, the only place it is written down |
 | `LICENSE` | MIT; copied into every release archive |
-| `py/yearly_calendar.py` | the Python implementation, which is the reference |
-| `go/` | the Go port: module `a4calendar`, binary `yearly-calendar` |
+| `go/` | the program: module `a4calendar`, binary `yearly-calendar` |
 | `go/build.ps1` | cross-compiles windows/amd64, linux/amd64 and linux/arm64 into `go/dist/` |
-| `tools/parity.py` | renders the same cases with both implementations and compares them |
 | `Release-Notes.md` | what changed, one section per version |
 | `.github/workflows/ci.yml` | every gate, on each push to and PR into `develop` and `main` |
 | `.github/workflows/release.yml` | on a pushed `v*` tag: the CI gates, then packaging and publishing |
@@ -22,29 +20,19 @@ go -C go test ./...                       # unit tests
 gofmt -l go                               # must print nothing
 go -C go vet ./...
 .\go\build.ps1                            # binaries in go/dist/, stamped with VERSION
-.\.venv\Scripts\python.exe py\yearly_calendar.py --version
-.\.venv\Scripts\python.exe tools\parity.py  # Python vs Go, needs pdftoppm (and pdftotext)
 ```
 
-Any change to the layout code in `py/yearly_calendar.py` must be mirrored in
-`go/internal/render/build.go`, and `tools/parity.py` must pass afterwards. The parity check
-rasterises both PDFs at 100 dpi and allows 0.25% of pixels to differ. That allowance covers
-sub-pixel noise: fpdf writes coordinates with two decimals, ReportLab with more. It was tuned
-on Windows with MiKTeX's poppler. CI runs it on Linux with Liberation Sans standing in for
-Helvetica. If CI's first run reports ratios above the allowance while the text column says
-`same`, the noise needs re-tuning there: raise `MAX_DIFF_RATIO` and record the worst ratio
-observed on Linux.
+A layout change is checked by rendering a PDF and looking at it, for both a 1 January start
+and a mid-year start, which exercise different code paths (12 vs 13 columns, partial months).
 
 ## Versioning
 
 The version follows [Semantic Versioning 2.0.0](https://semver.org/) and is written in exactly
 one place: the `VERSION` file. Everything else derives from it:
 
-- `py/yearly_calendar.py` reads it at run time, from beside the script or one directory up.
 - `go/build.ps1` and the workflows pass it to the Go linker (`-X main.version=…`). A plain
   `go build` or `go run` reports `dev`.
-- `--version` in both implementations, and the Creator field of every PDF
-  (`yearly-calendar <version> (Go|Python)`).
+- `--version`, and the Creator field of every PDF (`yearly-calendar <version>`).
 - The release title, the asset file names, and the release-notes section that gets published.
 
 The release workflow refuses a tag that disagrees with `VERSION`, and both workflows refuse a
@@ -126,19 +114,16 @@ The leading `v` matters: the workflow starts on tags matching `v*`. File names d
    - `VERSION` is valid SemVer;
    - `gofmt`, `go vet`, `go test`;
    - the binaries are built and report `VERSION`;
-   - the Python smoke test;
-   - the parity check.
+   - a smoke test that renders two calendars with the Linux binary.
 2. Checks that the tag equals `v` + `VERSION`.
 3. Checks that `Release-Notes.md` has a `## <version>` section.
 4. Builds the binaries and checks their `--version` again.
 5. Packages the assets, each with a `.sha256` in `sha256sum` format:
    - `yearly-calendar-<version>-windows-amd64.zip`;
    - `yearly-calendar-<version>-linux-amd64.tar.gz`;
-   - `yearly-calendar-<version>-linux-arm64.tar.gz`;
-   - `yearly-calendar-py-<version>.zip`.
-   - Each Go archive holds `yearly-calendar[.exe]`, `README.md` (from `go/`), `LICENSE`,
-     `OFL.txt` and `THIRD_PARTY_LICENSES.txt`. The Python archive holds the script,
-     `VERSION`, `requirements.txt`, `LICENSE` and `README.md` (from `py/`).
+   - `yearly-calendar-<version>-linux-arm64.tar.gz`.
+   - Each archive holds `yearly-calendar[.exe]`, `README.md` (from `go/`), `LICENSE`,
+     `OFL.txt` and `THIRD_PARTY_LICENSES.txt`.
 6. Creates the release titled `yearly-calendar <version>`. Its text is install and verify
    instructions, then the release-notes section, then GitHub's generated list of changes since
    the previous tag. A tag with a hyphen becomes a pre-release.
@@ -175,7 +160,7 @@ problem and release the next PATCH version.
 
 ## Pinned actions
 
-The workflows use `actions/checkout@v4`, `actions/setup-go@v5` and `actions/setup-python@v5`.
+The workflows use `actions/checkout@v4` and `actions/setup-go@v5`.
 They are pinned to major-version tags rather than commit SHAs, so they pick up fixes without
 edits, at the cost of trusting the publisher not to move the tag maliciously. Pinning to
 full SHAs, for example with Dependabot keeping them current, closes that gap if it matters.

@@ -24,7 +24,7 @@ import (
 //go:embed THIRD_PARTY_LICENSES.txt
 var thirdPartyLicenses string
 
-// usageError is a command-line error: exit code 2, like argparse's error().
+// usageError is a command-line error: exit code 2.
 type usageError struct{ msg string }
 
 func (e usageError) Error() string { return e.msg }
@@ -85,14 +85,14 @@ func buildAndSave(cfg render.Config, output string) (res render.Result, err erro
 		}
 	}()
 	c := canvas.New(cfg.PaperW, cfg.PaperH)
-	c.SetCreator(fmt.Sprintf("yearly-calendar %s (Go)", version))
+	c.SetCreator(fmt.Sprintf("yearly-calendar %s", version))
 	if res, err = render.Build(cfg, c); err != nil {
 		return res, err
 	}
 	return res, c.Save(output)
 }
 
-// configure validates o in Python's order: argparse conversions and
+// configure validates o in a fixed order: conversions and
 // choices, then the 1-year maximum (both usage errors, exit 2), then the
 // checks build() makes (exit 1).
 func configure(o *options, titleSet, outputSet bool) (render.Config, string, error) {

@@ -1,5 +1,5 @@
 // Package canvas is the drawing surface used by render. Coordinates are
-// PDF-native, as in ReportLab: points, origin at the bottom-left corner.
+// PDF-native: points, origin at the bottom-left corner.
 package canvas
 
 import (
@@ -11,7 +11,7 @@ import (
 // RGB is an 8-bit colour.
 type RGB struct{ R, G, B uint8 }
 
-// Hex parses "#RRGGBB" or "0xRRGGBB", the forms ReportLab's HexColor takes.
+// Hex parses "#RRGGBB" or "0xRRGGBB".
 func Hex(s string) (RGB, error) {
 	h := s
 	switch {
@@ -50,7 +50,7 @@ var Helvetica = Font{Name: "Helvetica"}
 // TTF returns a TrueType font; name identifies it inside the document.
 func TTF(name string, data []byte) Font { return Font{Name: name, TTF: data} }
 
-// Canvas is the subset of ReportLab's canvas that the calendar uses.
+// Canvas is the drawing surface the calendar uses.
 type Canvas interface {
 	SetFillColor(c RGB) // also the text colour
 	SetStrokeColor(c RGB)

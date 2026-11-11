@@ -28,8 +28,8 @@ func TestHex(t *testing.T) {
 	}
 }
 
-// Widths must equal ReportLab's pdfmetrics.stringWidth (values from Python).
-func TestHelveticaWidthsMatchReportLab(t *testing.T) {
+// Widths are the standard Helvetica AFM metrics.
+func TestHelveticaWidths(t *testing.T) {
 	c := New(595.2755905511812, 841.8897637795277)
 	cases := []struct {
 		s    string

@@ -24,7 +24,7 @@ const (
 	CellPad   = 1.8 // left padding inside a cell, pt
 )
 
-// Paper sizes in points, identical to reportlab.lib.pagesizes.
+// Paper sizes in points.
 const (
 	A4W     = 210 * MM
 	A4H     = 297 * MM
