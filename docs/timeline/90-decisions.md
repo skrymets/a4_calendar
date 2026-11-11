@@ -39,6 +39,12 @@ The design canvas (Design artifact "Milestones & Intervals") shows each rejected
 | Where `reference/engine.js` hard-codes a default that the requirements make configurable, the requirement wins: workdays follow `--weekend`, weekly flow compaction follows `--week-start` | The golden files use the defaults, so they agree. |
 | Inline declarations are reported as `--milestone[N]` / `--interval[N]` (1-based per option) in errors | Each argument is its own one-line source. |
 | DSL errors are collected (all lines reported); a declaration that fails is still registered by name so references to it do not cascade | REQ-ER-1 asks for one line per error. |
+| `status=tentative` on a milestone appends ` ?` to its title and legend entry (REQ-KEY-6 "both"; the reference renderer ignored it) | Follows the requirement; no fixture uses it. |
+| A rendering key of the other kind (`mark` on an interval, `style` on a milestone) is accepted with a warning | It is most likely a mistake, but not an invalid value. |
+| An anonymous interval without a title gets no text label, only its rail and key | REQ-KEY-1; the reference renderer would print ` (CONT.)` or ` #n` on its own. |
+| The legend marks members with ` · G` only when groups are merged | REQ-LG-2 and the x20 pictures; REQ-GR-5's wording suggested it also when separate. |
+| The legend lists a merged group only if a member is in the period | An entry with nothing to point to would be noise. |
+| Legend dates use `--month-names` with only the first letter upper case (`1 Jan`, `1 Січ`) | Localised like the header, readable in the small legend type. |
 | Limits: dates in the years 0001–9999; a period number above 4 000 000 is an error; one recurrence may produce at most 100 000 occurrences up to the period end (an error names the declaration) | Keeps arithmetic exact and a run bounded; a daily series started decades ago still fits. |
 
 ## Open items (not blocking v1)
