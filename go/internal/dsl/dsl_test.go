@@ -339,6 +339,26 @@ func TestErrorsAreCollectedWithoutCascades(t *testing.T) {
 	}
 }
 
+// A declaration rejected for its kind or position is registered as broken
+// too, so a later reference to it is not a second error.
+func TestStructuralErrorsDoNotCascade(t *testing.T) {
+	srcs := []Source{
+		{Name: "t.dates", Text: "a=2027-01-01/2d\nb=2027-02-01"},
+		{Name: "--milestone[1]", Text: "m=2027-01-01/2d", Expect: KindMilestone},
+		{Name: "--interval[1]", Text: "i=2027-01-01", Expect: KindInterval},
+		{Name: "--interval[2]", Text: "@b/@m", Expect: KindInterval},
+		{Name: "--interval[3]", Text: "i=2027-01-01/1d", Expect: KindInterval},
+	}
+	_, err := Parse(srcs, today)
+	want := "t.dates:2: milestones must be declared before the first interval\n" +
+		"--milestone[1]: a milestone cannot contain '/'; declare intervals with --interval\n" +
+		"--interval[1]: an interval needs START/END, START/DURATION or DURATION/END\n" +
+		`--interval[3]: duplicate identifier "i"`
+	if err == nil || err.Error() != want {
+		t.Errorf("errors:\n%v\nwant:\n%s", err, want)
+	}
+}
+
 func TestInlineErrors(t *testing.T) {
 	srcs := []Source{
 		{Name: "--milestone[1]", Text: "x=2027-01-01/2d", Expect: KindMilestone},

@@ -16,6 +16,7 @@ import (
 	"github.com/spf13/pflag"
 
 	"a4calendar/internal/canvas"
+	"a4calendar/internal/dsl"
 	"a4calendar/internal/fonts"
 	"a4calendar/internal/period"
 	"a4calendar/internal/render"
@@ -59,7 +60,12 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return 0
 	}
 
-	cfg, output, err := configure(o, fs.Changed("title"), fs.Changed("output"))
+	cfg, output, err := configure(o, fs.Changed, stderr)
+	var dslErrs dsl.Errors
+	if errors.As(err, &dslErrs) {
+		printErrors(stderr, dslErrs)
+		return 2
+	}
 	if err == nil {
 		var res render.Result
 		if res, err = buildAndSave(cfg, output); err == nil {
@@ -92,12 +98,23 @@ func buildAndSave(cfg render.Config, output string) (res render.Result, err erro
 	return res, c.Save(output)
 }
 
+// choice is an option with a fixed set of values.
+type choice struct {
+	flag, val string
+	allowed   []string
+}
+
 // configure validates o in a fixed order: conversions and
 // choices, then the 1-year maximum (both usage errors, exit 2), then the
-// checks build() makes (exit 1).
-func configure(o *options, titleSet, outputSet bool) (render.Config, string, error) {
+// checks build() makes (exit 1), then the timeline inputs (dsl.Errors,
+// exit 2). changed reports whether a flag was given.
+func configure(o *options, changed func(string) bool, stderr io.Writer) (render.Config, string, error) {
 	var cfg render.Config
-	start, err := parseStart(o.start)
+	today, err := parseDate("--today", o.today, time.Time{})
+	if err != nil {
+		return cfg, "", err
+	}
+	start, err := parseDate("--start", o.start, today)
 	if err != nil {
 		return cfg, "", err
 	}
@@ -117,19 +134,24 @@ func configure(o *options, titleSet, outputSet bool) (render.Config, string, err
 	if err != nil {
 		return cfg, "", usagef("argument --margin: invalid float value: '%s'", o.margin)
 	}
-	for _, ch := range []struct {
-		flag, val string
-		allowed   []string
-	}{
+	choices := append([]choice{
 		{"--week-mode", o.weekMode, []string{"relative", "iso", "rolling"}},
 		{"--week-labels", o.weekLabels, []string{"all", "first"}},
 		{"--paper", o.paper, []string{"a4", "letter"}},
 		{"--header", o.header, []string{"compact", "full"}},
-	} {
+	}, timelineChoices(o)...)
+	for _, ch := range choices {
 		if !slices.Contains(ch.allowed, ch.val) {
 			return cfg, "", usagef("argument %s: invalid choice: '%s' (choose from '%s')",
 				ch.flag, ch.val, strings.Join(ch.allowed, "', '"))
 		}
+	}
+	lanes, err := parseLanes(o.tlLanes)
+	if err != nil {
+		return cfg, "", err
+	}
+	if changed("timeline-compact") && o.tlLayout != "flow" { // REQ-CLI-4
+		fmt.Fprintln(stderr, "Warning: --timeline-compact is ignored with --timeline-layout packed")
 	}
 
 	end, endErr := period.PeriodEnd(start, p)
@@ -176,10 +198,10 @@ func configure(o *options, titleSet, outputSet bool) (render.Config, string, err
 	}
 
 	title, output := o.title, o.output
-	if !titleSet {
+	if !changed("title") {
 		title = render.DefaultTitle(p)
 	}
-	if !outputSet {
+	if !changed("output") {
 		output = render.DefaultOutput(start, p)
 	}
 	paperW, paperH := render.A4W, render.A4H
@@ -195,17 +217,25 @@ func configure(o *options, titleSet, outputSet bool) (render.Config, string, err
 		WorkdayColor: workday, WeekendColor: weekendColor,
 		MarginMM: margin, Header: o.header, ShowOutside: !o.hideOutside,
 	}
-	return cfg, output, nil
+	cfg.Timeline, err = loadTimeline(o, cfg, today, end, lanes, stderr)
+	return cfg, output, err
 }
 
-func parseStart(s string) (time.Time, error) {
+const isoDate = "2006-01-02"
+
+// parseDate reads a YYYY-MM-DD option; empty means def, or the local
+// date when def is zero.
+func parseDate(flag, s string, def time.Time) (time.Time, error) {
 	if s == "" {
-		now := time.Now()
-		return period.Date(now.Year(), now.Month(), now.Day()), nil
+		if def.IsZero() {
+			now := time.Now()
+			def = period.Date(now.Year(), now.Month(), now.Day())
+		}
+		return def, nil
 	}
-	t, err := time.Parse("2006-01-02", s)
+	t, err := time.Parse(isoDate, s)
 	if err != nil || t.Year() < 1 {
-		return time.Time{}, usagef("argument --start: invalid fromisoformat value: '%s'", s)
+		return time.Time{}, usagef("argument %s: invalid fromisoformat value: '%s'", flag, s)
 	}
 	return period.Date(t.Year(), t.Month(), t.Day()), nil
 }

@@ -91,26 +91,44 @@ func (p *parser) parseDecl(src Source, line int, text string, seenInterval *bool
 		}
 	}
 
+	lname := strings.ToLower(name)
+	_, dup := p.milestones[lname]
+	dup = dup || p.intervals[lname]
+	// broken registers a failed declaration's name, so references to it
+	// are not reported again; asInterval is the kind the user meant.
+	broken := func(asInterval bool) {
+		if name == "" || dup || lname == "today" {
+			return
+		}
+		if asInterval {
+			p.intervals[lname] = true
+		} else {
+			p.milestones[lname] = msRef{broken: true}
+		}
+	}
+
 	switch {
 	case src.Expect == KindMilestone && isInterval:
+		broken(false)
 		return errorf("a milestone cannot contain '/'; declare intervals with --interval")
 	case src.Expect == KindInterval && !isInterval:
+		broken(true)
 		return errorf("an interval needs START/END, START/DURATION or DURATION/END")
 	case !isInterval && name == "":
 		return errorf("a milestone needs a name: NAME=DATE")
 	case !isInterval && seenInterval != nil && *seenInterval:
+		broken(false)
 		return errorf("milestones must be declared before the first interval")
 	}
 	if isInterval && seenInterval != nil {
 		*seenInterval = true
 	}
 
-	lname := strings.ToLower(name)
 	if name != "" {
 		if lname == "today" {
 			return errorf(`"today" is reserved and cannot be an identifier`)
 		}
-		if _, dup := p.milestones[lname]; dup || p.intervals[lname] {
+		if dup {
 			return errorf("duplicate identifier %q", name)
 		}
 	}
@@ -121,12 +139,8 @@ func (p *parser) parseDecl(src Source, line int, text string, seenInterval *bool
 	} else {
 		ok = p.milestone(src, line, name, expr, parts[1:], &err)
 	}
-	if !ok && name != "" {
-		if isInterval {
-			p.intervals[lname] = true
-		} else {
-			p.milestones[lname] = msRef{broken: true}
-		}
+	if !ok {
+		broken(isInterval)
 	}
 	return err
 }

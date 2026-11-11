@@ -2,10 +2,15 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
+	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
 
 func call(args ...string) (code int, stdout, stderr string) {
@@ -195,4 +200,151 @@ func TestRunCorruptFonts(t *testing.T) {
 		t.Fatal(err)
 	}
 	checkBadFont(t, full[:2000])
+}
+
+const examplesDir = "../../../docs/timeline/examples"
+
+// TestRunDebugTimelineJSON runs every golden fixture through the command
+// line and compares the export with the golden file (docs/timeline/05 §1).
+func TestRunDebugTimelineJSON(t *testing.T) {
+	files, _ := filepath.Glob(filepath.Join(examplesDir, "*.expected.json"))
+	if len(files) == 0 {
+		t.Fatal("no golden files")
+	}
+	dir := t.TempDir()
+	for _, path := range files {
+		t.Run(filepath.Base(path), func(t *testing.T) {
+			var want struct {
+				Fixture  string         `json:"fixture"`
+				Options  map[string]any `json:"options"`
+				Resolved any            `json:"resolved"`
+				Layout   any            `json:"layout"`
+			}
+			raw, err := os.ReadFile(path)
+			if err == nil {
+				err = json.Unmarshal(raw, &want)
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			opt := func(k string) string { s, _ := want.Options[k].(string); return s }
+			start, _ := time.Parse(isoDate, opt("start"))
+			end, _ := time.Parse(isoDate, opt("end"))
+			out := filepath.Join(dir, "debug.json")
+			args := []string{"--start", opt("start"), "--today", opt("today"),
+				"--period", fmt.Sprintf("%dd", int(end.Sub(start).Hours()/24)+1),
+				"--file", filepath.Join(examplesDir, want.Fixture),
+				"--debug-timeline-json", out, "-o", filepath.Join(dir, "x.pdf")}
+			if opt("layout") == "flow" {
+				args = append(args, "--timeline-layout", "flow")
+			}
+			if c := opt("compact"); c != "" {
+				args = append(args, "--timeline-compact", c)
+			}
+			if c, ok := want.Options["cap"].(float64); ok {
+				args = append(args, "--timeline-lanes", strconv.Itoa(int(c)))
+			}
+			if opt("mergeGroups") == "off" {
+				args = append(args, "--timeline-groups", "separate")
+			}
+			if code, _, stderr := call(args...); code != 0 {
+				t.Fatalf("exit %d: %s", code, stderr)
+			}
+			var got map[string]any
+			raw, err = os.ReadFile(out)
+			if err == nil {
+				err = json.Unmarshal(raw, &got)
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !reflect.DeepEqual(got["resolved"], want.Resolved) {
+				t.Error("resolved differs from the golden file")
+			}
+			if !reflect.DeepEqual(got["layout"], want.Layout) {
+				t.Error("layout differs from the golden file")
+			}
+		})
+	}
+}
+
+func TestRunTimelineErrors(t *testing.T) {
+	dir := t.TempDir()
+	bad := filepath.Join(dir, "bad.dates")
+	if err := os.WriteFile(bad, []byte("a = 2027-01-01\nb = @nope\nc = 2027-02-01; color=pink\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	out := filepath.Join(dir, "keep.pdf")
+	if err := os.WriteFile(out, []byte("KEEP"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	cases := []struct {
+		args []string
+		want []string // stderr lines, in order
+	}{
+		{[]string{"--file", bad}, []string{
+			bad + ":2: unknown milestone @nope (only milestones declared earlier can be referenced)",
+			bad + ":3: color=pink: expected one of ink, red,"}},
+		{[]string{"--milestone", "a=2027-01-01", "--milestone", "b=@a/1w", "--interval", "@a"}, []string{
+			"--milestone[2]: a milestone cannot contain '/'; declare intervals with --interval",
+			"--interval[1]: "}},
+	}
+	for _, c := range cases {
+		code, stdout, stderr := call(append(c.args, "--start", "2027-01-01", "-o", out)...)
+		lines := strings.Split(strings.TrimSuffix(stderr, "\n"), "\n")
+		if code != 2 || stdout != "" || len(lines) != len(c.want) {
+			t.Errorf("%v: exit %d, stdout %q, stderr %q; want exit 2 and %d lines", c.args, code, stdout, stderr, len(c.want))
+			continue
+		}
+		for i, w := range c.want {
+			if !strings.HasPrefix(lines[i], w) {
+				t.Errorf("%v: line %d = %q; want prefix %q", c.args, i+1, lines[i], w)
+			}
+		}
+		if got, _ := os.ReadFile(out); string(got) != "KEEP" {
+			t.Errorf("%v: output written despite errors", c.args)
+		}
+	}
+}
+
+func TestRunTimelineOptions(t *testing.T) {
+	out := filepath.Join(t.TempDir(), "x.pdf")
+	for _, c := range []struct {
+		args []string
+		want string
+	}{
+		{[]string{"--timeline-layout", "grid"},
+			"argument --timeline-layout: invalid choice: 'grid' (choose from 'packed', 'flow')"},
+		{[]string{"--timeline-compact", "hourly"}, "argument --timeline-compact: invalid choice: 'hourly'"},
+		{[]string{"--timeline-groups", "x"}, "argument --timeline-groups: invalid choice: 'x'"},
+		{[]string{"--timeline-legend", "on"}, "argument --timeline-legend: invalid choice: 'on'"},
+		{[]string{"--timeline-lanes", "13"}, "argument --timeline-lanes: invalid value: '13' (use auto or 1-12)"},
+		{[]string{"--timeline-lanes", "0"}, "invalid value: '0'"},
+		{[]string{"--today", "2027-02-30"}, "argument --today: invalid fromisoformat value: '2027-02-30'"},
+	} {
+		code, _, stderr := call(append(c.args, "-o", out)...)
+		if code != 2 || !strings.Contains(stderr, c.want) {
+			t.Errorf("%v: exit %d, stderr %q; want exit 2 with %q", c.args, code, stderr, c.want)
+		}
+	}
+
+	// --timeline-compact with packed is ignored with a warning (REQ-CLI-4)
+	code, _, stderr := call("--start", "2027-01-01", "--timeline-compact", "weekly", "--timeline-lanes", "12", "-o", out)
+	if code != 0 || stderr != "Warning: --timeline-compact is ignored with --timeline-layout packed\n" {
+		t.Errorf("compact with packed: exit %d, stderr %q", code, stderr)
+	}
+
+	// key warnings go to stderr and do not stop the run
+	code, _, stderr = call("--start", "2027-01-01", "--milestone", "m=2027-02-01;every=1w;countdown=3", "-o", out)
+	if code != 0 || stderr != "--milestone[1]: warning: countdown is ignored on a recurring milestone\n" {
+		t.Errorf("warning: exit %d, stderr %q", code, stderr)
+	}
+}
+
+func TestRunStartDefaultsToToday(t *testing.T) {
+	out := filepath.Join(t.TempDir(), "x.pdf")
+	code, stdout, stderr := call("--today", "2027-05-04", "--period", "10d", "--milestone", "m=today+3d", "-o", out)
+	if code != 0 || !strings.Contains(stdout, ": 2027-05-04 → 2027-05-13 (10 days)") {
+		t.Errorf("exit %d, stdout %q, stderr %q", code, stdout, stderr)
+	}
 }

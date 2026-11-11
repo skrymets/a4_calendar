@@ -7,6 +7,7 @@ import (
 
 	"a4calendar/internal/canvas"
 	"a4calendar/internal/period"
+	"a4calendar/internal/timeline"
 )
 
 // Config is the validated input of Build (one field per CLI option).
@@ -31,7 +32,21 @@ type Config struct {
 	MarginMM     float64
 	Header       string // compact | full
 	ShowOutside  bool
+	Timeline     *Timeline // nil without --file/--milestone/--interval: page unchanged (REQ-CLI-8)
 }
+
+// Timeline is the timeline drawn on top of the calendar.
+type Timeline struct {
+	Layout     *timeline.Layout
+	Legend     bool     // --timeline-legend full
+	Files      []string // --file paths in load order
+	Inline     bool     // --milestone or --interval given
+	Milestones int      // declarations, hidden ones included (REQ-PG-3)
+	Intervals  int
+}
+
+// GridWidth is the width of the day grid in pt: the page minus its margins.
+func (cfg Config) GridWidth() float64 { return cfg.PaperW - 2*(cfg.MarginMM*MM) }
 
 // Result describes the rendered period.
 type Result struct {
@@ -65,7 +80,7 @@ func Build(cfg Config, c canvas.Canvas) (Result, error) {
 	months := period.MonthsBetween(start, end)
 	multiYear := months[0].Year != months[len(months)-1].Year
 	nCols := len(months)
-	gridW := pageW - 2*marginX
+	gridW := cfg.GridWidth()
 	colW := gridW / float64(nCols)
 
 	// --- title + period label

@@ -20,6 +20,11 @@ type options struct {
 	title, dayLetters, monthNames, font, paper, noteLines           string
 	workdayColor, weekendColor, margin, header                      string
 	noFooter, noNoteGuide, hideOutside, version, licenses           bool
+
+	// timeline (docs/timeline, REQ-CLI-*)
+	files, milestones, intervals        []string
+	today, tlLayout, tlCompact, tlLanes string
+	tlGroups, tlLegend, debugJSON       string
 }
 
 // newFlagSet defines the CLI and returns a function rendering the help text.
@@ -44,7 +49,13 @@ func newFlagSet() (*pflag.FlagSet, *options, func() string) {
 		rows = append(rows, [2]string{"--" + name, help})
 	}
 
-	str(&o.start, "start", "", "", "START", "first day of the period, YYYY-MM-DD (default: today)")
+	// repeatable; StringArray keeps commas inside a declaration intact
+	list := func(p *[]string, name, metavar, help string) {
+		fs.StringArrayVar(p, name, nil, help)
+		rows = append(rows, [2]string{"--" + name + " " + metavar, help})
+	}
+
+	str(&o.start, "start", "", "", "START", "first day of the period, YYYY-MM-DD (default: --today)")
 	str(&o.period, "period", "", "1y", "PERIOD", "length of the period: <N>d, <N>w, <N>m or 1y (default 1y, max 1 year)")
 	str(&o.output, "output", "o", "", "OUTPUT", "output PDF path")
 	str(&o.weekMode, "week-mode", "", "relative", "{relative,iso,rolling}",
@@ -67,6 +78,20 @@ func newFlagSet() (*pflag.FlagSet, *options, func() string) {
 	str(&o.margin, "margin", "", "10", "MARGIN", "page margin in mm (default 10)")
 	str(&o.header, "header", "", "compact", "{compact,full}", "compact: small one-line title, slim month row (default)")
 	flag(&o.hideOutside, "hide-outside", "leave days outside the period blank instead of faint")
+	list(&o.files, "file", "PATH", "read milestones and intervals from a .dates file (repeatable)")
+	list(&o.milestones, "milestone", "DECL", `add a milestone, e.g. 'release=2027-03-15;title="Release"' (repeatable)`)
+	list(&o.intervals, "interval", "DECL", "add an interval, e.g. 'qa=@release-2w/@release' (repeatable)")
+	str(&o.today, "today", "", "", "TODAY", "evaluation date for 'today' in declarations, YYYY-MM-DD (default: today)")
+	str(&o.tlLayout, "timeline-layout", "", "packed", "{packed,flow}",
+		"packed: interval lanes chosen per month (default); flow: lanes kept across months, closed up daily or weekly")
+	str(&o.tlCompact, "timeline-compact", "", "daily", "{daily,weekly}",
+		"flow layout: close up lanes every day (default) or on the --week-start day")
+	str(&o.tlLanes, "timeline-lanes", "", "auto", "LANES",
+		"auto (default) or 1-12: interval lanes per column before the overflow rail")
+	str(&o.tlGroups, "timeline-groups", "", "auto", "{auto,merge,separate}",
+		"draw intervals with the same group= as one rail; auto: merge on narrow pages only (default)")
+	str(&o.tlLegend, "timeline-legend", "", "full", "{full,off}", "list milestones and intervals under the grid (default full)")
+	fs.StringVar(&o.debugJSON, "debug-timeline-json", "", "") // hidden: layout decisions as JSON (docs/timeline/05 §1)
 	flag(&o.version, "version", "print the version and exit")
 	flag(&o.licenses, "licenses", "print the licences of the embedded font and bundled libraries and exit")
 

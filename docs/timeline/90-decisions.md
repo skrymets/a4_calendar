@@ -39,6 +39,10 @@ The design canvas (Design artifact "Milestones & Intervals") shows each rejected
 | Where `reference/engine.js` hard-codes a default that the requirements make configurable, the requirement wins: workdays follow `--weekend`, weekly flow compaction follows `--week-start` | The golden files use the defaults, so they agree. |
 | Inline declarations are reported as `--milestone[N]` / `--interval[N]` (1-based per option) in errors | Each argument is its own one-line source. |
 | DSL errors are collected (all lines reported); a declaration that fails is still registered by name so references to it do not cascade | REQ-ER-1 asks for one line per error. |
+| Rendering-key errors are reported in the same run as DSL errors, for the declarations that parsed, all in source order; the lines carry no `Error:` prefix | One run shows every problem; the lines stay `source:line: message` as REQ-ER-1 asks. |
+| A `.dates` file is named in messages by the path as given on the command line; an unreadable file is an ordinary error (exit 1), like an unreadable `--font` | The user can find the file; exit 2 stays for usage and DSL errors. |
+| The REQ-CLI-4 warning appears only when `--timeline-compact` is given explicitly with the packed layout | The default value is not something the user asked for. |
+| `--debug-timeline-json PATH` is hidden from `--help`, writes the export even without timeline input, and the PDF is still written | Usable by tests on any run. |
 | `status=tentative` on a milestone appends ` ?` to its title and legend entry (REQ-KEY-6 "both"; the reference renderer ignored it) | Follows the requirement; no fixture uses it. |
 | A rendering key of the other kind (`mark` on an interval, `style` on a milestone) is accepted with a warning | It is most likely a mistake, but not an invalid value. |
 | An anonymous interval without a title gets no text label, only its rail and key | REQ-KEY-1; the reference renderer would print ` (CONT.)` or ` #n` on its own. |
