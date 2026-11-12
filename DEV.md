@@ -8,6 +8,8 @@
 | `LICENSE` | MIT; copied into every release archive |
 | `go/` | the program: module `pinplan`, binary `pinplan` |
 | `go/build.ps1` | cross-compiles windows/amd64, linux/amd64 and linux/arm64 into `go/dist/` |
+| `media/icon/` | the icon drawings (`pinplan_<N>.svg`, one per size), `pinplan.ico` and `make_icon.py` |
+| `go/cmd/pinplan/rsrc_windows_amd64.syso` | the icon as a Windows resource; `go build` links it into Windows builds only |
 | `Release-Notes.md` | what changed, one section per version |
 | `.github/workflows/ci.yml` | every gate, on each push to and PR into `develop` and `main` |
 | `.github/workflows/release.yml` | on a pushed `v*` tag: the CI gates, then packaging and publishing |
@@ -24,6 +26,19 @@ go -C go vet ./...
 
 A layout change is checked by rendering a PDF and looking at it, for both a 1 January start
 and a mid-year start, which exercise different code paths (12 vs 13 columns, partial months).
+
+## Windows icon
+
+The icon is drawn once per size in `media/icon/pinplan_<N>.svg`. After changing a drawing,
+rebuild both the icon and the Windows resource, and commit both:
+
+```powershell
+python media/icon/make_icon.py   # -> media/icon/pinplan.ico, go/cmd/pinplan/rsrc_windows_amd64.syso
+```
+
+The script needs Python with Pillow and Playwright, and renders with the installed Microsoft
+Edge (no browser download). Building needs nothing extra: the `.syso` is committed, and Go
+links a `*_windows_amd64.syso` in the main package into windows/amd64 builds only.
 
 ## Versioning
 

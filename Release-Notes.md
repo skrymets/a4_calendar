@@ -46,6 +46,7 @@ Pin it.*
   includes another at that line. Paths are relative to the file; the command line wins;
   an option set twice in files is an error. `pinplan plan.dates` reads a file
   without `--file`.
+- **An icon**: `pinplan.exe` shows the PinPlan calendar icon in Explorer and the taskbar.
 
 ### Changed
 
