@@ -93,7 +93,6 @@ func TestRunUsageErrors(t *testing.T) {
 		{[]string{"--end", "2027-02-30"}, "argument --end: invalid date 2027-02-30"},
 		{[]string{"--until", ""}, "argument --until: expected a date"},
 		{[]string{"--bogus"}, "unknown flag: --bogus"},
-		{[]string{"extra"}, "unrecognized arguments: extra"},
 	}
 	for _, c := range cases {
 		code, _, stderr := call(c.args...)

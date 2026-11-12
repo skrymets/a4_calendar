@@ -52,7 +52,7 @@ func Parse(sources []Source, today time.Time) (*Model, error) {
 			if line == "" || line[0] == '#' {
 				continue
 			}
-			p.declaration(src, i+1, line)
+			p.declaration(src, src.Offset+i+1, line)
 		}
 	}
 	if len(p.errs) > 0 {

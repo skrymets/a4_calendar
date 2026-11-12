@@ -28,11 +28,14 @@ const (
 
 // Source is one input: a file (KindAny, many lines) or a single inline
 // declaration (KindMilestone/KindInterval). Name is used in error messages
-// ("roadmap.dates", "--milestone[2]").
+// ("roadmap.dates", "--milestone[2]"). A file may come in parts (around
+// the lines that include other files); Offset is the number of the file's
+// lines before Text, so errors name the file's own line numbers.
 type Source struct {
 	Name   string
 	Text   string
 	Expect Kind
+	Offset int
 }
 
 func (s Source) inline() bool { return s.Expect != KindAny }

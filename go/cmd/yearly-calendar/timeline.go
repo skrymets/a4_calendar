@@ -38,24 +38,17 @@ func parseLanes(s string) (int, error) {
 	return n, nil
 }
 
-// timelineSources reads the DSL inputs in the order of REQ-CLI-1: files,
-// then inline milestones, then inline intervals.
-func timelineSources(o *options) ([]dsl.Source, error) {
-	var srcs []dsl.Source
-	for _, path := range o.files {
-		data, err := os.ReadFile(path)
-		if err != nil {
-			return nil, fmt.Errorf("cannot read --file: %w", err)
-		}
-		srcs = append(srcs, dsl.Source{Name: path, Text: string(data)})
-	}
+// timelineSources lists the DSL inputs in the order of REQ-CLI-1: files
+// (as loadFiles read them), then inline milestones, then inline intervals.
+func timelineSources(o *options, files []dsl.Source) []dsl.Source {
+	srcs := slices.Clone(files)
 	for i, d := range o.milestones {
 		srcs = append(srcs, dsl.Source{Name: fmt.Sprintf("--milestone[%d]", i+1), Text: d, Expect: dsl.KindMilestone})
 	}
 	for i, d := range o.intervals {
 		srcs = append(srcs, dsl.Source{Name: fmt.Sprintf("--interval[%d]", i+1), Text: d, Expect: dsl.KindInterval})
 	}
-	return srcs, nil
+	return srcs
 }
 
 // tlInput is the timeline input of one run: the sources, the declarations
@@ -71,13 +64,11 @@ type tlInput struct {
 	err      error
 }
 
-// readTimeline reads and parses the timeline sources. Keys are checked on
-// what parsed, so one run reports both kinds of error.
-func readTimeline(o *options, today time.Time) (*tlInput, error) {
-	srcs, err := timelineSources(o)
-	if err != nil {
-		return nil, err
-	}
+// readTimeline parses the declarations of the files and of the command
+// line. Keys are checked on what parsed, so one run reports both kinds of
+// error.
+func readTimeline(o *options, files []dsl.Source, today time.Time) *tlInput {
+	srcs := timelineSources(o, files)
 	in := &tlInput{srcs: srcs, today: today}
 	var parseErr, keyErr error
 	in.model, parseErr = dsl.Parse(srcs, today)
@@ -85,7 +76,26 @@ func readTimeline(o *options, today time.Time) (*tlInput, error) {
 	if parseErr != nil || keyErr != nil {
 		in.err = joinErrors(srcs, parseErr, keyErr)
 	}
-	return in, nil
+	return in
+}
+
+// declFiles lists the files that declare something, in reading order: an
+// included file part way through another comes after it.
+func (in *tlInput) declFiles() []string {
+	used := map[string]bool{}
+	for _, m := range in.model.Milestones {
+		used[m.Source] = true
+	}
+	for _, iv := range in.model.Intervals {
+		used[iv.Source] = true
+	}
+	var files []string
+	for _, s := range in.srcs {
+		if s.Expect == dsl.KindAny && used[s.Name] && !slices.Contains(files, s.Name) {
+			files = append(files, s.Name)
+		}
+	}
+	return files
 }
 
 // date resolves the value of a date option (--start, --end, --until): any
@@ -103,15 +113,17 @@ func (in *tlInput) date(flag, expr string) (time.Time, error) {
 }
 
 // loadTimeline expands and lays out the timeline for cfg. Without any
-// input it returns nil, so the page stays as it was (REQ-CLI-8); the debug
-// export is still written when asked for. DSL and key errors come back as
-// dsl.Errors (REQ-ER-1); warnings go to stderr.
+// declaration it returns nil, so the page stays as it was (REQ-CLI-8), also
+// for files that only set options; the debug export is still written when
+// asked for. DSL and key errors come back as dsl.Errors (REQ-ER-1);
+// warnings go to stderr.
 func loadTimeline(o *options, in *tlInput, cfg render.Config, end time.Time, lanes int, stderr io.Writer) (*render.Timeline, error) {
 	srcs, model, decls, today := in.srcs, in.model, in.decls, in.today
 	if in.err != nil {
 		return nil, in.err
 	}
-	if len(srcs) == 0 && o.debugJSON == "" {
+	empty := len(model.Milestones)+len(model.Intervals) == 0
+	if empty && o.debugJSON == "" {
 		return nil, nil
 	}
 	resolved, err := dsl.Expand(model, end)
@@ -140,12 +152,12 @@ func loadTimeline(o *options, in *tlInput, cfg render.Config, end time.Time, lan
 			return nil, err
 		}
 	}
-	if len(srcs) == 0 {
+	if empty {
 		return nil, nil
 	}
 	return &render.Timeline{
 		Layout: layout, Legend: o.tlLegend == "full",
-		Files: o.files, Inline: len(o.milestones)+len(o.intervals) > 0,
+		Files: in.declFiles(), Inline: len(o.milestones)+len(o.intervals) > 0,
 		Milestones: len(model.Milestones), Intervals: len(model.Intervals),
 	}, nil
 }
@@ -155,9 +167,11 @@ func loadTimeline(o *options, in *tlInput, cfg render.Config, end time.Time, lan
 // compact, cap and groups when they differ from the defaults.
 func writeDebugJSON(o *options, srcs []dsl.Source, today time.Time, opts timeline.Options,
 	d *timeline.Decls, r *dsl.Resolved, l *timeline.Layout) error {
-	names := make([]string, len(srcs))
-	for i, s := range srcs {
-		names[i] = s.Name
+	var names []string // a file read in parts is named once
+	for _, s := range srcs {
+		if !slices.Contains(names, s.Name) {
+			names = append(names, s.Name)
+		}
 	}
 	info := timeline.DebugInfo{Fixture: strings.Join(names, ", "), Options: map[string]string{
 		"start": opts.Start.Format(time.DateOnly), "end": opts.End.Format(time.DateOnly), "today": today.Format(time.DateOnly),
@@ -184,12 +198,15 @@ func writeDebugJSON(o *options, srcs []dsl.Source, today time.Time, opts timelin
 	return nil
 }
 
-// joinErrors merges dsl.Errors into source order: by source as loaded, then
-// by line; errors on the same line keep their order.
+// joinErrors merges dsl.Errors into source order: by source as first
+// loaded (a file read in parts counts once), then by line; errors on the
+// same line keep their order.
 func joinErrors(srcs []dsl.Source, errs ...error) dsl.Errors {
 	rank := map[string]int{}
 	for i, s := range srcs {
-		rank[s.Name] = i
+		if _, ok := rank[s.Name]; !ok {
+			rank[s.Name] = i
+		}
 	}
 	var all dsl.Errors
 	for _, err := range errs {

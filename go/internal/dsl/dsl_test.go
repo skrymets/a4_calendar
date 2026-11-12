@@ -447,6 +447,14 @@ weekly  = @review[2]; every=1w; until=@review[-1]
 	}
 }
 
+// A part of a file reports the file's own line numbers.
+func TestSourceOffset(t *testing.T) {
+	_, err := Parse([]Source{{Name: "a.dates", Text: "\nx=@nope", Offset: 4}}, today)
+	if err == nil || err.Error() != "a.dates:6: unknown name @nope (only milestones and intervals declared earlier can be referenced)" {
+		t.Errorf("err = %v", err)
+	}
+}
+
 // Model.Date sees every declaration, also those after the point where an
 // option line would stand, and reports references to broken ones as
 // ErrBroken.

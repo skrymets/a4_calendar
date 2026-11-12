@@ -42,12 +42,12 @@ func run(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "Error: %s\n", err)
 		return 2
 	}
-	if fs.NArg() > 0 {
+	// a path without a flag is a --file; text with " or ; is a declaration
+	// the shell split at a space
+	if slices.ContainsFunc(fs.Args(), func(a string) bool { return strings.ContainsAny(a, `";`) }) {
 		fmt.Fprintf(stderr, "Error: unrecognized arguments: %s\n", strings.Join(fs.Args(), " "))
-		if slices.ContainsFunc(fs.Args(), func(a string) bool { return strings.ContainsAny(a, `";`) }) {
-			fmt.Fprintln(stderr, "Hint: a --milestone or --interval value was split at a space. Windows PowerShell 5.1 "+
-				"does this to values with double quotes unless --% comes before the arguments; or use --file.")
-		}
+		fmt.Fprintln(stderr, "Hint: a --milestone or --interval value was split at a space. Windows PowerShell 5.1 "+
+			"does this to values with double quotes unless --% comes before the arguments; or use --file.")
 		return 2
 	}
 	if o.version {
@@ -64,7 +64,17 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return 0
 	}
 
-	cfg, output, err := configure(o, fs.Changed, stderr)
+	files, err := loadFiles(fs, append(o.files, fs.Args()...))
+	if err != nil {
+		return fail(stderr, err)
+	}
+	origin := files.apply()
+	if len(files.errs) > 0 {
+		printErrors(stderr, files.errs)
+		return 2
+	}
+
+	cfg, output, err := configure(o, files.srcs, fs.Changed, stderr)
 	var dslErrs dsl.Errors
 	if errors.As(err, &dslErrs) {
 		printErrors(stderr, dslErrs)
@@ -84,6 +94,11 @@ func run(args []string, stdout, stderr io.Writer) int {
 			return 0
 		}
 	}
+	return fail(stderr, fromFile(err, origin))
+}
+
+// fail prints err and returns its exit code: 2 for a usage error, else 1.
+func fail(stderr io.Writer, err error) int {
 	fmt.Fprintf(stderr, "Error: %s\n", err)
 	var ue usageError
 	if errors.As(err, &ue) {
@@ -117,17 +132,15 @@ type choice struct {
 // configure validates o in a fixed order: conversions and
 // choices, then the 1-year maximum (both usage errors, exit 2), then the
 // checks build() makes (exit 1), then the timeline inputs (dsl.Errors,
-// exit 2). changed reports whether a flag was given.
-func configure(o *options, changed func(string) bool, stderr io.Writer) (render.Config, string, error) {
+// exit 2). files are the declarations read by loadFiles; changed reports
+// whether a flag was given, on the command line or in a file.
+func configure(o *options, files []dsl.Source, changed func(string) bool, stderr io.Writer) (render.Config, string, error) {
 	var cfg render.Config
 	today, err := parseDate("--today", o.today, time.Time{})
 	if err != nil {
 		return cfg, "", err
 	}
-	tl, err := readTimeline(o, today)
-	if err != nil {
-		return cfg, "", err
-	}
+	tl := readTimeline(o, files, today)
 	start := today
 	if o.start != "" {
 		if start, err = tl.date("--start", o.start); err != nil {

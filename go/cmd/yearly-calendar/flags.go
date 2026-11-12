@@ -81,7 +81,7 @@ func newFlagSet() (*pflag.FlagSet, *options, func() string) {
 	str(&o.margin, "margin", "", "10", "MARGIN", "page margin in mm (default 10)")
 	str(&o.header, "header", "", "compact", "{compact,full}", "compact: small one-line title, slim month row (default)")
 	flag(&o.hideOutside, "hide-outside", "leave days outside the period blank instead of faint")
-	list(&o.files, "file", "PATH", "read milestones and intervals from a .dates file (repeatable)")
+	list(&o.files, "file", "PATH", "read milestones, intervals and options from a .dates file (repeatable; a path without --file is read the same way)")
 	list(&o.milestones, "milestone", "DECL", `add a milestone, e.g. 'release=2027-03-15;title="Release"' (repeatable)`)
 	list(&o.intervals, "interval", "DECL", "add an interval, e.g. 'qa=@release-2w/@release' (repeatable)")
 	str(&o.today, "today", "", "", "TODAY", "evaluation date for 'today' in declarations, YYYY-MM-DD (default: today)")
@@ -100,7 +100,7 @@ func newFlagSet() (*pflag.FlagSet, *options, func() string) {
 
 	help := func() string {
 		var b strings.Builder
-		b.WriteString("usage: yearly-calendar [options]\n\nGenerate a one-page yearly calendar PDF.\n\noptions:\n")
+		b.WriteString("usage: yearly-calendar [options] [FILE.dates ...]\n\nGenerate a one-page yearly calendar PDF.\n\noptions:\n")
 		for _, r := range rows {
 			switch {
 			case r[1] == "":
