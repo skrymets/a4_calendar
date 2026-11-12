@@ -7,7 +7,74 @@ for a note beside each date. A4 or US Letter, a full year by default, or any sho
 period from one day up. Give it your plan (milestones, holidays, phases, repeating
 meetings) and it draws them on the page.
 
-![A full-year calendar starting on 7 November 2026](docs/images/calendar-preview.png)
+![A 2027 release plan: features, QA, code freezes, security work, documentation, planning, leave and public holidays, in the flow layout](docs/images/calendar-preview.png)
+
+The page above is this one file ([docs/images/calendar-preview.dates](docs/images/calendar-preview.dates)),
+printed with `pinplan calendar-preview.dates`:
+
+```
+--title           = "Orion 2027 · Release plan"
+--start           = 2027-01-01
+--period          = 1y
+--today           = 2026-12-15
+--timeline-layout = flow
+
+# Releases and kick-off
+kickoff = 2027-01-11; title="Kick-off"; mark=ring; color=teal
+r1      = 2027-03-31; title="R1 Login"; mark=star; color=red
+r2      = 2027-06-30; title="R2 Payments"; mark=star; color=red
+r3      = 2027-09-29; title="R3 Mobile"; mark=star; color=red
+ga      = 2027-12-08; title="GA 2.0"; mark=star; color=red
+
+# Planning: quarterly sessions, OKR quarters in the background, sprint demos
+planning = 2027-01-04/2027-01-05; title="Quarter planning"; every=3m; count=4; color=violet
+okr      = 2027-01-01/3m; title="OKR quarter"; every=3m; count=4; layer=back; color=grey
+demo     = 2027-01-29; title="Sprint demo"; every=2w; until=@ga; mark=dot; color=steel; label=none
+
+# Features
+auth      = @kickoff/<@r1-3w;   title="Auth revamp"; color=teal; length=workdays
+payments  = 2027-03-01/<@r2-3w; title="Payments v2"; color=teal; length=workdays
+mobile    = 2027-05-03/<@r3-3w; title="Mobile app"; color=teal; length=workdays
+search    = 2027-07-05/<@ga-5w; title="Search"; color=teal
+analytics = 2027-09-06/<@ga-3w; title="Analytics"; color=teal; status=tentative
+
+# QA and code freeze before each release
+qa1     = @r1-3w/<@r1-1w; title="QA"; color=orange
+freeze1 = 1w/<@r1;        title="Code freeze"; color=orange; style=dashed
+qa2     = @r2-3w/<@r2-1w; title="QA"; color=orange
+freeze2 = 1w/<@r2;        title="Code freeze"; color=orange; style=dashed
+qa3     = @r3-3w/<@r3-1w; title="QA"; color=orange
+freeze3 = 1w/<@r3;        title="Code freeze"; color=orange; style=dashed
+qa4     = @ga-4w/<@ga-1w; title="QA"; color=orange
+freeze4 = 1w/<@ga;        title="Code freeze"; color=orange; style=dashed
+
+# Security
+pentest1 = 2027-05-10/5d;  title="Pen test"; color=magenta; priority=high
+audit1   = 2027-06-01/2w;  title="Security audit"; color=magenta; priority=high
+pentest2 = 2027-11-08/5d;  title="Pen test"; color=magenta; priority=high
+audit2   = 2027-10-11/2w;  title="Security audit"; color=magenta; priority=high
+
+# Documentation
+docs1 = @r1-2w/@r1+1w; title="Release docs"; color=violet
+docs2 = @r3-2w/@r3+1w; title="Release docs"; color=violet
+docs3 = @ga-3w/@ga;    title="User guide"; color=violet; length=days
+
+# Vacations (one rail for the group on a full-year page)
+alice = 2027-02-15/2027-02-26; title="Alice, leave"; color=grey; style=dashed; group=people
+bob   = 2027-04-12/2027-04-23; title="Bob, leave"; color=grey; style=dashed; group=people
+carol = 2027-07-19/2027-08-06; title="Carol, leave"; color=grey; style=dashed; group=people
+dan   = 2027-08-02/2027-08-20; title="Dan, leave"; color=grey; style=dashed; group=people
+erin  = 2027-12-20/2027-12-31; title="Erin, leave"; color=grey; style=dashed; group=people
+
+# Public holidays
+newyear   = 2027-01-01/2027-01-01; title="New Year"; style=hatch
+easter    = 2027-03-26/2027-03-29; title="Easter"; style=hatch
+ascension = 2027-05-06/2027-05-06; title="Ascension Day"; style=hatch
+whit      = 2027-05-17/2027-05-17; title="Whit Monday"; style=hatch
+christmas = 2027-12-24/2027-12-26; title="Christmas"; style=hatch
+```
+
+How each line works is explained [below](#milestones-and-intervals).
 
 It is a single binary for Windows or Linux that needs nothing installed. Download, build and
 run instructions are in [go/README.md](go/README.md).
