@@ -154,11 +154,17 @@ The same duration notation applies to intervals, relative date offsets, and recu
 Examples:
 
 ```
-@release-2m     # Two months before release
-@release/2m     # Interval lasting two months
-2m/@release     # Interval of two months ending on release day
-2m/<@release    # Interval of two months ending the day before release
+# Two months before release
+@release-2m
+# Interval lasting two months
+@release/2m
+# Interval of two months ending on release day
+2m/@release
+# Interval of two months ending the day before release
+2m/<@release
 ```
+
+A comment takes a line of its own (§9): `#` after a declaration is not a comment.
 
 A duration term is a strictly positive integer followed by one unit. In an interval a duration may have several terms (`1m+13d`, `1m-1d`, `1m2w`; §12); in `every=` and `gap=` it has exactly one.
 
@@ -179,12 +185,16 @@ Examples:
 
 ```
 qa       = 2027-03-01/2027-03-14
-qa_done  = @qa.end; title="QA done"           # 2027-03-14, the last day of qa
-followup = @qa.end+1d/1w                       # 2027-03-15 to 2027-03-21, right after qa
+# 2027-03-14, the last day of qa
+qa_done  = @qa.end; title="QA done"
+# 2027-03-15 to 2027-03-21, right after qa
+followup = @qa.end+1d/1w
 review   = 2027-01-04; every=1w; count=8
-last     = @review[-1]                         # 2027-02-22
+# 2027-02-22
+last     = @review[-1]
 labs     = 2027-01-11/2d; gap=1w; count=6
-lab3     = @labs[3].start                      # 2027-01-29
+# 2027-01-29
+lab3     = @labs[3].start
 ```
 
 Rules:

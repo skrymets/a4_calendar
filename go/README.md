@@ -1,7 +1,8 @@
 # PinPlan: download, run, build
 
 A standalone binary for Windows and Linux. It needs no libraries and no installation. The
-page and every option are described in the [main README](../README.md).
+page, every option and the date language of `.dates` files are described in the
+[main README](https://github.com/skrymets/pinplan#readme).
 
 ## Download
 
@@ -35,6 +36,7 @@ sha256sum -c pinplan-1.0.0-linux-amd64.tar.gz.sha256
 ```powershell
 .\pinplan.exe --start 2027-01-01          # -> calendar_2027-01-01.pdf
 .\pinplan.exe --start 2026-11-07 --period 90d -o q4.pdf
+.\pinplan.exe plan.dates                  # milestones and intervals from a .dates file
 ```
 
 ```sh
@@ -98,4 +100,4 @@ go -C go build -ldflags "-X main.version=$(cat VERSION)" -o pinplan ./cmd/pinpla
 ```
 
 Tests and the release procedure are in
-[DEV.md](../DEV.md).
+[DEV.md](https://github.com/skrymets/pinplan/blob/develop/DEV.md).

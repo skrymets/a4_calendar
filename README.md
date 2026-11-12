@@ -225,7 +225,7 @@ ignored:
 | `countdown` | `1`–`99` | milestone | `T–7` … `T–1` on the days before (wide columns only) |
 | `style` | `solid`, `dashed`, `hatch` | interval | `hatch`: hatched cells instead of a rail |
 | `status` | `confirmed`, `tentative` | both | `tentative`: dashed rail and ` ?` after the title |
-| `length` | `days`, `workdays` | interval | adds ` · 14 d` or ` · 10 wd` (workdays skip `--weekend`) |
+| `length` | *(none)*, `days`, `workdays` | interval | adds ` · 14 d` or ` · 10 wd` (workdays skip `--weekend`) |
 | `layer` | `front`, `back` | interval | `back`: a thin line beside the day label, no rail |
 | `priority` | `normal`, `high`, `low` | interval | who gets a rail first when a column is full |
 | `group` | a name | interval | members share one rail on crowded pages (`--timeline-groups`) |

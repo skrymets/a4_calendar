@@ -1,7 +1,7 @@
 # Release notes
 
-Versions follow [Semantic Versioning](DEV.md#versioning). While the version is `0.x`, a
-MINOR release may change behaviour you rely on, and says so under **Changed**.
+Versions follow [Semantic Versioning](DEV.md#versioning). Since 1.0.0, only a MAJOR release
+changes behaviour you rely on, and says so under **Changed**.
 
 Each release has a section headed by its bare version (`## 0.1.0`). The release workflow
 publishes that section as the GitHub release text, and refuses a tag whose version has none.
@@ -25,8 +25,8 @@ Pin it.*
     interval may be a single day (`2027-11-17/2027-11-17`), drawn one cell long.
   - Milestones: a mark (diamond, star, dot, or a ring around the day number), a title on
     the note line, and an optional countdown.
-  - Intervals: colored rails at the right edge of the cells, solid, dashed or hatched,
-    labeled or numbered; margin lines for background spans; merged groups on crowded
+  - Intervals: coloured rails at the right edge of the cells, solid, dashed or hatched,
+    labelled or numbered; margin lines for background spans; merged groups on crowded
     pages; an overflow rail with `+N` when a column is full.
   - A legend under the grid, in date order and read column by column; interval keys are
     numbered in that order. The rows give up the room it needs. The footer names the
@@ -34,7 +34,7 @@ Pin it.*
   - Options: `--timeline-layout packed|flow`, `--timeline-compact daily|weekly`,
     `--timeline-lanes`, `--timeline-groups auto|merge|separate`, `--timeline-legend full|off`.
   - Errors in declarations stop the run with one `file:line: message` per problem (exit 2).
-- Without milestones or intervals the page is exactly as before.
+  - Without milestones or intervals the page is exactly as before.
 - **`--end` and `--until`** give the period by its last day, or the day after it, instead of
   `--period`. The title and file name follow the shortest matching length
   (`--end 2027-06-30` from 1 January: `6-MONTH CALENDAR`, `calendar_2027-01-01_6m.pdf`).

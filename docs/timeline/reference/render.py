@@ -59,7 +59,7 @@ EXAMPLES = [
 
 def main(only=None):
     with sync_playwright() as p:
-        b = p.chromium.launch()
+        b = p.chromium.launch(channel="msedge")  # the installed Edge: no browser download
         pg = b.new_page(device_scale_factor=2, viewport=dict(width=2400, height=2400))
         pg.goto((ROOT / "harness.html").as_uri())
         for ex in EXAMPLES:
