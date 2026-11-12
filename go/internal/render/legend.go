@@ -93,6 +93,10 @@ func (p legendPlan) overflowLines(all []timeline.LegendEntry) []string {
 	return lines
 }
 
+// slot is entry i's column and row: the legend is filled column by column
+// (REQ-LG-1), so a date-sorted list reads down each column.
+func (p legendPlan) slot(i int) (col, row int) { return i / p.rows, i % p.rows }
+
 // legend draws the plan below the grid's bottom rule at y = top.
 func (t *tlDrawer) legend(p legendPlan, x0, top, gridW float64) {
 	if p.rows == 0 {
@@ -100,7 +104,8 @@ func (t *tlDrawer) legend(p legendPlan, x0, top, gridW float64) {
 	}
 	cw := (gridW - float64(p.cols-1)*lgColGap) / float64(p.cols)
 	cell := func(i int) (x, y float64) { // left edge and baseline of entry i
-		return x0 + float64(i%p.cols)*(cw+lgColGap), top - lgTopGap - float64(i/p.cols)*lgRowH - lgRowH*tlCapHeight
+		col, row := p.slot(i)
+		return x0 + float64(col)*(cw+lgColGap), top - lgTopGap - float64(row)*lgRowH - lgRowH*tlCapHeight
 	}
 	for i, e := range p.entries {
 		x, y := cell(i)

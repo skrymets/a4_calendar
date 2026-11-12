@@ -1,6 +1,9 @@
 package timeline
 
 import (
+	"math"
+	"sort"
+	"strconv"
 	"time"
 
 	"pinplan/internal/dsl"
@@ -159,16 +162,25 @@ type Group struct {
 	members []*ivOcc
 }
 
-// MemberKeys lists the members' interval keys, unique, in declaration order.
+// keyRank orders keys: numbers by value, a group's letter key after them.
+func keyRank(k string) int {
+	if n, err := strconv.Atoi(k); err == nil {
+		return n
+	}
+	return math.MaxInt
+}
+
+// MemberKeys lists the members' interval keys, unique, ascending (REQ-LG-4).
 func (g *Group) MemberKeys() []string {
 	var keys []string
 	seen := map[string]bool{}
 	for _, m := range g.members {
-		if !seen[m.Key] {
+		if m.Key != "" && !seen[m.Key] {
 			seen[m.Key] = true
 			keys = append(keys, m.Key)
 		}
 	}
+	sort.SliceStable(keys, func(i, j int) bool { return keyRank(keys[i]) < keyRank(keys[j]) })
 	return keys
 }
 
@@ -200,7 +212,8 @@ func zoneWidth(pad, step float64, n int) float64 {
 
 var defaultMonths = []string{"JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"}
 
-// Build computes the layout of decls' occurrences r on the period.
+// Build computes the layout of decls' occurrences r on the period. It also sets each
+// Interval.Key for this page's period (REQ-LB-4), i.e. it writes to decls.
 func Build(decls *Decls, r *dsl.Resolved, o Options) *Layout {
 	months := period.MonthsBetween(o.Start, o.End)
 	colWmm := o.GridWidth / float64(len(months)) / mm

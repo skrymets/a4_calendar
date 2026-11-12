@@ -68,6 +68,8 @@ The design canvas (Design artifact "Milestones & Intervals") shows each rejected
 | A date takes several offsets (`@release-1m+3d`) and an interval duration several terms (`1m+13d`, `1m-1d`, `1m2w`; DSL §12, §14), applied left to right with month clamping at each step; `DURATION/END` applies the terms negated in reverse order; `every=`/`gap=` keep one term | `2027-08-01/1m+13d` and `1m+13d/2027-09-13` describe the same interval. |
 | A one-day interval is an ordinary interval (`2027-11-17/2027-11-17`, `/1d`, `1d/…`, `/<next day`), drawn as a rail one cell long with both caps; the legend names its day once (`17 Nov · 1 d`); an interval with no day (`d/<d`, a duration of zero or less) or ending before it starts is an error | A day that is a span, not an event (a closure day), keeps the interval's look and keys instead of a milestone mark. |
 | The timeline exists only when something is declared: a file of options alone, or an empty file, leaves the page as the same flags would (no legend, footer suffix or Subject); footer and Subject name only files that declare something, in reading order | REQ-CLI-8 holds for option files; a file that only sets `--paper` is not a timeline source. |
+| Interval keys number the intervals the legend lists, 1…N by first in-period day (ties in declaration order); hidden and out-of-period intervals get none. Keys of one day and a group's member list ascend | The legend is sorted by date, so numbers in file order read `2, 28, 1 …`; in date order they read 1, 2, 3. Keys belong to the page and can change with the period, like the legend itself |
+| The legend is filled column by column (was row by row) | A date-sorted list reads down a column, like any list |
 
 ## Open items (not blocking v1)
 

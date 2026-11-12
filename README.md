@@ -208,10 +208,11 @@ The full language is in [docs/timeline/date-dsl-specification.md](docs/timeline/
 
 On the page, milestones get a mark after the weekday letter and their title on the note
 line (with 8 or more month columns, mark and a smaller title share the note line, and a
-long title is cut with `…`); intervals become vertical rails at the right edge of the cells, labelled at the top
-of a cell (or with a numbered key when a column is crowded). Everything drawn is listed in
-the legend under the grid, which takes its room from the rows. The footer names the files
-the milestones and intervals come from, and how many there are of each.
+long title is cut with `…`); intervals become vertical rails at the right edge of the
+cells, labelled at the top of a cell (or with a key when a column is crowded, numbered in
+date order). Everything drawn is listed in date order in the legend under the grid, which
+takes its room from the rows. The footer names the files the milestones and intervals
+come from, and how many there are of each.
 
 Optional keys on a declaration change how it is drawn; any other `key=value` is kept and
 ignored:

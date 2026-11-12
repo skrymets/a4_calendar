@@ -202,14 +202,15 @@
   var GLYPH = { diamond: '\u25C6', star: '\u2605', dot: '\u25CF', ring: '' };
   var HATCH = 'repeating-linear-gradient(135deg, rgba(31,31,31,0.16) 0 1px, transparent 1px 5px)';
   function stripes(c, on, off) { return 'repeating-linear-gradient(to bottom, ' + c + ' 0 ' + on + 'px, transparent ' + on + 'px ' + (on + off) + 'px)'; }
+  // keys ascend; a group's letter key comes after the numbers
+  function keyRank(k) { return /^\d+$/.test(k) ? +k : Infinity; }
+  function cmpKey(a, b) { var x = keyRank(a), y = keyRank(b); return x === y ? 0 : x < y ? -1 : 1; }
   function workdays(s, eIncl) { var n = 0; for (var t = s; t <= eIncl; t += DAY) if (dw(t) < 5) n++; return n; }
 
   /** Validates renderer keys and builds drawable items. */
   function resolve(model, opts) {
     var start = D(opts.start), end = D(opts.end);
     var X = expand(model, start, end);
-    var keyN = 0;
-    model.intervals.forEach(function (x) { x.key = String(++keyN); });
     var ms = X.ms.map(function (o) {
       var p = o.decl.props;
       return {
@@ -227,7 +228,7 @@
       var style = oneOf(p.style, ['solid', 'dashed', 'hatch'], 'solid', 'style');
       if (status === 'tentative' && style === 'solid') style = 'dashed';
       return {
-        decl: o.decl, uid: 'o' + i, key: o.decl.key, s: o.s, e: o.e - DAY, idx: o.idx, n: o.n, series: !!o.decl.rec,
+        decl: o.decl, uid: 'o' + i, s: o.s, e: o.e - DAY, idx: o.idx, n: o.n, series: !!o.decl.rec,
         title: p.title || o.decl.id || '', color: colorOf(p.color, '#1F1F1F'), style: style, tentative: status === 'tentative',
         length: oneOf(p.length, ['days', 'workdays'], null, 'length'),
         layer: oneOf(p.layer, ['front', 'back'], 'front', 'layer'),
@@ -237,6 +238,19 @@
         label: oneOf(p.label, ['first', 'each', 'none'], 'first', 'label')
       };
     });
+    // keys follow the legend's date order (REQ-LB-4): numbered intervals are the visible ones
+    // with a day in the period, by first in-period day, ties in declaration order
+    var firstIn = new Map();
+    iv.forEach(function (o) {
+      if (o.hidden || o.e < start || o.s > end) return;
+      var t = Math.max(o.s, start);
+      if (!firstIn.has(o.decl) || t < firstIn.get(o.decl)) firstIn.set(o.decl, t);
+    });
+    var listed = model.intervals.filter(function (x) { return firstIn.has(x); });
+    listed.sort(function (a, b) { return firstIn.get(a) - firstIn.get(b); });   // stable (ES2019)
+    model.intervals.forEach(function (x) { x.key = ''; });
+    listed.forEach(function (x, i) { x.key = String(i + 1); });
+    iv.forEach(function (o) { o.key = o.decl.key; });
     return { ms: ms.filter(function (m) { return !m.hidden; }), iv: iv.filter(function (x) { return !x.hidden; }), all: { ms: ms, iv: iv }, start: start, end: end };
   }
 
@@ -339,7 +353,7 @@
       units.forEach(function (u) {
         var spans = (u.members || [u]).map(clip).filter(function (sp) { return sp[0] <= sp[1]; });
         if (!spans.length) return;
-        var k = u.series ? 'series:' + u.key : u.uid;
+        var k = u.series ? 'series:' + u.decl.where : u.uid;
         var P = byKey[k];
         if (!P) { P = byKey[k] = { k: k, spans: [], s: u.s, e: u.e, pr: prio(u), list: [] }; packUnits.push(P); }
         P.spans = P.spans.concat(spans); P.s = Math.min(P.s, u.s); P.e = Math.max(P.e, u.e); P.pr = Math.min(P.pr, prio(u));
@@ -477,12 +491,15 @@
             if (txt) c.top.push({ txt: txt.toUpperCase(), color: u.color, text: true });
           });
         } else {
+          var keys = [];
           lab.forEach(function (o) {
-            var u = o.u;
+            var u = o.u, part = o.lane < 0 ? 0 : 1;          // back and hatch first (REQ-LB-4)
             var colTop = !g.narrow && t === colS && u.s < colS && !u.series;
-            if (t === u.s || colTop) c.top.push({ txt: u.key, color: u.color });
-            if (u.members) u.members.forEach(function (m) { if (t === m.s && t !== u.s) c.top.push({ txt: m.key, color: m.color }); });
+            if (t === u.s || colTop) keys.push({ txt: u.key, color: u.color, part: part });
+            if (u.members) u.members.forEach(function (m) { if (t === m.s && t !== u.s) keys.push({ txt: m.key, color: m.color, part: part }); });
           });
+          keys.sort(function (a, b) { return a.part - b.part || cmpKey(a.txt, b.txt); });
+          keys.forEach(function (p) { c.top.push({ txt: p.txt, color: p.color }); });
         }
         if (chip) c.top.push(chip);
         cells.push(c);
@@ -517,12 +534,12 @@
       else if (x.length === 'workdays') when += ' \u00B7 ' + workdays(x.s, x.e) + ' wd';
       else when += ' \u00B7 ' + (Math.round((x.e - x.s) / DAY) + 1) + ' d';
       var sw = x.style === 'hatch' ? HATCH + ', #FFFFFF' : x.style === 'dashed' ? stripes(x.color, 2, 1.5) : x.color;
-      items.push({ sort: occ[0].s, key: x.key, title: (x.title || '(untitled)') + (x.tentative ? ' ?' : '') + (x.layer === 'back' ? ' \u00B7 back' : '') + (L.merge && x.group ? ' \u00B7 ' + L.groups[x.group].key : ''), when: when, color: x.color, sw: sw, hatch: x.style === 'hatch', thin: x.layer === 'back' });
+      items.push({ sort: Math.max(occ[0].s, R.start), key: x.key, title: (x.title || '(untitled)') + (x.tentative ? ' ?' : '') + (x.layer === 'back' ? ' \u00B7 back' : '') + (L.merge && x.group ? ' \u00B7 ' + L.groups[x.group].key : ''), when: when, color: x.color, sw: sw, hatch: x.style === 'hatch', thin: x.layer === 'back' });
     });
     items.sort(function (a, b) { return a.sort - b.sort; });
     if (L.merge) Object.keys(L.groups).forEach(function (name) {
       var G0 = L.groups[name];
-      items.push({ sort: 9e15, key: G0.key, title: name, when: '= ' + G0.members.map(function (m) { return m.key; }).filter(function (v, i, a) { return a.indexOf(v) === i; }).join(' + '), color: G0.color, sw: G0.color });
+      items.push({ sort: 9e15, key: G0.key, title: name, when: '= ' + G0.members.map(function (m) { return m.key; }).filter(function (v, i, a) { return v && a.indexOf(v) === i; }).sort(cmpKey).join(' + '), color: G0.color, sw: G0.color });
     });
     return items;
   }
@@ -568,7 +585,8 @@
     return h + '</div>';
   }
   function legendHTML(items, narrow) {
-    var h = '<div class="legend" style="grid-template-columns:repeat(4,minmax(0,1fr))">';
+    var rows = Math.max(1, Math.ceil(items.length / 4));   // filled column by column (REQ-LG-1)
+    var h = '<div class="legend" style="grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(' + rows + ',auto);grid-auto-flow:column">';
     items.forEach(function (it) {
       h += '<div class="li"><span class="sw" style="background:' + it.sw + (it.hatch ? ';outline:0.5px solid #8C8C8C;width:8px' : '') + (it.thin ? ';width:1px' : '') + '"></span>' +
         '<span class="lk" style="color:' + it.color + '">' + esc(it.key) + '</span>' +

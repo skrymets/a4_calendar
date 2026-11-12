@@ -34,9 +34,9 @@ type LegendEntry struct {
 	sortDay   int
 }
 
-// legend builds the entries (03 §7): milestones then intervals in
-// declaration order, stably sorted by first in-period date; merged groups
-// with an in-period member follow.
+// legend builds the entries (03 §7): milestones in declaration order, then the
+// numbered intervals in key order, stably sorted by first in-period date;
+// merged groups with an in-period member follow.
 func (e *engine) legend() []LegendEntry {
 	months := e.o.MonthNames
 	if len(months) != 12 {
@@ -70,10 +70,7 @@ func (e *engine) legend() []LegendEntry {
 		}
 		out = append(out, LegendEntry{Milestone: true, Mark: m.Mark, Title: title, When: w, Color: m.Color, sortDay: occ[0].t})
 	}
-	for _, x := range e.allIv {
-		if x.Hidden {
-			continue
-		}
+	for _, x := range e.listed {
 		var occ []*ivOcc
 		for _, o := range e.iv {
 			if o.Interval == x && o.e >= e.start && o.s <= e.end {
@@ -123,7 +120,7 @@ func (e *engine) legend() []LegendEntry {
 		case x.Style == Dashed:
 			sw = SwatchDashed
 		}
-		out = append(out, LegendEntry{Key: x.Key, Title: title, When: w, Color: x.Color, Swatch: sw, sortDay: max(first.s, e.start)}) // first in-period day (REQ-LG-2)
+		out = append(out, LegendEntry{Key: x.Key, Title: title, When: w, Color: x.Color, Swatch: sw, sortDay: e.firstDay[x]}) // first in-period day (REQ-LG-2)
 	}
 	sort.SliceStable(out, func(i, j int) bool { return out[i].sortDay < out[j].sortDay })
 	for _, g := range e.groups {

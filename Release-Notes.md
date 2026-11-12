@@ -28,7 +28,8 @@ Pin it.*
   - Intervals: colored rails at the right edge of the cells, solid, dashed or hatched,
     labeled or numbered; margin lines for background spans; merged groups on crowded
     pages; an overflow rail with `+N` when a column is full.
-  - A legend under the grid; the rows give up the room it needs. The footer names the
+  - A legend under the grid, in date order and read column by column; interval keys are
+    numbered in that order. The rows give up the room it needs. The footer names the
     timeline sources, and the PDF Subject lists them.
   - Options: `--timeline-layout packed|flow`, `--timeline-compact daily|weekly`,
     `--timeline-lanes`, `--timeline-groups auto|merge|separate`, `--timeline-legend full|off`.

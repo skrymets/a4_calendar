@@ -427,7 +427,7 @@ The look depends on how wide the month columns are:
   - the mark and a smaller title share the note line, and a long title is cut with `…`;
   - a title that would keep fewer than three characters is left out (the legend still
     names it);
-  - intervals are labelled with numbered keys;
+  - intervals are labelled with keys, numbered in the legend's date order;
   - groups merge into one rail by default;
   - no countdown.
 
@@ -444,6 +444,9 @@ For a dense plan, a period of seven months or less gives the most readable page.
   - `group=` for parallel items of the same kind (people's leave);
   - `style=hatch` for closures;
   - a shorter period.
+- **Keys follow the dates.** Keys are numbered 1, 2, 3… in the order of the legend
+  (first day on the page), so another period can renumber them; refer to an interval by
+  its title, not its key.
 
 ### 7.4 Legend, footer and title
 

@@ -209,6 +209,23 @@ func TestPlanLegend(t *testing.T) {
 	}
 }
 
+// REQ-LG-1: the legend is filled column by column.
+func TestLegendSlotsColumnByColumn(t *testing.T) {
+	roomy := 31*lgMinRow + lgPad + 20*lgRowH // room for 20 rows
+	p := planLegend(entries(10), roomy)      // 4 columns, 3 rows
+	cases := []struct{ i, col, row int }{{0, 0, 0}, {2, 0, 2}, {3, 1, 0}, {8, 2, 2}, {9, 3, 0}}
+	for _, c := range cases {
+		if col, row := p.slot(c.i); col != c.col || row != c.row {
+			t.Errorf("entry %d at column %d row %d; want %d %d", c.i, col, row, c.col, c.row)
+		}
+	}
+	gridH := 31*lgMinRow + lgPad + 10*lgRowH + 0.01
+	q := planLegend(entries(51), gridH) // 5 × 10, the 50th slot reads "+2 more"
+	if col, row := q.slot(len(q.entries)); col != 4 || row != 9 {
+		t.Errorf("\"+N more\" at column %d row %d; want the last column's last row", col, row)
+	}
+}
+
 func TestFooterSubjectAndLegendOff(t *testing.T) {
 	const dates = "kick = 2027-01-04; title=\"Kick-off\"\nx = 2027-01-05/3d; title=\"Build\""
 	c := buildTimelineWith(t, dates, nil)

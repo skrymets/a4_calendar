@@ -80,6 +80,8 @@ type engine struct {
 	iv          []*ivOcc // visible
 	allMs       []*Milestone
 	allIv       []*Interval
+	listed      []*Interval       // numbered intervals, in key order (REQ-LB-4)
+	firstDay    map[*Interval]int // their first in-period day
 	back, hatch []*ivOcc
 	units       []*unit
 	groups      []*Group
@@ -132,8 +134,37 @@ func newEngine(d *Decls, r *dsl.Resolved, o Options, l *Layout) *engine {
 			e.addUnit(o)
 		}
 	}
+	e.numberIntervals()
 	e.assignGroupKeys()
 	return e
+}
+
+// numberIntervals gives the intervals the legend lists their keys
+// (REQ-LB-4): 1…N by first in-period day, ties in declaration order. Any
+// other interval (hidden, or with no day in the period) gets "". Keys
+// belong to the page, so Build sets them on every call.
+func (e *engine) numberIntervals() {
+	e.firstDay = map[*Interval]int{}
+	for _, o := range e.iv { // visible occurrences only
+		if o.e < e.start || o.s > e.end {
+			continue
+		}
+		t := max(o.s, e.start)
+		if f, ok := e.firstDay[o.Interval]; !ok || t < f {
+			e.firstDay[o.Interval] = t
+		}
+	}
+	e.listed = nil
+	for _, x := range e.allIv {
+		x.Key = ""
+		if _, ok := e.firstDay[x]; ok {
+			e.listed = append(e.listed, x)
+		}
+	}
+	sort.SliceStable(e.listed, func(i, j int) bool { return e.firstDay[e.listed[i]] < e.firstDay[e.listed[j]] })
+	for i, x := range e.listed {
+		x.Key = strconv.Itoa(i + 1)
+	}
 }
 
 // addUnit makes o a unit, or adds it to its merged group (03 §2).
@@ -296,7 +327,7 @@ func overlaps(a, b [][2]int) bool {
 func (e *engine) pack(colS, colE int) (lane map[int]int, overflowed map[int]bool, shown int) {
 	clip := func(s, t int) [2]int { return [2]int{max(s, colS), min(t, colE)} }
 	var order []*packUnit
-	byKey := map[string]*packUnit{}
+	byKey := map[any]*packUnit{}
 	for _, u := range e.units {
 		var spans [][2]int
 		for _, m := range u.members() {
@@ -307,9 +338,9 @@ func (e *engine) pack(colS, colE int) (lane map[int]int, overflowed map[int]bool
 		if len(spans) == 0 {
 			continue
 		}
-		key := "u" + strconv.Itoa(u.id)
+		var key any = u.id
 		if u.occ != nil && u.occ.series {
-			key = "series:" + u.occ.Key
+			key = u.occ.Interval // one pack unit per series declaration
 		}
 		p := byKey[key]
 		if p == nil {
@@ -523,18 +554,39 @@ func (e *engine) column(col *Column) {
 				}
 			}
 		} else {
+			type keyItem struct {
+				TopItem
+				part int // 0: back and hatch, 1: the rest (REQ-LB-4)
+			}
+			var keys []keyItem
+			add := func(c candidate, text, color string) {
+				part := 1
+				if c.lane < 0 {
+					part = 0
+				}
+				keys = append(keys, keyItem{TopItem{Text: text, Color: color, Kind: TopKey}, part})
+			}
 			for _, c := range cands {
 				colTop := !l.Narrow && t == colS && c.start() < colS && (c.occ == nil || !c.occ.series)
 				if t == c.start() || colTop {
-					day.Top = append(day.Top, TopItem{Text: candKey(c), Color: candColor(c), Kind: TopKey})
+					add(c, candKey(c), candColor(c))
 				}
 				if c.occ == nil {
 					for _, m := range c.unit.grp.members {
 						if t == m.s && t != c.unit.s {
-							day.Top = append(day.Top, TopItem{Text: m.Key, Color: m.Color, Kind: TopKey})
+							add(c, m.Key, m.Color)
 						}
 					}
 				}
+			}
+			sort.SliceStable(keys, func(i, j int) bool {
+				if keys[i].part != keys[j].part {
+					return keys[i].part < keys[j].part
+				}
+				return keyRank(keys[i].Text) < keyRank(keys[j].Text)
+			})
+			for _, k := range keys {
+				day.Top = append(day.Top, k.TopItem)
 			}
 		}
 		if nOver > 0 && nOver != prevChip {

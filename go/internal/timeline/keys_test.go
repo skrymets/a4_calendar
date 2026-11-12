@@ -39,7 +39,7 @@ func TestDefaults(t *testing.T) {
 	if m.Title != "m" || m.Color != "#1F1F1F" || m.Mark != Diamond || m.Tentative || m.Countdown != 0 || m.Hidden || m.Label != LabelFirst {
 		t.Errorf("milestone defaults = %+v", m)
 	}
-	if iv.Title != "" || iv.Key != "1" || iv.Color != "#1F1F1F" || iv.Style != Solid || iv.Tentative ||
+	if iv.Title != "" || iv.Key != "" || iv.Color != "#1F1F1F" || iv.Style != Solid || iv.Tentative ||
 		iv.Length != NoLength || iv.Layer != Front || iv.Priority != Normal || iv.Group != "" || iv.Hidden || iv.Label != LabelFirst {
 		t.Errorf("interval defaults = %+v", iv)
 	}
@@ -80,14 +80,13 @@ func TestPaletteNames(t *testing.T) {
 	}
 }
 
-func TestIntervalKeysCountEveryInterval(t *testing.T) {
-	d := mustReadKeys(t, "a=2027-01-01/2d\n2027-01-05/2d\nh=2027-01-09/2d;hide=yes\nz=2027-01-12/1d;every=1w")
-	var keys []string
+// Keys are given by Build for a page (REQ-LB-4), not by ReadKeys.
+func TestReadKeysLeavesKeysUnset(t *testing.T) {
+	d := mustReadKeys(t, "a=2027-01-01/2d\n2027-01-05/2d")
 	for _, iv := range d.Intervals {
-		keys = append(keys, iv.Key)
-	}
-	if got := strings.Join(keys, ","); got != "1,2,3,4" {
-		t.Errorf("keys = %s; want 1,2,3,4 (anonymous and hidden included)", got)
+		if iv.Key != "" {
+			t.Errorf("ReadKeys set key %q", iv.Key)
+		}
 	}
 }
 

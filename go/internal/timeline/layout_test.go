@@ -239,7 +239,7 @@ pat=2027-03-01/2027-03-04;color=red;group=Pond`
 	if r := day(t, l, "2027-03-20").Rails[0]; len(r.Ticks) != 1 || r.Ticks[0].AtTop {
 		t.Errorf("carol ends inside the rail: tick at bottom: %+v", r)
 	}
-	if got := day(t, l, "2027-03-18").Top; len(got) != 1 || got[0].Text != "2" || got[0].Color != "#2E6E62" {
+	if got := day(t, l, "2027-03-18").Top; len(got) != 1 || got[0].Text != "3" || got[0].Color != "#2E6E62" {
 		t.Errorf("member key in member colour: %+v", got)
 	}
 	var groupEntry *LegendEntry
@@ -248,7 +248,7 @@ pat=2027-03-01/2027-03-04;color=red;group=Pond`
 			groupEntry = &l.Legend[i]
 		}
 	}
-	if groupEntry == nil || groupEntry.When != "= 1 + 2" {
+	if groupEntry == nil || groupEntry.When != "= 2 + 3" {
 		t.Errorf("group legend entry = %+v", groupEntry)
 	}
 }
@@ -366,8 +366,8 @@ w=2027-03-13/1d;title="Saturday";length=workdays`
 	want := []string{
 		"1|Q1 · back|1 Jan–31 Mar · 90 d",
 		"|Review|4 Jan–29 Mar · every 2w · ×7",
-		"3|t ?|4 Jan–8 Jan · 5 wd",
-		"2|Sprint|10 Jan–30 Mar · gap 4d · ×12",
+		"2|t ?|4 Jan–8 Jan · 5 wd",
+		"3|Sprint|10 Jan–30 Mar · gap 4d · ×12",
 		"|Launch|1 Feb",
 		"4|Holiday|1 Feb–7 Feb · 7 d",
 		"5|One day|10 Mar · 1 d", // one day: named once
@@ -388,5 +388,96 @@ func TestLegendSortsByFirstInPeriodDay(t *testing.T) {
 x=2027-01-20/20d;title="Running"`, "2027-02-01", "2027-03-31", nil)
 	if len(l.Legend) != 2 || l.Legend[0].Title != "Start" || l.Legend[1].Title != "Running" {
 		t.Errorf("legend order = %+v", l.Legend)
+	}
+}
+
+// keysOf builds text for start..end and returns "id=key" for every interval,
+// in declaration order.
+func keysOf(t *testing.T, text, start, end string) string {
+	t.Helper()
+	o := Options{Start: d(start), End: d(end), GridWidth: a4Grid, Weekend: defaultWeekend}
+	decls, _, _ := build(t, "t.dates", text, o, today)
+	var s []string
+	for _, x := range decls.Intervals {
+		s = append(s, x.ID+"="+x.Key)
+	}
+	return strings.Join(s, " ")
+}
+
+const keyOrderText = `late   = 2027-03-01/2d
+early  = 2027-01-10/2d
+tieA   = 2027-02-01/1d
+tieB   = 2027-02-01/3d
+hid    = 2027-01-05/2d; hide=yes
+gone   = 2026-06-01/2d
+before = 2026-12-20/2027-01-03
+s      = 2027-01-20/1d; every=1w; count=3`
+
+// REQ-LB-4: keys follow the legend's date order; ties keep declaration
+// order; hidden and out-of-period intervals get no key and leave no gap.
+func TestKeysFollowFirstInPeriodDay(t *testing.T) {
+	got := keysOf(t, keyOrderText, "2027-01-01", "2027-03-31")
+	want := "late=6 early=2 tieA=4 tieB=5 hid= gone= before=1 s=3"
+	if got != want {
+		t.Errorf("keys = %s\nwant   %s", got, want)
+	}
+}
+
+// Keys belong to the page: another period renumbers.
+func TestKeysDependOnThePeriod(t *testing.T) {
+	got := keysOf(t, keyOrderText, "2027-02-01", "2027-03-31")
+	want := "late=4 early= tieA=1 tieB=2 hid= gone= before= s=3" // s: first in-period occurrence 3 Feb
+	if got != want {
+		t.Errorf("keys = %s\nwant   %s", got, want)
+	}
+}
+
+// The legend lists intervals in key order.
+func TestLegendKeysAscend(t *testing.T) {
+	l := layoutOf(t, keyOrderText, "2027-01-01", "2027-03-31", nil)
+	var keys []string
+	for _, e := range l.Legend {
+		keys = append(keys, e.Key)
+	}
+	if got := strings.Join(keys, ","); got != "1,2,3,4,5,6" {
+		t.Errorf("legend keys = %s; want 1,2,3,4,5,6", got)
+	}
+}
+
+// REQ-LB-4: keys of one day ascend within each part (back/hatch first).
+func TestSameDayKeysAscend(t *testing.T) {
+	// a narrow page (key labels). y starts on 10 Feb (key 1) and is not written on 1 Mar;
+	// hatch h is numbered after b but is written first on 1 Mar.
+	text := `b = 2027-03-01/3d
+y = 2027-02-10/2027-03-05
+h = 2027-03-01/2d; style=hatch
+z = 2027-03-01/4d`
+	l := layoutOf(t, text, "2027-01-01", "2027-12-31", nil)
+	if got := tops(day(t, l, "2027-03-01")); got != "3|2|4" {
+		t.Errorf("1 Mar keys = %q; want hatch 3 first, then 2|4", got)
+	}
+	// declaration order differs from key order: s is key 1 (5 Jan), a is key 2.
+	l = layoutOf(t, "a = 2027-02-02/2d\ns = 2027-01-05/1d; every=4w; count=4", "2027-01-01", "2027-12-31", nil)
+	if got := tops(day(t, l, "2027-02-02")); got != "1|2" {
+		t.Errorf("2 Feb keys = %q; want ascending 1|2", got)
+	}
+}
+
+// REQ-LG-4: a group line lists member keys in ascending order.
+func TestGroupLineAscends(t *testing.T) {
+	text := `late  = 2027-05-01/2d; group=team
+early = 2027-02-01/2d; group=team`
+	l := layoutOf(t, text, "2027-01-01", "2027-12-31", nil) // narrow: merged
+	found := false
+	for _, e := range l.Legend {
+		if e.Swatch == SwatchGroup {
+			found = true
+			if e.When != "= 1 + 2" {
+				t.Errorf("group line = %q; want \"= 1 + 2\"", e.When)
+			}
+		}
+	}
+	if !found {
+		t.Error("no group legend entry")
 	}
 }

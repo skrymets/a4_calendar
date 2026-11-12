@@ -26,7 +26,6 @@ type golden struct {
 		} `json:"milestones"`
 		Intervals []struct {
 			ID           *string `json:"id"`
-			Key          string  `json:"key"`
 			Start        string  `json:"start"`
 			EndExclusive string  `json:"endExclusive"`
 			LastDrawnDay string  `json:"lastDrawnDay"`
@@ -36,7 +35,7 @@ type golden struct {
 }
 
 // TestGoldenResolved checks the dates of every golden file's "resolved"
-// section (the rendering keys behind "hidden" are checked in package timeline).
+// section (interval keys and the rendering keys behind "hidden" are checked in package timeline).
 func TestGoldenResolved(t *testing.T) {
 	files, err := filepath.Glob(filepath.Join(examplesDir, "*.expected.json"))
 	if err != nil || len(files) == 0 {
@@ -76,7 +75,7 @@ func TestGoldenResolved(t *testing.T) {
 
 			var gotIv, wantIv []string
 			for _, o := range r.Intervals {
-				gotIv = append(gotIv, fmt.Sprintf("%s #%d %s %s %s %s", o.Decl.ID, o.Index+1, iso(o.Start), iso(o.End),
+				gotIv = append(gotIv, fmt.Sprintf("%s %s %s %s %s", o.Decl.ID, iso(o.Start), iso(o.End),
 					iso(o.End.AddDate(0, 0, -1)), occurrence(o.Decl.Rec != nil, o.Idx, o.N)))
 			}
 			for _, w := range g.Resolved.Intervals {
@@ -84,7 +83,7 @@ func TestGoldenResolved(t *testing.T) {
 				if w.ID != nil {
 					id = *w.ID
 				}
-				wantIv = append(wantIv, fmt.Sprintf("%s #%s %s %s %s %s", id, w.Key, w.Start, w.EndExclusive, w.LastDrawnDay, w.Occurrence))
+				wantIv = append(wantIv, fmt.Sprintf("%s %s %s %s %s", id, w.Start, w.EndExclusive, w.LastDrawnDay, w.Occurrence))
 			}
 			compare(t, "intervals", gotIv, wantIv)
 		})

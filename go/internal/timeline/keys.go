@@ -95,7 +95,7 @@ type Milestone struct {
 // Interval is an interval declaration with its rendering keys read.
 type Interval struct {
 	*dsl.Interval
-	Key       string // 1-based position among all intervals (REQ-LB-4)
+	Key       string // set by Build: position in the page's legend order, "" if not listed (REQ-LB-4)
 	Title     string // title, else the identifier, else ""
 	Color     string
 	Style     Style // a tentative solid interval is Dashed (REQ-KEY-6)
@@ -164,9 +164,9 @@ func ReadKeys(m *dsl.Model) (*Decls, []Warning, error) {
 		errs = append(errs, r.errors(ms.Source, ms.Line)...)
 		d.Milestones = append(d.Milestones, x)
 	}
-	for i, iv := range m.Intervals {
+	for _, iv := range m.Intervals {
 		r := reader{props: iv.Props}
-		x := &Interval{Interval: iv, Key: strconv.Itoa(i + 1), Title: iv.ID}
+		x := &Interval{Interval: iv, Title: iv.ID}
 		if t, ok := iv.Props.Get("title"); ok && t != "" {
 			x.Title = t
 		}

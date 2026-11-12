@@ -135,7 +135,7 @@ The DSL reserves `title`, `every`, `gap`, `count`, `until`. The calendar gives m
 | **REQ-GR-1** | When merging is on (§1, REQ-CLI-6), all front intervals with the same `group` form one unit and one rail. The rail is drawn on days where any member is active. ![groups merged](img/x20-groups-merged.png) |
 | **REQ-GR-2** | One member active: the rail uses that member's colour and style. Two or more: the rail is 0.75 pt thicker, in the colour of the group's first member. |
 | **REQ-GR-3** | A member starting or ending while the group rail continues is marked by a tick (rail width + 2.25 pt wide, 1.1 pt tall, 3 pt from the cell edge). |
-| **REQ-GR-4** | Group key: the group name's first letter in upper case; on collision, the shortest unique upper-case prefix. Members keep their numeric keys, which are written on their start days. |
+| **REQ-GR-4** | Group key: the group name's first letter in upper case; on collision, the shortest unique upper-case prefix. Members keep their own numeric keys (REQ-LB-4), which are written on their start days. |
 | **REQ-GR-5** | When merging is off, `group` only affects the legend (members marked `· G`) and `length` totals (§10). ![groups separate](img/x20-groups-unmerged.png) |
 
 ## 9. Labels and keys
@@ -145,7 +145,7 @@ The DSL reserves `title`, `every`, `gap`, `count`, `until`. The calendar gives m
 | **REQ-LB-1** | Label mode per column: wide page and `k ≤ 3` → **text**; otherwise → **keys**. |
 | **REQ-LB-2** | Text mode: each occurrence gets one label per column run, on the first day of the run that has no milestone and no other label, right-aligned in the top row of the note area, upper case, bold, in the interval colour, clipped with `…` before the rail zone. Candidates on one day are taken innermost lane first (back and hatch intervals first). |
 | **REQ-LB-3** | Text content: first column of the interval → `TITLE` + ` ?` if tentative + ` · N d|wd` if `length`; later columns → `TITLE (CONT.)`; series → `TITLE #n` on the first occurrence in the column (or every one with `label=each`), `#n` on the others. |
-| **REQ-LB-4** | Keys mode: interval keys are the 1-based position of the declaration among all intervals in loading order (anonymous ones included). A key is written on every occurrence's start day; on wide pages also on day 1 of a column for an interval continuing from the previous month (not for series). Keys of one day are right-aligned: back and hatch intervals first, then the rest, each group in declaration order, then the `+N` chip. ![keys](img/x12-keys.png) |
+| **REQ-LB-4** | Keys mode: interval keys number the intervals the legend lists (visible, with a day in the period) 1…N by first in-period day, ties in declaration order; hidden and out-of-period intervals have no key. Keys belong to the page: another period can renumber. A key is written on every occurrence's start day; on wide pages also on day 1 of a column for an interval continuing from the previous month (not for series). Keys of one day are right-aligned: back and hatch intervals first, then the rest, each part in ascending key order with group letter keys after the numbers, then the `+N` chip. ![keys](img/x12-keys.png) |
 | **REQ-LB-5** | Narrow pages: keys only on start days; up to two lines of keys per cell; anything further is clipped (the legend still lists it). |
 | **REQ-LB-6** | Labels and keys never overlap rails, never leave their cell, and are never moved to another day to make room. |
 
@@ -153,10 +153,10 @@ The DSL reserves `title`, `every`, `gap`, `count`, `until`. The calendar gives m
 
 | ID | Requirement |
 |---|---|
-| **REQ-LG-1** | The legend sits between the grid's bottom rule and the footer, in 4 equal columns, 7.5 pt per row. The grid's row height shrinks to make room; the header and label block do not change. |
+| **REQ-LG-1** | The legend sits between the grid's bottom rule and the footer, in 4 equal columns filled column by column, 7.5 pt per row. The grid's row height shrinks to make room; the header and label block do not change. |
 | **REQ-LG-2** | One entry per visible declaration with at least one occurrence in the period, sorted by first in-period date. Entry: swatch, key (number, or the milestone glyph), title (+ ` ?`, + ` · back`, + ` · G` group key when merged), grey date text. |
 | **REQ-LG-3** | Date text: milestone `d Mon`; interval `d Mon–d Mon · N d` (or `· N wd`) using first day and last drawn day; series `d Mon–d Mon · every 2w · ×8` (first to last in-period occurrence, count of in-period occurrences). |
-| **REQ-LG-4** | When groups are merged, one entry per group follows the others: group key, group name, `= 3 + 9 + 11` (member keys). |
+| **REQ-LG-4** | When groups are merged, one entry per group follows the others: group key, group name, `= 3 + 9 + 11` (member keys, ascending). |
 | **REQ-LG-5** | If the grid row height would drop below 6.0 mm, the legend MUST switch to 5 columns with key + title only; if still too tall, the last entry reads `+N more` and the full list is printed to stderr. |
 | **REQ-LG-6** | `--timeline-legend off` removes the legend and gives the space back to the grid. |
 

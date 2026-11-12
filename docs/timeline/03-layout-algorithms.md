@@ -115,10 +115,11 @@ for each column, for day in column (in-period days only):
                    : first column of c ? TITLE [?] [· N d | · N wd] : TITLE (CONT.)
             place text right-aligned in the top row, clip before the zone; mark labelled
     else (keys):
-        for c in candidates (back, hatch, then front; each in declaration order):
+        for c in candidates (back and hatch, then front):
             if day = c.s: add c.key
             else if wide page and day = column's first day and c started before it and c is not a series: add c.key
             for member m of a merged group: if day = m.s and day ≠ c.s: add m.key (member colour)
+        sort the day's keys: back/hatch part first, then ascending by number, group letters last
     if overflow count changed since yesterday in this column (or first day): add "+N" (grey)
 ```
 
@@ -138,16 +139,19 @@ countdown: for non-series m with countdown = N: days m.t − N … m.t − 1 in 
 ## 7. Legend
 
 ```
+numbered := visible intervals with an occurrence overlapping the period,
+            stably sorted by first in-period day (max(s, period start)); key := position 1…N
+any other interval: key := ""
 entries := []
 for each declaration (milestones first, then intervals; declaration order):
     occ := its non-hidden occurrences overlapping the period ; if empty: skip
-    key := interval ? declaration key : glyph of mark (ring → ◯)
+    key := interval ? its number : glyph of mark (ring → ◯)
     title := title [+ " ?"] [+ " · back"] [+ " · " + group key if merged]
     when := milestone: d Mon [ "–" last d Mon " · every P · ×" len(occ) ]
             interval:  first.s "–" (series ? last occurrence's e : e) " · " (series ? "every|gap P · ×" len(occ) : N " d" | N " wd")
 entries sorted by first in-period date (stable)
-if merged: + one entry per group: key, name, "= " member keys joined by " + " (unique, in declaration order)
-layout: 4 columns, filled row by row; fallbacks per REQ-LG-5
+if merged: + one entry per group: key, name, "= " member keys joined by " + " (unique, ascending)
+layout: 4 columns, filled column by column; fallbacks per REQ-LG-5
 ```
 
 ## 8. Page height budget
