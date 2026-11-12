@@ -2,6 +2,7 @@ package dsl
 
 import (
 	"errors"
+	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -12,19 +13,20 @@ import (
 // utf8BOM is skipped at the start of a file.
 const utf8BOM = "\xef\xbb\xbf"
 
-// msRef is what a later declaration can see of a milestone name.
-type msRef struct {
-	date   time.Time
-	series bool // recurring: not usable as a scalar date
-	broken bool // declared with errors: references fail silently
+// ref is what a later declaration can see of a name: its milestone or its
+// interval, or neither when it was declared with errors (references to it
+// then fail without a second message).
+type ref struct {
+	ms     *Milestone
+	iv     *Interval
+	broken bool
 }
 
 type parser struct {
-	today      time.Time
-	milestones map[string]msRef // lower-case id
-	intervals  map[string]bool  // lower-case id of named intervals
-	model      *Model
-	errs       Errors
+	today time.Time
+	names map[string]ref // lower-case id
+	model *Model
+	errs  Errors
 }
 
 // Parse reads the sources in order (files, then inline milestones, then
@@ -34,24 +36,22 @@ type parser struct {
 // reported twice. The Model is complete only when the error is nil.
 func Parse(sources []Source, today time.Time) (*Model, error) {
 	p := &parser{
-		today:      today,
-		milestones: map[string]msRef{},
-		intervals:  map[string]bool{},
-		model:      &Model{},
+		today: today,
+		names: map[string]ref{},
+		model: &Model{},
 	}
 	for _, src := range sources {
 		if src.inline() {
-			p.declaration(src, 0, strings.TrimSpace(src.Text), nil)
+			p.declaration(src, 0, strings.TrimSpace(src.Text))
 			continue
 		}
-		seenInterval := false
 		text := strings.TrimPrefix(src.Text, utf8BOM)
 		for i, raw := range strings.Split(text, "\n") {
 			line := strings.TrimSpace(raw)
 			if line == "" || line[0] == '#' {
 				continue
 			}
-			p.declaration(src, i+1, line, &seenInterval)
+			p.declaration(src, i+1, line)
 		}
 	}
 	if len(p.errs) > 0 {
@@ -61,8 +61,8 @@ func Parse(sources []Source, today time.Time) (*Model, error) {
 }
 
 // declaration parses one line and records its error, if any.
-func (p *parser) declaration(src Source, line int, text string, seenInterval *bool) {
-	err := p.parseDecl(src, line, text, seenInterval)
+func (p *parser) declaration(src Source, line int, text string) {
+	err := p.parseDecl(src, line, text)
 	if err == nil || errors.Is(err, errBroken) {
 		return
 	}
@@ -73,7 +73,7 @@ func (p *parser) declaration(src Source, line int, text string, seenInterval *bo
 	p.errs = append(p.errs, &Error{Source: src.Name, Line: line, Msg: msg})
 }
 
-func (p *parser) parseDecl(src Source, line int, text string, seenInterval *bool) error {
+func (p *parser) parseDecl(src Source, line int, text string) error {
 	if text == "" {
 		return errorf("empty declaration")
 	}
@@ -100,36 +100,24 @@ func (p *parser) parseDecl(src Source, line int, text string, seenInterval *bool
 	}
 
 	lname := strings.ToLower(name)
-	_, dup := p.milestones[lname]
-	dup = dup || p.intervals[lname]
+	_, dup := p.names[lname]
 	// broken registers a failed declaration's name, so references to it
-	// are not reported again; asInterval is the kind the user meant.
-	broken := func(asInterval bool) {
-		if name == "" || dup || lname == "today" {
-			return
-		}
-		if asInterval {
-			p.intervals[lname] = true
-		} else {
-			p.milestones[lname] = msRef{broken: true}
+	// are not reported again.
+	broken := func() {
+		if name != "" && !dup && lname != "today" {
+			p.names[lname] = ref{broken: true}
 		}
 	}
 
 	switch {
 	case src.Expect == KindMilestone && isInterval:
-		broken(false)
+		broken()
 		return errorf("a milestone cannot contain '/'; declare intervals with --interval")
 	case src.Expect == KindInterval && !isInterval:
-		broken(true)
+		broken()
 		return errorf("an interval needs START/END, START/DURATION or DURATION/END")
 	case !isInterval && name == "":
 		return errorf("a milestone needs a name: NAME=DATE")
-	case !isInterval && seenInterval != nil && *seenInterval:
-		broken(false)
-		return errorf("milestones must be declared before the first interval")
-	}
-	if isInterval && seenInterval != nil {
-		*seenInterval = true
 	}
 
 	if name != "" {
@@ -148,7 +136,7 @@ func (p *parser) parseDecl(src Source, line int, text string, seenInterval *bool
 		ok = p.milestone(src, line, name, expr, parts[1:], &err)
 	}
 	if !ok {
-		broken(isInterval)
+		broken()
 	}
 	return err
 }
@@ -170,10 +158,9 @@ func (p *parser) milestone(src Source, line int, name, expr string, propParts []
 	if rec != nil && rec.HasUntil && rec.Until.Before(date) {
 		return fail(errorf("until %s is before the first occurrence %s", iso(rec.Until), iso(date)))
 	}
-	p.model.Milestones = append(p.model.Milestones, &Milestone{
-		ID: name, Date: date, Rec: rec, Props: props, Source: src.Name, Line: line, Expr: expr,
-	})
-	p.milestones[strings.ToLower(name)] = msRef{date: date, series: rec != nil}
+	ms := &Milestone{ID: name, Date: date, Rec: rec, Props: props, Source: src.Name, Line: line, Expr: expr}
+	p.model.Milestones = append(p.model.Milestones, ms)
+	p.names[strings.ToLower(name)] = ref{ms: ms}
 	return true
 }
 
@@ -233,33 +220,18 @@ func (p *parser) interval(src Source, line int, name, expr string, propParts []s
 	}
 	p.model.Intervals = append(p.model.Intervals, iv)
 	if name != "" {
-		p.intervals[strings.ToLower(name)] = true
+		p.names[strings.ToLower(name)] = ref{iv: iv}
 	}
 	return true
 }
 
-// date resolves a date expression: an anchor (ISO date, today, @milestone,
-// or nothing = today) and at most one signed offset.
-// unsupportedRef explains a date expression that does not parse: a
-// reference to an interval's start or end, or to one occurrence of a
-// recurring milestone, is planned but not supported; anything else is
-// simply invalid.
-func unsupportedRef(expr string) error {
-	const hint = "declare a milestone for that date (hide=yes keeps it off the page) and refer to it"
-	if m := boundaryRE.FindStringSubmatch(expr); m != nil {
-		return errorf("@%s.%s: references to an interval's start or end are not supported yet; %s", m[1], m[2], hint)
-	}
-	if m := occurrenceRE.FindStringSubmatch(expr); m != nil {
-		return errorf("%s: references to one occurrence of a repeat are not supported yet; %s", m[0], hint)
-	}
-	return errorf("invalid date expression %q", expr)
-}
-
+// date resolves a date expression: an anchor (ISO date, today, a
+// reference, or nothing = today) and at most one signed offset.
 func (p *parser) date(expr string) (time.Time, error) {
 	expr = strings.TrimSpace(expr)
 	m := dateRE.FindStringSubmatch(expr)
 	if m == nil || expr == "" {
-		return time.Time{}, unsupportedRef(expr)
+		return time.Time{}, errorf("invalid date expression %q", expr)
 	}
 	var t time.Time
 	switch {
@@ -270,35 +242,114 @@ func (p *parser) date(expr string) (time.Time, error) {
 		}
 		t = d
 	case m[3] != "":
-		ref, ok := p.milestones[strings.ToLower(m[3])]
-		switch {
-		case !ok && p.intervals[strings.ToLower(m[3])]:
-			return time.Time{}, errorf("@%s is an interval; only milestones can be referenced", m[3])
-		case !ok:
-			return time.Time{}, errorf("unknown milestone @%s (only milestones declared earlier can be referenced)", m[3])
-		case ref.broken:
-			return time.Time{}, errBroken
-		case ref.series:
-			return time.Time{}, errorf("@%s is recurring and cannot be used as a date", m[3])
+		var err error
+		if t, err = p.reference(m[3], m[4], strings.ToLower(m[5])); err != nil {
+			return time.Time{}, err
 		}
-		t = ref.date
 	default: // "today", or an offset alone
 		t = p.today
 	}
-	if m[4] != "" {
-		n, err := amount(m[5])
+	if m[6] != "" {
+		n, err := amount(m[7])
 		if err != nil {
 			return time.Time{}, err
 		}
-		if m[4] == "-" {
+		if m[6] == "-" {
 			n = -n
 		}
-		t = shift(t, n, strings.ToLower(m[6])[0])
+		t = shift(t, n, strings.ToLower(m[8])[0])
 	}
 	if !inRange(t) {
 		return time.Time{}, errorf("date expression %q is outside the years 0001–9999", expr)
 	}
 	return t, nil
+}
+
+// reference resolves @name, @name[index] and either of them followed by
+// .start or .end (bound): a milestone's date, or an interval's start or
+// exclusive end, of the declaration or of one occurrence of its series
+// (DSL spec §17, §18). Only names declared earlier are known.
+func (p *parser) reference(name, index, bound string) (time.Time, error) {
+	r, ok := p.names[strings.ToLower(name)]
+	at := "@" + name
+	if index != "" {
+		at += "[" + index + "]"
+	}
+	switch {
+	case !ok:
+		return time.Time{}, errorf("unknown name @%s (only milestones and intervals declared earlier can be referenced)", name)
+	case r.broken:
+		return time.Time{}, errBroken
+	case r.ms != nil && bound != "":
+		return time.Time{}, errorf("@%s is a milestone; .start and .end apply to intervals", name)
+	case r.iv != nil && bound == "":
+		return time.Time{}, errorf("@%s is an interval; use %s.start or %s.end", name, at, at)
+	}
+
+	// the first occurrence, the recurrence and how a later one ends
+	var (
+		first   span
+		rec     *Recurrence
+		endFrom func(time.Time) time.Time
+	)
+	if r.ms != nil {
+		first, rec, endFrom = span{r.ms.Date, r.ms.Date}, r.ms.Rec, sameDay
+	} else {
+		first, rec, endFrom = span{r.iv.Start, r.iv.End}, r.iv.Rec, r.iv.endFrom
+	}
+	sp := first
+	switch {
+	case index != "" && rec == nil:
+		return time.Time{}, errorf("@%s is not recurring; leave out [%s]", name, index)
+	case index == "" && rec != nil:
+		return time.Time{}, errorf("@%s is recurring; pick one occurrence, e.g. @%s[1]%s or @%s[-1]%s",
+			name, name, dotted(bound), name, dotted(bound))
+	case index != "":
+		var err error
+		if sp, err = nthOccurrence(index, first, rec, endFrom); err != nil {
+			return time.Time{}, errorf("%s: %v", at, err)
+		}
+	}
+	if bound == "end" {
+		return sp.e, nil
+	}
+	return sp.s, nil
+}
+
+func dotted(bound string) string {
+	if bound == "" {
+		return ""
+	}
+	return "." + bound
+}
+
+// nthOccurrence picks occurrence index of a series: 1 is the first, -1 the
+// last, which needs a count or an until date. The page plays no part:
+// a reference means the same date whatever the period.
+func nthOccurrence(index string, first span, rec *Recurrence, endFrom func(time.Time) time.Time) (span, error) {
+	n, err := strconv.Atoi(index)
+	if err != nil || n == 0 || n > MaxOccurrences || n < -MaxOccurrences {
+		return span{}, errorf("an occurrence number is 1 to %d, or -1 to -%d counting back from the last", MaxOccurrences, MaxOccurrences)
+	}
+	lastDay := period.Date(9999, 12, 31)
+	if n > 0 {
+		occ := occurrences(first, rec, endFrom, lastDay, n)
+		if len(occ) < n {
+			return span{}, errorf("the series has only %d occurrences", len(occ))
+		}
+		return occ[n-1], nil
+	}
+	if rec.Count == 0 && !rec.HasUntil {
+		return span{}, errorf("counting back from the last occurrence needs a series limited by count or until")
+	}
+	occ := occurrences(first, rec, endFrom, lastDay, MaxOccurrences+1)
+	switch {
+	case len(occ) > MaxOccurrences:
+		return span{}, errorf("the series has more than %d occurrences; count from the first instead", MaxOccurrences)
+	case -n > len(occ):
+		return span{}, errorf("the series has only %d occurrences", len(occ))
+	}
+	return occ[len(occ)+n], nil
 }
 
 // recurrence reads every/gap/count/until; nil when there is none.

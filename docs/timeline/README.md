@@ -4,7 +4,7 @@ Design guidelines and implementation requirements for drawing Date DSL timelines
 
 **Status:** final for implementation (v1). Scope: the **packed** layout (default) and the **flow** layout.
 **Applies to:** the Go program in `go/` (go-pdf/fpdf). A Python version still existed when this design was written; it was retired in 0.2.0. The golden files are the contract.
-**Depends on:** [Date DSL Specification](date-dsl-specification.md) (Phase 1 with recurrence). That document defines the syntax, resolution and errors for dates; this one defines everything that happens after the dates are resolved.
+**Depends on:** [Date DSL Specification](date-dsl-specification.md) (Phase 1 with recurrence, and the references of §17–§18: interval starts and ends, single occurrences). That document defines the syntax, resolution and errors for dates; this one defines everything that happens after the dates are resolved.
 
 ## Reading order
 

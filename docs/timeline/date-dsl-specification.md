@@ -119,8 +119,11 @@ Dates may be calculated relative to today, another absolute date, or a named mil
 |`@release`|Date of milestone `release`|
 |`@release-2w`|Two weeks before release|
 |`@freeze+3d`|Three days after freeze|
+|`@qa.start`|First day of interval `qa`|
+|`@qa.end+1w`|One week after the end of `qa`|
+|`@review[3]`|Third occurrence of recurring milestone `review`|
 
-The `@` prefix denotes a reference to a previously defined, non-recurring milestone.
+The `@` prefix denotes a reference to a previously defined milestone or interval (§3.4).
 
 A date expression supports at most one arithmetic offset in Phase 1.
 
@@ -160,6 +163,48 @@ A duration must be a strictly positive integer followed by exactly one unit.
 
 Composite durations are reserved for Phase 2.
 
+### 3.4. References
+
+A reference names a declaration made earlier (in an earlier line or an earlier source) and stands for one of its dates. It may be followed by one offset, like any other anchor.
+
+|Reference|Refers to|Valid for|
+|---|---|---|
+|`@name`|The milestone's date|Non-recurring milestones|
+|`@name.start`|The interval's first day|Non-recurring intervals|
+|`@name.end`|The interval's end as written: the first day after it (ends are exclusive, §5)|Non-recurring intervals|
+|`@name[N]`|Occurrence N of the series, counted from 1|Recurring milestones|
+|`@name[-N]`|Occurrence N counted back from the last; `-1` is the last|Recurring milestones with `count` or `until`|
+|`@name[N].start`, `@name[N].end`, `@name[-N].start`, `@name[-N].end`|The start or end of that occurrence|Recurring intervals (negative N: with `count` or `until`)|
+
+Examples:
+
+```
+qa       = 2027-03-01/2027-03-15
+qa_done  = @qa.end; title="QA done"           # 2027-03-15
+followup = @qa.end/1w                          # 2027-03-15 to 2027-03-22, right after qa
+review   = 2027-01-04; every=1w; count=8
+last     = @review[-1]                         # 2027-02-22
+labs     = 2027-01-11/2d; gap=1w; count=6
+lab3     = @labs[3].start                      # 2027-01-29
+```
+
+Rules:
+
+1. `.start` and `.end` are case-insensitive and apply only to intervals; an interval cannot be referenced without one.
+    
+2. `[N]` applies only to recurring declarations, and a recurring declaration cannot be referenced without one.
+    
+3. N is between 1 and 100 000 (or −1 and −100 000). An N beyond the last occurrence is an error that states how many there are.
+    
+4. Occurrences are counted from the declaration alone (its `every`/`gap`, `count`, `until` and the year 9999), never from what a consumer displays: `@review[24]` means the same date whatever period a calendar shows.
+    
+5. Anonymous intervals cannot be referenced.
+    
+6. Only names declared earlier can be referenced: forward references remain unsupported (§20).
+    
+7. Chained offsets remain Phase 2 (§14): `@qa.end+1d-2d` is invalid.
+    
+
 ---
 
 ## 4. Milestone declarations
@@ -185,11 +230,11 @@ deadline=today+3m;owner=alice;priority=high
     
 2. Identifiers are case-insensitive.
     
-3. A milestone may reference previously defined non-recurring milestones.
+3. A milestone may reference previously defined milestones and intervals (§3.4).
     
-4. A milestone cannot reference an interval.
+4. An interval is referenced through its start or end (`@qa.start`, `@qa.end`), never as `@qa`.
     
-5. A milestone cannot directly reference a recurring milestone without an occurrence selector (a Phase 2 feature).
+5. A recurring milestone or interval is referenced through one occurrence (`@review[3]`, `@labs[-1].end`).
     
 6. Circular and undefined references are invalid.
     
@@ -403,7 +448,7 @@ Rules:
     
 7. `until` must resolve to a date on or after the first occurrence start.
     
-8. A recurring milestone cannot be used as an ordinary scalar date reference.
+8. A recurring milestone or interval is referenced through one occurrence (§3.4), never as a whole.
     
 
 ### 6.7. Calendar-month recurrence
@@ -575,11 +620,11 @@ Rules:
     
 5. Whitespace around separators is optional.
     
-6. All milestones must be declared before the first interval.
+6. Milestones and intervals may be declared in any order. (Earlier drafts required all milestones before the first interval; that rule was lifted when interval boundaries became referable, so that a milestone can follow the interval it refers to.)
     
-7. Referenced milestones must already be defined.
+7. Referenced milestones and intervals must already be defined.
     
-8. Recurring milestones may be defined before other milestones, but cannot be referenced as scalar dates.
+8. Recurring declarations are referenced through one occurrence (§3.4).
     
 9. A declaration is classified as an interval if its expression contains `/` outside quoted text; otherwise it is a milestone.
     
@@ -644,7 +689,7 @@ Processing order:
 3. Process inline interval declarations in their supplied order.
     
 
-Definitions in later sources may reference earlier milestone definitions.
+Definitions in later sources may reference earlier milestones and intervals. Inline milestones come before inline intervals, so an inline milestone cannot refer to an inline interval; put the interval in a file instead.
 
 Forward references are not supported in Phase 1.
 
@@ -679,7 +724,11 @@ date_expr         = anchor, [ sign, period ]
 
 anchor            = iso_date
                   | "today"
-                  | "@", identifier ;
+                  | reference ;
+
+reference         = "@", identifier,
+                    [ "[", [ "-" ], positive_integer, "]" ],
+                    [ ".", ( "start" | "end" ) ] ;
 
 sign              = "+" | "-" ;
 
@@ -744,9 +793,7 @@ Additional semantic constraints:
     
 - Resolved interval starts must precede their ends.
     
-- Date expressions may reference only previously defined non-recurring milestones.
-    
-- File-level milestone-before-interval ordering is mandatory.
+- Date expressions may reference only previously defined milestones and named intervals, in the forms of §3.4.
     
 
 ---
@@ -770,7 +817,7 @@ Additional semantic constraints:
 
 `today` is captured once per evaluation.
 
-Relative dates are resolved against that fixed evaluation date or a named milestone.
+Relative dates are resolved against that fixed evaluation date or a reference (§3.4).
 
 Months and years use calendar arithmetic with day clamping.
 
@@ -831,9 +878,11 @@ The parser or evaluator must reject:
 
 - Invalid syntax or dates.
     
-- Unknown milestone references.
+- Unknown references.
     
-- References to recurring milestones as scalar dates.
+- References in a form §3.4 does not allow: a recurring declaration without an occurrence, an interval without `.start` or `.end`, `.start`/`.end` on a milestone, `[N]` on a non-recurring declaration.
+    
+- Occurrence numbers beyond the series, or counting back on a series without `count` or `until`.
     
 - Duplicate identifiers.
     
@@ -844,8 +893,6 @@ The parser or evaluator must reject:
 - Invalid recurrence configurations.
     
 - Unsupported forward references.
-    
-- Milestones declared after intervals in source files.
     
 - Invalid metadata and reserved-property usage.
     
@@ -921,6 +968,8 @@ Support:
 
 ## 17. Indexed occurrence references
 
+**Implemented** (with §18); the rules are in §3.4.
+
 Allow references to individual occurrences of recurring milestones:
 
 ```
@@ -932,6 +981,8 @@ Allow references to individual occurrences of recurring milestones:
 Indexing is one-based. Negative indexing requires a finite recurrence.
 
 ## 18. Interval boundary references
+
+**Implemented** (with §17); the rules are in §3.4.
 
 Allow referencing named interval boundaries:
 

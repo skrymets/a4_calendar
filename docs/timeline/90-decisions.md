@@ -55,9 +55,14 @@ The design canvas (Design artifact "Milestones & Intervals") shows each rejected
 | Footer and Subject name the sources by file name, then `command line` for inline declarations (`timeline: exams.dates, command line`); a flow page says `layout: flow (weekly)` with weekly compaction; a footer too long for the grid is cut with `…` | Short, and the reader can tell where the dates came from. |
 | Legend: rows filled left to right; `+N more` takes the last cell; when even one row of 5 columns would push the grid rows below 6 mm, one row is kept anyway | The legend never disappears silently; the stderr list (`Warning: the legend does not fit the page; all entries:`) is complete. |
 | Limits: dates in the years 0001–9999; a period number above 4 000 000 is an error; one recurrence may produce at most 100 000 occurrences up to the period end (an error names the declaration) | Keeps arithmetic exact and a run bounded; a daily series started decades ago still fits. |
+| References to interval boundaries and to one occurrence of a series (DSL §17, §18) are supported: `@qa.start`, `@qa.end`, `@review[3]`, `@review[-1]`, `@labs[2].end`; rules in DSL §3.4 | Plans are written relative to phases (`@registration.start+15d`); a hidden helper milestone was a workaround. |
+| `@qa.end` is the interval's exclusive end, the END as written (`2027-03-01/2027-03-15` → 15 March) | `next = @qa.end/1w` follows on without gap or overlap, and the value is the one the user wrote. |
+| A `.dates` file may declare milestones and intervals in any order (DSL §9.2 rule 6 lifted) | Otherwise a milestone could never refer to an interval of the same file. No valid file changes meaning; interval keys still follow interval order. |
+| Occurrence references count from the declaration alone (its count/until and the year 9999), not from the page; `[-N]` needs `count` or `until`; N is at most 100 000 | A date must not move when the period changes. |
+| `@x[N]` on a non-recurring declaration and a recurring one without `[N]` are errors, as are `.start`/`.end` on a milestone and an interval without them | Each mistake gets a message that shows the right form. |
 
 ## Open items (not blocking v1)
 
 1. ~~`--debug-timeline-json` naming and whether to ship it publicly.~~ Shipped hidden (not in `--help`), under this name.
 2. ~~Whether the Subject metadata should also list inline declarations.~~ They are named `command line`.
-3. Phase 2 DSL features (interval boundary references, indexed occurrences) will need label and legend wording; no layout change is expected.
+3. ~~Phase 2 DSL features (interval boundary references, indexed occurrences) will need label and legend wording; no layout change is expected.~~ Implemented; references resolve to plain dates, so labels, legend and layout are unchanged.

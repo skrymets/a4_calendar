@@ -79,22 +79,27 @@ After `--%` PowerShell passes the line on unchanged and no longer expands `$vari
 PowerShell 7.3 and later and Unix shells need none of this, and a `.dates` file avoids
 shell quoting altogether.
 
-A `.dates` file has one declaration per line; `#` starts a comment. Milestones come first:
+A `.dates` file has one declaration per line; `#` starts a comment:
 
 ```
-kickoff = today;        title="Kick-off"
-exam    = 2027-03-01;   title="Final exam"; mark=star; color=red; countdown=7
-tutor   = 2026-11-19;   title="Tutor call"; every=1w; until=@exam; mark=dot
-theory  = @kickoff/5w;  title="Theory"; color=teal; length=days
-labs    = 2026-11-16/2d; title="Lab session"; every=2w; count=8; color=steel
-revision = 2w/@exam;    title="Revision"; color=orange
+kickoff  = today;           title="Kick-off"
+exam     = 2027-03-01;      title="Final exam"; mark=star; color=red; countdown=7
+tutor    = 2026-11-19;      title="Tutor call"; every=1w; until=@exam; mark=dot
+theory   = @kickoff/5w;     title="Theory"; color=teal; length=days
+practice = @theory.end/3w;  title="Practice"; color=violet
+labs     = 2026-11-16/2d;   title="Lab session"; every=2w; count=8; color=steel
+lastlab  = @labs[-1].start; title="Last lab"; mark=dot
+revision = 2w/@exam;        title="Revision"; color=orange
 ```
 
-- **Dates**: `2027-03-15`, `today`, or `@name` for an earlier milestone, each optionally
-  shifted: `@exam-30d`, `today+2w`. Units are `d`, `w`, `m` and `y`; months keep the day or
-  stop at the month's end. An interval's start or end (`@qa.start`) and one occurrence of a
-  repeat (`@review[3]`) cannot be referenced yet; give that date its own milestone, with
-  `hide=yes` to keep it off the page.
+- **Dates**: `2027-03-15`, `today`, or a reference to something declared earlier, each
+  optionally shifted: `@exam-30d`, `today+2w`. Units are `d`, `w`, `m` and `y`; months keep
+  the day or stop at the month's end.
+- **References**: `@exam` is a milestone's date; `@theory.start` and `@theory.end` are an
+  interval's start and end (the end as written, the day after its last day, so
+  `@theory.end/3w` follows straight on). A repeat is referenced by occurrence: `@tutor[3]`
+  is the third, `@tutor[-1]` the last (this needs `count` or `until`), and
+  `@labs[2].start` the start of the second lab.
 - **Intervals** are `START/END`, `START/DURATION` or `DURATION/END`. The end is not
   included: `2027-01-04/2027-01-08` covers 4–7 January. An interval may be anonymous
   (no `name =`).

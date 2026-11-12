@@ -14,13 +14,10 @@ import (
 var (
 	identRE  = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
 	periodRE = regexp.MustCompile(`^(?i)([1-9][0-9]*)([dwmy])$`)
-	// anchor (ISO date | today | @name), then an optional single offset.
-	dateRE  = regexp.MustCompile(`^(?i)(?:([0-9]{4}-[0-9]{2}-[0-9]{2})|(today)|@([A-Za-z_][A-Za-z0-9_]*))?(?:([+-])([1-9][0-9]*)([dwmy]))?$`)
+	// anchor (ISO date | today | @name with an optional occurrence [n] and
+	// boundary .start|.end), then an optional single offset.
+	dateRE  = regexp.MustCompile(`^(?i)(?:([0-9]{4}-[0-9]{2}-[0-9]{2})|(today)|@([A-Za-z_][A-Za-z0-9_]*)(?:\[(-?[0-9]+)\])?(?:\.(start|end))?)?(?:([+-])([1-9][0-9]*)([dwmy]))?$`)
 	countRE = regexp.MustCompile(`^[1-9][0-9]*$`)
-	// Phase 2 references (DSL spec §17, §18), recognised only to explain
-	// that they are not supported: @qa.start, @qa.end, @review[3].
-	boundaryRE   = regexp.MustCompile(`^(?i)@([A-Za-z_][A-Za-z0-9_]*)\.(start|end)\b`)
-	occurrenceRE = regexp.MustCompile(`^@([A-Za-z_][A-Za-z0-9_]*)\[-?[0-9]+\]`)
 )
 
 // errUnquotedSpace marks a property value with whitespace but no quotes;

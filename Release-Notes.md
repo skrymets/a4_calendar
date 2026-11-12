@@ -12,8 +12,10 @@ publishes that section as the GitHub release text, and refuses a tag whose versi
 
 - **Milestones and intervals** on the calendar, from `.dates` files (`--file`) or inline
   (`--milestone`, `--interval`), written in a small date language: fixed dates, `today`,
-  references to earlier milestones with offsets, durations, and repeats (`every`, `gap`,
-  `count`, `until`). `--today` sets the evaluation date and is the default `--start`.
+  durations, repeats (`every`, `gap`, `count`, `until`), and references with offsets to
+  earlier milestones (`@exam-2w`), to an interval's start or end (`@qa.end+1d`) and to one
+  occurrence of a repeat (`@review[3]`, `@review[-1]`). `--today` sets the evaluation date
+  and is the default `--start`.
   - Milestones: a mark (diamond, star, dot, or a ring around the day number), a title on
     the note line, and an optional countdown.
   - Intervals: coloured rails at the right edge of the cells, solid, dashed or hatched,

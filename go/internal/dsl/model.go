@@ -1,7 +1,8 @@
 // Package dsl parses and evaluates the Date DSL (docs/timeline/
-// date-dsl-specification.md, Phase 1 with recurrence): named milestones,
-// intervals, relative dates, durations and recurrences, given inline or in
-// .dates files.
+// date-dsl-specification.md: Phase 1 with recurrence, and the references
+// of §17–§18): named milestones, intervals, relative dates, durations,
+// recurrences and references to interval boundaries and occurrences,
+// given inline or in .dates files.
 //
 // Parse turns sources into a Model of declarations with their first dates
 // resolved; Expand turns the Model into dated occurrences up to a window
@@ -20,7 +21,7 @@ import (
 type Kind int
 
 const (
-	KindAny       Kind = iota // a .dates file: milestones, then intervals
+	KindAny       Kind = iota // a .dates file: milestones and intervals
 	KindMilestone             // one --milestone argument
 	KindInterval              // one --interval argument
 )

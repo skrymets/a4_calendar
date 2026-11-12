@@ -283,7 +283,7 @@ func TestRunTimelineErrors(t *testing.T) {
 		want []string // stderr lines, in order
 	}{
 		{[]string{"--file", bad}, []string{
-			bad + ":2: unknown milestone @nope (only milestones declared earlier can be referenced)",
+			bad + ":2: unknown name @nope (only milestones and intervals declared earlier can be referenced)",
 			bad + ":3: color=pink: expected one of ink, red,"}},
 		{[]string{"--milestone", "a=2027-01-01", "--milestone", "b=@a/1w", "--interval", "@a"}, []string{
 			"--milestone[2]: a milestone cannot contain '/'; declare intervals with --interval",

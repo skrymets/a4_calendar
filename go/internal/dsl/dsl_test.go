@@ -125,12 +125,12 @@ monthEnd    = 2027-01-31/1M
 	}
 }
 
-type span struct{ s, e string }
+type isoSpan struct{ s, e string }
 
-func intervalSpans(r *Resolved) []span {
-	var out []span
+func intervalSpans(r *Resolved) []isoSpan {
+	var out []isoSpan
 	for _, o := range r.Intervals {
-		out = append(out, span{iso(o.Start), iso(o.End)})
+		out = append(out, isoSpan{iso(o.Start), iso(o.End)})
 	}
 	return out
 }
@@ -158,28 +158,28 @@ func equal[T comparable](a, b []T) bool {
 func TestRecurringIntervals(t *testing.T) {
 	cases := []struct {
 		name, text, window string
-		want               []span
+		want               []isoSpan
 	}{
 		{"every (spec 6.3)", "sprint=2027-01-01/2w;every=3w;count=3", "2027-12-31",
-			[]span{{"2027-01-01", "2027-01-15"}, {"2027-01-22", "2027-02-05"}, {"2027-02-12", "2027-02-26"}}},
+			[]isoSpan{{"2027-01-01", "2027-01-15"}, {"2027-01-22", "2027-02-05"}, {"2027-02-12", "2027-02-26"}}},
 		{"gap (spec 6.4)", "work=2027-01-04/5d;gap=2d;count=3", "2027-12-31",
-			[]span{{"2027-01-04", "2027-01-09"}, {"2027-01-11", "2027-01-16"}, {"2027-01-18", "2027-01-23"}}},
+			[]isoSpan{{"2027-01-04", "2027-01-09"}, {"2027-01-11", "2027-01-16"}, {"2027-01-18", "2027-01-23"}}},
 		{"overlapping occurrences allowed", "x=2027-01-01/2w;every=1w;count=2", "2027-12-31",
-			[]span{{"2027-01-01", "2027-01-15"}, {"2027-01-08", "2027-01-22"}}},
+			[]isoSpan{{"2027-01-01", "2027-01-15"}, {"2027-01-08", "2027-01-22"}}},
 		{"START/END keeps its days", "x=2027-01-30/2027-02-02;every=1m;count=3", "2027-12-31",
-			[]span{{"2027-01-30", "2027-02-02"}, {"2027-02-28", "2027-03-03"}, {"2027-03-30", "2027-04-02"}}},
+			[]isoSpan{{"2027-01-30", "2027-02-02"}, {"2027-02-28", "2027-03-03"}, {"2027-03-30", "2027-04-02"}}},
 		{"START/DURATION keeps the calendar duration", "x=2027-01-31/1m;every=1m;count=3", "2027-12-31",
-			[]span{{"2027-01-31", "2027-02-28"}, {"2027-02-28", "2027-03-28"}, {"2027-03-31", "2027-04-30"}}},
+			[]isoSpan{{"2027-01-31", "2027-02-28"}, {"2027-02-28", "2027-03-28"}, {"2027-03-31", "2027-04-30"}}},
 		{"DURATION/END applies the period forward", "x=1m/2027-03-31;every=1m;count=2", "2027-12-31",
-			[]span{{"2027-02-28", "2027-03-31"}, {"2027-03-28", "2027-04-28"}}},
+			[]isoSpan{{"2027-02-28", "2027-03-31"}, {"2027-03-28", "2027-04-28"}}},
 		{"gap from the actual end", "x=2027-01-31/1m;gap=1d;count=2", "2027-12-31",
-			[]span{{"2027-01-31", "2027-02-28"}, {"2027-03-01", "2027-04-01"}}},
+			[]isoSpan{{"2027-01-31", "2027-02-28"}, {"2027-03-01", "2027-04-01"}}},
 		{"until applies to the start, inclusive", "x=2027-01-01/1w;every=1w;until=2027-01-15", "2027-12-31",
-			[]span{{"2027-01-01", "2027-01-08"}, {"2027-01-08", "2027-01-15"}, {"2027-01-15", "2027-01-22"}}},
+			[]isoSpan{{"2027-01-01", "2027-01-08"}, {"2027-01-08", "2027-01-15"}, {"2027-01-15", "2027-01-22"}}},
 		{"unbounded stops at the window end", "x=2027-01-01/1d;every=1w", "2027-01-20",
-			[]span{{"2027-01-01", "2027-01-02"}, {"2027-01-08", "2027-01-09"}, {"2027-01-15", "2027-01-16"}}},
+			[]isoSpan{{"2027-01-01", "2027-01-02"}, {"2027-01-08", "2027-01-09"}, {"2027-01-15", "2027-01-16"}}},
 		{"count beyond the window", "x=2027-01-01/1d;every=1w;count=10", "2027-01-08",
-			[]span{{"2027-01-01", "2027-01-02"}, {"2027-01-08", "2027-01-09"}}},
+			[]isoSpan{{"2027-01-01", "2027-01-02"}, {"2027-01-08", "2027-01-09"}}},
 	}
 	for _, c := range cases {
 		r := mustExpand(t, c.text, c.window)
@@ -279,14 +279,24 @@ func TestErrors(t *testing.T) {
 		{"out of range", "x=9999-12-31+1d", "outside the years 0001–9999"},
 		{"huge offset", "x=today+99999999d", "number 99999999 is too large"},
 		{"chained offsets (phase 2)", "a=2027-01-01\nb=@a+1d+2d", `t.dates:2: invalid date expression "@a+1d+2d"`},
-		{"interval boundary (phase 2)", "a=2027-01-01\nq=@a/1w\nr=@q.start+1d/2d",
-			"t.dates:3: @q.start: references to an interval's start or end are not supported yet; declare a milestone"},
-		{"occurrence (phase 2)", "a=2027-01-01; every=1w\nb=@a[3]",
-			"t.dates:2: @a[3]: references to one occurrence of a repeat are not supported yet"},
-		{"unknown reference", "x=@nope", "t.dates:1: unknown milestone @nope"},
-		{"forward reference", "x=@y\ny=2027-01-01", "t.dates:1: unknown milestone @y"},
-		{"recurring reference", "r=2027-01-01;every=1w\nx=@r+1d", "t.dates:2: @r is recurring and cannot be used as a date"},
-		{"interval reference", "a=2027-01-01\nq=@a/2d\nr=@q/2d", "t.dates:3: @q is an interval"},
+		{"unknown reference", "x=@nope", "t.dates:1: unknown name @nope (only milestones and intervals declared earlier"},
+		{"forward reference", "x=@y\ny=2027-01-01", "t.dates:1: unknown name @y"},
+		{"recurring reference", "r=2027-01-01;every=1w\nx=@r+1d", "t.dates:2: @r is recurring; pick one occurrence, e.g. @r[1] or @r[-1]"},
+		{"recurring interval boundary", "q=2027-01-01/2d;every=1w\nx=@q.end", "t.dates:2: @q is recurring; pick one occurrence, e.g. @q[1].end or @q[-1].end"},
+		{"interval without boundary", "a=2027-01-01\nq=@a/2d\nr=@q/2d", "t.dates:3: @q is an interval; use @q.start or @q.end"},
+		{"occurrence without boundary", "q=2027-01-01/2d;every=1w\nx=@q[2]", "t.dates:2: @q is an interval; use @q[2].start or @q[2].end"},
+		{"milestone boundary", "a=2027-01-01\nb=@a.end", "t.dates:2: @a is a milestone; .start and .end apply to intervals"},
+		{"index on a single date", "a=2027-01-01\nb=@a[1]", "t.dates:2: @a is not recurring; leave out [1]"},
+		{"index zero", "a=2027-01-01;every=1w\nb=@a[0]", "t.dates:2: @a[0]: an occurrence number is 1 to 100000, or -1 to -100000"},
+		{"index too large", "a=2027-01-01;every=1w\nb=@a[100001]", "@a[100001]: an occurrence number is 1 to 100000"},
+		{"index past count", "a=2027-01-01;every=1w;count=8\nb=@a[9]", "t.dates:2: @a[9]: the series has only 8 occurrences"},
+		{"index past until", "a=2027-01-01;every=1w;until=2027-01-20\nb=@a[-4]", "@a[-4]: the series has only 3 occurrences"},
+		{"index past year 9999", "a=9999-12-01;every=1w\nb=@a[6]", "@a[6]: the series has only 5 occurrences"},
+		{"negative index unbounded", "a=2027-01-01;every=1w\nb=@a[-1]", "@a[-1]: counting back from the last occurrence needs a series limited by count or until"},
+		{"negative index too many", "a=1700-01-01;every=1d;until=9000-01-01\nb=@a[-1]", "@a[-1]: the series has more than 100000 occurrences"},
+		{"boundary offset out of range", "q=9999-12-01/9999-12-31\nb=@q.end+1d", "outside the years 0001–9999"},
+		{"chained boundary offsets (phase 2)", "q=2027-01-01/2d\nb=@q.end+1d-2d", `invalid date expression "@q.end+1d-2d"`},
+		{"unknown boundary", "q=2027-01-01/2d\nb=@q.middle", `invalid date expression "@q.middle"`},
 		{"duplicate milestone", "a=2027-01-01\nA=2027-01-02", `t.dates:2: duplicate identifier "A"`},
 		{"duplicate across kinds", "a=2027-01-01\na=@a/2d", `t.dates:2: duplicate identifier "a"`},
 		{"today reserved", "Today=2027-01-01", `"today" is reserved`},
@@ -294,7 +304,6 @@ func TestErrors(t *testing.T) {
 		{"identifier with dash", "code-freeze=2027-01-01", `invalid identifier "code-freeze"`},
 		{"identifier with space", "release date=2027-01-01", `invalid identifier "release date"`},
 		{"anonymous milestone", "2027-01-01", "a milestone needs a name"},
-		{"milestone after interval", "x=2027-01-01/2d\na=2027-01-01", "t.dates:2: milestones must be declared before the first interval"},
 		{"zero duration", "x=2027-01-01/0d", "invalid date expression \"0d\""},
 		{"two durations", "x=2w/3d", "only one side of an interval may be a duration"},
 		{"two slashes", "x=2027-01-01/2027-01-05/2027-01-09", "exactly one '/'"},
@@ -338,24 +347,25 @@ func TestErrorsAreCollectedWithoutCascades(t *testing.T) {
 		t.Fatalf("err = %v", err)
 	}
 	got := es.Error()
-	want := "t.dates:1: invalid date 2027-02-30\nt.dates:3: unknown milestone @zzz (only milestones declared earlier can be referenced)"
+	want := "t.dates:1: invalid date 2027-02-30\nt.dates:3: unknown name @zzz (only milestones and intervals declared earlier can be referenced)"
 	if got != want {
 		t.Errorf("errors:\n%s\nwant:\n%s", got, want)
 	}
 }
 
-// A declaration rejected for its kind or position is registered as broken
-// too, so a later reference to it is not a second error.
+// A declaration rejected for its kind is registered as broken too, so a
+// later reference to it is not a second error.
 func TestStructuralErrorsDoNotCascade(t *testing.T) {
 	srcs := []Source{
-		{Name: "t.dates", Text: "a=2027-01-01/2d\nb=2027-02-01"},
+		{Name: "t.dates", Text: "a=2027-01-01/2d\nb=2027-02-30"},
 		{Name: "--milestone[1]", Text: "m=2027-01-01/2d", Expect: KindMilestone},
 		{Name: "--interval[1]", Text: "i=2027-01-01", Expect: KindInterval},
-		{Name: "--interval[2]", Text: "@b/@m", Expect: KindInterval},
+		{Name: "--interval[2]", Text: "@m/@b", Expect: KindInterval},
 		{Name: "--interval[3]", Text: "i=2027-01-01/1d", Expect: KindInterval},
+		{Name: "--interval[4]", Text: "@i.end/1d", Expect: KindInterval},
 	}
 	_, err := Parse(srcs, today)
-	want := "t.dates:2: milestones must be declared before the first interval\n" +
+	want := "t.dates:2: invalid date 2027-02-30\n" +
 		"--milestone[1]: a milestone cannot contain '/'; declare intervals with --interval\n" +
 		"--interval[1]: an interval needs START/END, START/DURATION or DURATION/END\n" +
 		`--interval[3]: duplicate identifier "i"`
@@ -377,13 +387,67 @@ func TestInlineErrors(t *testing.T) {
 	if err == nil || err.Error() != want {
 		t.Errorf("errors:\n%v\nwant:\n%s", err, want)
 	}
-	// Inline milestones are not subject to the file rule "milestones first".
+	// Declarations may come in any order.
 	srcs = []Source{
 		{Name: "--interval[1]", Text: "2027-01-01/2d", Expect: KindInterval},
 		{Name: "--milestone[1]", Text: "x=2027-01-01", Expect: KindMilestone},
 	}
 	if _, err := Parse(srcs, today); err != nil {
 		t.Errorf("inline order: %v", err)
+	}
+}
+
+// References to an interval's start or end (§18) and to one occurrence of a
+// series (§17). An interval's .end is its exclusive end, the END as written.
+func TestBoundaryAndOccurrenceReferences(t *testing.T) {
+	m := mustParse(t, `
+qa      = 2027-03-01/2027-03-15
+done    = @qa.end; mark=star
+review  = 2027-01-04; every=1w; count=8
+labs    = 2027-01-11/2d; gap=1w; until=2027-03-01
+last    = @review[-1]
+third   = @review[3]+1d
+follow  = @qa.end/1w
+before  = 2w/@qa.start
+lab2    = @labs[2].start/@labs[2].end
+lablast = @labs[-1].end-1d
+start   = @qa.START; title="case-insensitive boundary"
+weekly  = @review[2]; every=1w; until=@review[-1]
+`)
+	got := map[string]string{}
+	for _, ms := range m.Milestones {
+		got[ms.ID] = iso(ms.Date)
+	}
+	for _, iv := range m.Intervals {
+		got[iv.ID] = iso(iv.Start) + "/" + iso(iv.End)
+	}
+	want := map[string]string{
+		"done":    "2027-03-15",
+		"last":    "2027-02-22", // 8th Monday from 4 Jan
+		"third":   "2027-01-19", // 18 Jan + 1d
+		"follow":  "2027-03-15/2027-03-22",
+		"before":  "2027-02-15/2027-03-01",
+		"lab2":    "2027-01-20/2027-01-22", // 13 Jan (end) + 1w gap
+		"lablast": "2027-02-26",            // last lab 25–26 Feb, exclusive end 27 Feb
+		"start":   "2027-03-01",
+		"weekly":  "2027-01-11",
+	}
+	for id, w := range want {
+		if got[id] != w {
+			t.Errorf("%s = %s; want %s", id, got[id], w)
+		}
+	}
+	if until := m.Milestones[len(m.Milestones)-1].Rec.Until; iso(until) != "2027-02-22" {
+		t.Errorf("weekly until = %s; want 2027-02-22", iso(until))
+	}
+}
+
+// A reference resolves the same whatever the page shows: a later occurrence
+// is found even when the window that Expand draws ends before it.
+func TestOccurrenceReferenceIgnoresWindow(t *testing.T) {
+	m := mustParse(t, "r=2027-01-01;every=1m\nx=@r[24]")
+	if got := iso(m.Milestones[1].Date); got != "2028-12-01" {
+		t.Errorf("x = %s; want 2028-12-01", got)
 	}
 }
 
