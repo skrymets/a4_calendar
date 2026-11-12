@@ -67,9 +67,9 @@ The DSL reserves `title`, `every`, `gap`, `count`, `until`. The calendar gives m
 
 | ID | Requirement |
 |---|---|
-| **REQ-MS-1** | Wide page: the mark glyph is drawn after the weekday letter in the milestone colour; the title is drawn on the note line, left-aligned at `guideStart`, clipped with `…` before the rail zone. ![marks](img/x01-marks.png) |
+| **REQ-MS-1** | Wide page: the mark glyph is drawn after the weekday letter in the milestone colour; the title is drawn on the note line, left-aligned at `guideStart`, clipped with `…` before the rail zone. A title that would keep fewer than three characters before the `…` is left out (wide and narrow pages). ![marks](img/x01-marks.png) |
 | **REQ-MS-2** | `mark=ring` draws a 0.75 pt pill outline around the day number in the milestone colour and no glyph. |
-| **REQ-MS-3** | Narrow page: the glyph is drawn at the start of the note line, no title; the legend carries the title. |
+| **REQ-MS-3** | Narrow page: the glyph is drawn at the start of the note line and the title follows it, 1 pt after the glyph, at 4.9 pt, clipped with `…` before the rail zone; the legend carries the full title. |
 | **REQ-MS-4** | Several milestones on one day: all glyphs side by side in declaration order; one title — the first that is due a title — followed by ` +N` (N = the other milestones that day). |
 | **REQ-MS-5** | Countdown text is drawn top-left in the note area of each countdown day, in the milestone colour. It does not block interval labels. ![countdown](img/x03-countdown.png) |
 | **REQ-MS-6** | A milestone outside the period is not drawn and not listed. |

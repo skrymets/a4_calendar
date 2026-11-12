@@ -3,6 +3,8 @@ package render
 import (
 	"math"
 	"strconv"
+	"strings"
+	"unicode/utf8"
 
 	"a4calendar/internal/canvas"
 	"a4calendar/internal/timeline"
@@ -18,41 +20,44 @@ var (
 )
 
 const (
-	tlCapR        = 0.75 // rail end radius
-	tlDashOn      = 2.25 // dashed rail
-	tlDashOff     = 1.5
-	tlOverflowW   = 1.1 // overflow rail width and dots
-	tlBackW       = 0.75
-	tlBackOff     = 1.5  // margin line: left of guideStart
-	tlBackStep    = 2.25 // 2nd and 3rd margin line
-	tlBackDot     = 1.5
-	tlTickH       = 1.1
-	tlTickExtra   = 2.25
-	tlHatchW      = 0.75
-	tlHatchPitch  = 3.75
-	tlRingW       = 0.75
-	tlTopFrom     = 2.25 // top row from the cell top
-	tlTextGap     = 1.5  // note area inset from guideStart
-	tlItemGap     = 1.9  // between top-row items
-	tlLabelSize   = 4.5
-	tlLabelTrack  = 0.06 // em
-	tlKeySizeN    = 4.1  // narrow keys
-	tlKeyLineN    = 5.25
-	tlTitleSize   = 5.6
-	tlGlyphWide   = 4.9
-	tlGlyphNarrow = 5.25
-	tlCountSize   = 4.1
-	tlCountTrack  = 0.04 // em
-	tlEllipsis    = "…"  // timeline text; the page title keeps "..."
-	tlSeam        = 0.15 // a running rail overlaps the next cell, so no hairline gap shows
-	tlGlyphGap    = 1.5  // after the weekday letter
-	tlMarkGap     = 0.5  // between glyphs, and between the glyphs and a title
-	tlGlyphInsetN = 0.75 // narrow page: glyph inset from guideStart
-	tlZoneGap     = 0.75 // text stops this far before the rail zone
-	tlRingPad     = 0.75 // ring: 1 px each side of the day number (02 §3)
-	tlRingBelow   = 1.6  // ring bottom below the label baseline
-	tlRingH       = 1.18 // ring height, × MainSize
-	tlCapHeight   = 0.72 // cap height as a share of the font size
+	tlCapR          = 0.75 // rail end radius
+	tlDashOn        = 2.25 // dashed rail
+	tlDashOff       = 1.5
+	tlOverflowW     = 1.1 // overflow rail width and dots
+	tlBackW         = 0.75
+	tlBackOff       = 1.5  // margin line: left of guideStart
+	tlBackStep      = 2.25 // 2nd and 3rd margin line
+	tlBackDot       = 1.5
+	tlTickH         = 1.1
+	tlTickExtra     = 2.25
+	tlHatchW        = 0.75
+	tlHatchPitch    = 3.75
+	tlRingW         = 0.75
+	tlTopFrom       = 2.25 // top row from the cell top
+	tlTextGap       = 1.5  // note area inset from guideStart
+	tlItemGap       = 1.9  // between top-row items
+	tlLabelSize     = 4.5
+	tlLabelTrack    = 0.06 // em
+	tlKeySizeN      = 4.1  // narrow keys
+	tlKeyLineN      = 5.25
+	tlTitleSize     = 5.6
+	tlTitleSizeN    = 4.9 // narrow pages
+	tlTitleGapN     = 1.0 // narrow pages: between the glyphs and the title
+	tlTitleMinChars = 3   // a milestone title cut shorter is left out
+	tlGlyphWide     = 4.9
+	tlGlyphNarrow   = 5.25
+	tlCountSize     = 4.1
+	tlCountTrack    = 0.04 // em
+	tlEllipsis      = "…"  // timeline text; the page title keeps "..."
+	tlSeam          = 0.15 // a running rail overlaps the next cell, so no hairline gap shows
+	tlGlyphGap      = 1.5  // after the weekday letter
+	tlMarkGap       = 0.5  // between glyphs, and between the glyphs and a title
+	tlGlyphInsetN   = 0.75 // narrow page: glyph inset from guideStart
+	tlZoneGap       = 0.75 // text stops this far before the rail zone
+	tlRingPad       = 0.75 // ring: 1 px each side of the day number (02 §3)
+	tlRingBelow     = 1.6  // ring bottom below the label baseline
+	tlRingH         = 1.18 // ring height, × MainSize
+	tlCapHeight     = 0.72 // cap height as a share of the font size
 )
 
 // Vector glyphs (REQ-PG-5), as shares of the font size.
@@ -409,20 +414,32 @@ func topColor(it timeline.TopItem) canvas.RGB {
 }
 
 // milestoneTitle draws the title on the note line, clipped before the rail
-// zone (REQ-MS-1, -4); wide pages only. It starts at guideStart, or after
-// the glyphs when a wide day label pushes them past it.
+// zone (REQ-MS-1, -3, -4). It starts at guideStart, or after the glyphs
+// when they reach past it: on a wide page when a wide day label pushes
+// them, on a narrow page always. A title cut to fewer than tlTitleMinChars
+// characters is left out; the mark and the legend still show the milestone.
 func (t *tlDrawer) milestoneTitle(day *timeline.Day, g tlCell, marksEnd float64) {
 	m := day.Milestones
-	if t.l.Narrow || m == nil || m.Title == "" {
+	if m == nil || m.Title == "" {
 		return
 	}
+	size := tlTitleSize
 	x := max(g.guideX, marksEnd) // marksEnd already includes tlMarkGap
+	if t.l.Narrow {
+		size = tlTitleSizeN
+		if marksEnd > g.guideX+tlGlyphInsetN { // a glyph was drawn
+			x += tlTitleGapN - tlMarkGap
+		}
+	}
 	right := g.noteRight(day)
-	s := fitText(m.Title, right-x, tlEllipsis, func(s string) float64 { return t.c.StringWidth(s, t.bold, tlTitleSize) })
+	s := fitText(m.Title, right-x, tlEllipsis, func(s string) float64 { return t.c.StringWidth(s, t.bold, size) })
+	if cut, ok := strings.CutSuffix(s, tlEllipsis); ok && s != m.Title && utf8.RuneCountInString(cut) < tlTitleMinChars {
+		return
+	}
 	if s == "" {
 		return
 	}
 	t.c.SetFillColor(hexColor(m.TitleColor))
-	t.c.SetFont(t.bold, tlTitleSize)
+	t.c.SetFont(t.bold, size)
 	t.c.DrawString(x, g.mainY, s)
 }

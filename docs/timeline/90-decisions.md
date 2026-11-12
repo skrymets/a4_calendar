@@ -60,6 +60,8 @@ The design canvas (Design artifact "Milestones & Intervals") shows each rejected
 | A `.dates` file may declare milestones and intervals in any order (DSL §9.2 rule 6 lifted) | Otherwise a milestone could never refer to an interval of the same file. No valid file changes meaning; interval keys still follow interval order. |
 | Occurrence references count from the declaration alone (its count/until and the year 9999), not from the page; `[-N]` needs `count` or `until`; N is at most 100 000 | A date must not move when the period changes. |
 | `@x[N]` on a non-recurring declaration and a recurring one without `[N]` are errors, as are `.start`/`.end` on a milestone and an interval without them | Each mistake gets a message that shows the right form. |
+| Narrow pages draw the milestone title too (REQ-MS-3 changed): on the note line, 1 pt after the glyph, 4.9 pt bold, clipped with `…` | With 8–9 columns a short title such as "Kick-off" fits whole; without it the reader had to look up every mark in the legend. The narrow reference pictures (`page-year-*`, `page-leave`, `x20-*`) predate this and show the glyph alone. |
+| A milestone title that would keep fewer than three characters before the `…` is left out, on wide and narrow pages | "Ki…" tells nothing; the mark and the legend still show the milestone. |
 
 ## Open items (not blocking v1)
 

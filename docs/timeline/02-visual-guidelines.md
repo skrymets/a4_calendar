@@ -49,7 +49,7 @@ Lane positions are measured from the column's right edge: lane *i* has its right
 | Rail width / step, `k ≤ 7` (wide) · `k ≤ 5` (narrow) | 1.5 / 2.6 pt (2 / 3.5 px) | 1.1 / 1.9 pt (1.5 / 2.5 px) |
 | Rail width / step, larger `k` | 1.1 / 2.25 pt (1.5 / 3 px) | 0.75 / 1.5 pt (1 / 2 px) |
 | Text labels | when `k ≤ 3` | never — keys only |
-| Milestone title | on the note line | none — glyph only |
+| Milestone title | on the note line, 5.6 pt | on the note line after the glyph, 4.9 pt |
 
 `k` = lanes shown in the column + 1 when the column has an overflow rail (packed), or the busiest day's lanes incl. overflow (flow).
 
@@ -100,7 +100,7 @@ Fonts follow `--font` (default Helvetica). Sizes:
 | Keys (wide) | 4.5 pt | bold | interval colour |
 | Keys (narrow) | 4.1 pt, line 5.25 pt, max 2 lines | bold | interval colour |
 | `+N` overflow chip | as keys | bold | #7A7A7A |
-| Milestone title | 5.6 pt | bold | milestone colour |
+| Milestone title | 5.6 pt (wide) · 4.9 pt (narrow) | bold | milestone colour |
 | Milestone glyph | 4.9 pt (wide, after letter) · 5.25 pt (narrow, on note line) | — | milestone colour |
 | Countdown | 4.1 pt, tracking +0.04 em | bold | milestone colour |
 | Legend | 4.9 pt; key and title bold, dates regular #7A7A7A | | entry colour |

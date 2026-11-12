@@ -20,8 +20,14 @@ func buildTimeline(t *testing.T, dates string) *fakeCanvas {
 // buildTimelineWith is buildTimeline with a hook to change the Timeline.
 func buildTimelineWith(t *testing.T, dates string, edit func(*Timeline)) *fakeCanvas {
 	t.Helper()
+	return buildTimelinePage(t, period.Period{N: 5, Unit: 'm'}, dates, edit)
+}
+
+// buildTimelinePage renders an A4 page from 1 January 2027 for period p.
+func buildTimelinePage(t *testing.T, p period.Period, dates string, edit func(*Timeline)) *fakeCanvas {
+	t.Helper()
 	start := period.Date(2027, 1, 1)
-	cfg := testConfig(start, period.Period{N: 5, Unit: 'm'})
+	cfg := testConfig(start, p)
 	end, _ := period.PeriodEnd(start, cfg.Period)
 	m, err := dsl.Parse([]dsl.Source{{Name: "t.dates", Text: dates}}, start)
 	if err != nil {
@@ -101,6 +107,40 @@ x = 2027-03-01/3d; title="`+strings.Repeat("Long interval label ", 4)+`"`)
 	}
 	if !strings.HasSuffix(label, "…") {
 		t.Errorf("label %q not clipped with …", label)
+	}
+}
+
+// Narrow pages show milestone titles too, smaller and clipped (REQ-MS-3),
+// but leave out a title that would keep fewer than three characters.
+func TestNarrowPageMilestoneTitles(t *testing.T) {
+	noLegend := func(tl *Timeline) { tl.Legend = false }
+	titles := func(c *fakeCanvas) string { return strings.Join(c.texts("string"), "|") }
+
+	eight := buildTimelinePage(t, period.Period{N: 8, Unit: 'm'}, `kickoff = 2027-01-05; title="Kick-off"`, noLegend)
+	if !strings.Contains(titles(eight), "|Kick-off|") {
+		t.Errorf("8 columns: no Kick-off title in %q", titles(eight))
+	}
+
+	year := buildTimelinePage(t, period.Period{N: 1, Unit: 'y'}, `m = 2027-01-05; title="Leave quota resets"`, noLegend)
+	if !strings.Contains(titles(year), "|Leave q…|") {
+		t.Errorf("12 columns: want the title cut to Leave q…")
+	}
+
+	// beside a full rail zone four letters stay; with two more marks
+	// before it, fewer than three would, so the title is left out
+	rails := "\na = 2027-01-01/1w\nb = 2027-01-01/1w\nc = 2027-01-01/1w\nd = 2027-01-01/1w"
+	crowded := buildTimelinePage(t, period.Period{N: 1, Unit: 'y'}, `m = 2027-01-05; title="Leave quota resets"`+rails, noLegend)
+	if !strings.Contains(titles(crowded), "|Leav…|") {
+		t.Errorf("crowded cell: want the title cut to Leav…")
+	}
+	marks := buildTimelinePage(t, period.Period{N: 1, Unit: 'y'}, `m = 2027-01-05; title="Leave quota resets"
+n = 2027-01-05
+o = 2027-01-05`+rails, noLegend)
+	if s := titles(marks); strings.Contains(s, "…") {
+		t.Errorf("three marks: a title cut below three characters should be left out: %q", s[:80])
+	}
+	if n := marks.count("polygon"); n != 3 {
+		t.Errorf("polygons = %d; want three diamonds", n)
 	}
 }
 
