@@ -1,4 +1,4 @@
-# PinPlan
+# <img src="media/icon/pinplan_48.svg" width="40" height="40" alt="" align="top"> PinPlan
 
 > Plan it. Print it. Pin it.
 
