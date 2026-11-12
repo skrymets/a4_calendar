@@ -89,6 +89,22 @@ rev  = 2027-02-15/2w; title="Revision"; length=days; color=orange`)
 	}
 }
 
+// A one-day interval is one rail segment, labelled, and named once in the
+// legend.
+func TestDrawOneDayInterval(t *testing.T) {
+	const one = `o = 2027-02-10/2027-02-10; title="One"; length=days`
+	if n := buildTimeline(t, one).count("roundrect"); n != 1 { // without the legend's swatch
+		t.Errorf("rail segments = %d; want 1", n)
+	}
+	c := buildTimelineWith(t, one, nil)
+	texts := strings.Join(append(c.texts("string"), c.texts("spaced")...), "|")
+	for _, want := range []string{"ONE · 1 D", "One|10 Feb · 1 d"} {
+		if !strings.Contains(texts, want) {
+			t.Errorf("missing %q in %s", want, texts)
+		}
+	}
+}
+
 func TestDrawTimelineClipsWithEllipsis(t *testing.T) {
 	long := strings.Repeat("Very long milestone title ", 4)
 	c := buildTimeline(t, `m = 2027-02-10; title="`+long+`"

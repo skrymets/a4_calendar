@@ -1,5 +1,5 @@
-j1 = 2027-01-04/2027-01-21; title="J1"; color=teal
-j2 = 2027-01-10/2027-01-26; title="J2"; color=violet
+j1 = 2027-01-04/2027-01-20; title="J1"; color=teal
+j2 = 2027-01-10/2027-01-25; title="J2"; color=violet
 f1 = 2027-02-01/10d; title="F1"; color=teal
 f2 = 2027-02-03/10d; title="F2"; color=violet
 f3 = 2027-02-05/10d; title="F3"; color=orange

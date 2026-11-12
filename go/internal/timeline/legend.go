@@ -84,18 +84,22 @@ func (e *engine) legend() []LegendEntry {
 			continue
 		}
 		first, last := occ[0], occ[len(occ)-1]
-		w := when(first.s) + "–"
-		switch {
-		case x.Rec != nil:
+		w := when(first.s)
+		if x.Rec != nil {
 			mode := "every "
 			if x.Rec.Mode == dsl.Gap {
 				mode = "gap "
 			}
-			w += when(last.e) + " · " + mode + x.Rec.Period.String() + " · ×" + strconv.Itoa(len(occ))
-		case x.Length == Workdays:
-			w += when(first.e) + " · " + strconv.Itoa(e.workdays(first.s, first.e)) + " wd"
-		default:
-			w += when(first.e) + " · " + strconv.Itoa(first.e-first.s+1) + " d"
+			w += "–" + when(last.e) + " · " + mode + x.Rec.Period.String() + " · ×" + strconv.Itoa(len(occ))
+		} else {
+			if first.e != first.s { // a one-day interval names its day once
+				w += "–" + when(first.e)
+			}
+			if x.Length == Workdays {
+				w += " · " + strconv.Itoa(e.workdays(first.s, first.e)) + " wd"
+			} else {
+				w += " · " + strconv.Itoa(first.e-first.s+1) + " d"
+			}
 		}
 		title := x.Title
 		if title == "" {

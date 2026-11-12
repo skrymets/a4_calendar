@@ -85,7 +85,7 @@ after   = @Freeze+3d
 func TestCaseInsensitivity(t *testing.T) {
 	m := mustParse(t, `RELEASE=2027-03-15
 freeze=@Release-2W
-QA=@FREEZE/@release;TITLE="Final QA";Owner=Alice`)
+QA=@FREEZE/<@release;TITLE="Final QA";Owner=Alice`)
 	if got := iso(m.Milestones[1].Date); got != "2027-03-01" {
 		t.Errorf("freeze = %s", got)
 	}
@@ -105,18 +105,18 @@ func TestIntervalForms(t *testing.T) {
 	m := mustParse(t, `
 release = 2027-03-15
 freeze  = @release-2w
-2027-01-01/2027-02-01
-qa          = @freeze/@release
+2027-01-01/2027-01-31
+qa          = @freeze/<@release
 support     = @release/1m
 preparation = 2w/@freeze
-audit       = @release+1w/@release+3w
+audit       = @release+1w/@release+3w-1d
 monthEnd    = 2027-01-31/1M
 `)
 	want := []struct{ id, s, e string }{
 		{"", "2027-01-01", "2027-02-01"},
 		{"qa", "2027-03-01", "2027-03-15"},
 		{"support", "2027-03-15", "2027-04-15"},
-		{"preparation", "2027-02-15", "2027-03-01"},
+		{"preparation", "2027-02-16", "2027-03-02"}, // inclusive END: ends on 1 Mar
 		{"audit", "2027-03-22", "2027-04-05"},
 		{"monthEnd", "2027-01-31", "2027-02-28"},
 	}
@@ -137,15 +137,15 @@ b = @a-1m+3d
 c = 2027-01-31+1m+1d
 d = +2w-1d
 e = 2027-03-31-1m-1d
-q = 2027-01-01/2027-01-08
+q = 2027-01-01/2027-01-07
 f = @q.end+1d-2d
 2027-08-01/1m+13d
 2027-08-01/1m2w
 2027-08-01/1M-1D
-1m+13d/2027-09-14
+1m+13d/2027-09-13
 2027-01-31/1m+1d
 `)
-	for id, want := range map[string]string{"b": "2027-02-18", "c": "2027-03-01", "d": "2026-11-24", "e": "2027-02-27", "f": "2027-01-07"} {
+	for id, want := range map[string]string{"b": "2027-02-18", "c": "2027-03-01", "d": "2026-11-24", "e": "2027-02-27", "f": "2027-01-06"} {
 		for _, ms := range m.Milestones {
 			if ms.ID == id && iso(ms.Date) != want {
 				t.Errorf("%s = %s; want %s", id, iso(ms.Date), want)
@@ -157,7 +157,7 @@ f = @q.end+1d-2d
 		{"2027-08-01", "2027-09-14"},
 		{"2027-08-01", "2027-09-15"},
 		{"2027-08-01", "2027-08-31"},
-		{"2027-08-01", "2027-09-14"}, // backward: 14 Sep -13d -1m
+		{"2027-08-01", "2027-09-14"}, // backward from the exclusive end 14 Sep: -13d -1m
 		{"2027-01-31", "2027-03-01"}, // 28 Feb + 1d
 	}
 	for i, w := range want {
@@ -173,11 +173,69 @@ f = @q.end+1d-2d
 	}
 
 	for text, msg := range map[string]string{
-		"x=2027-01-01/1d-1d":        "interval start 2027-01-01 must be before its end 2027-01-01",
+		"x=2027-01-01/1d-1d":        "interval 2027-01-01/1d-1d has no days: the duration must come to one day or more",
 		"x=2027-01-01/1d+99999999d": "number 99999999 is too large",
 		"x=today+1d-99999999d":      "number 99999999 is too large",
 		"x=2027-01-01/1d+":          `invalid date expression "1d+"`,
-		"x=2027-01-01/+1d+1d":       "interval start 2027-01-01 must be before its end 2026-11-13", // a date: today+1d+1d
+		"x=2027-01-01/+1d+1d":       "interval ends on 2026-11-13, before its start 2027-01-01", // a date: today+1d+1d
+	} {
+		if _, err := Parse(file(text), today); err == nil || !strings.Contains(err.Error(), msg) {
+			t.Errorf("%s: err %v; want %q", text, err, msg)
+		}
+	}
+}
+
+// An END is the last day; "<END" excludes it. A one-day interval is any
+// form whose start and last day coincide. Spans are start/exclusive end.
+func TestInclusiveEndsAndOneDayIntervals(t *testing.T) {
+	m := mustParse(t, `
+m = 2027-03-01
+a = 2027-08-13/2027-09-05
+b = 2027-08-13/<2027-09-05
+c = 2w/@m
+d = 2w/<@m
+e = 2027-12-24/2027-12-24
+f = 2027-11-17/1d
+g = 1d/2027-11-17
+h = 2027-11-17/<2027-11-18
+z = 9999-12-31/9999-12-31
+s = @e.start
+x = @e.end
+`)
+	want := map[string]isoSpan{
+		"a": {"2027-08-13", "2027-09-06"}, "b": {"2027-08-13", "2027-09-05"},
+		"c": {"2027-02-16", "2027-03-02"}, "d": {"2027-02-15", "2027-03-01"},
+		"e": {"2027-12-24", "2027-12-25"}, "f": {"2027-11-17", "2027-11-18"},
+		"g": {"2027-11-17", "2027-11-18"}, "h": {"2027-11-17", "2027-11-18"},
+	}
+	for _, iv := range m.Intervals {
+		if w, ok := want[iv.ID]; ok && (iso(iv.Start) != w.s || iso(iv.End) != w.e) {
+			t.Errorf("%s = %s..%s; want %s..%s", iv.ID, iso(iv.Start), iso(iv.End), w.s, w.e)
+		}
+	}
+	if z := m.Intervals[len(m.Intervals)-1]; z.ID != "z" || z.End.Year() != 10000 {
+		t.Errorf("a one-day interval on 9999-12-31 should parse; got %v", z)
+	}
+	for _, ms := range m.Milestones[1:] {
+		if iso(ms.Date) != "2027-12-24" {
+			t.Errorf("@e.%s = %s; want 2027-12-24", map[string]string{"s": "start", "x": "end"}[ms.ID], iso(ms.Date))
+		}
+	}
+
+	r := mustExpand(t, "2027-01-05/2027-01-05; every=1w; count=3", "2027-12-31")
+	if got, want := intervalSpans(r), []isoSpan{{"2027-01-05", "2027-01-06"}, {"2027-01-12", "2027-01-13"}, {"2027-01-19", "2027-01-20"}}; !equal(got, want) {
+		t.Errorf("recurring one-day = %v; want %v", got, want)
+	}
+
+	for text, msg := range map[string]string{
+		"x=2027-11-17/<2027-11-17":                "t.dates:1: interval 2027-11-17/<2027-11-17 has no days: an exclusive end must come after the start",
+		"x=2027-11-17/<2027-11-10":                "t.dates:1: interval ends on 2027-11-09, before its start 2027-11-17",
+		"x=2027-11-17/2027-11-16":                 "t.dates:1: interval ends on 2027-11-16, before its start 2027-11-17",
+		"x=1d-1d/2027-01-01":                      "t.dates:1: interval 1d-1d/2027-01-01 has no days: the duration must come to one day or more",
+		"x=<2027-01-01/2027-01-05":                "t.dates:1: the start is always included; < marks an exclusive end: START/<END",
+		"x=2027-01-01/<2w":                        "t.dates:1: a duration has no end to exclude; < goes before an end date",
+		"x=<2027-01-01":                           `t.dates:1: invalid date expression "<2027-01-01"`,
+		"x=2027-01-01;every=1w;until=<2027-02-01": `invalid date expression "<2027-02-01"`,
 	} {
 		if _, err := Parse(file(text), today); err == nil || !strings.Contains(err.Error(), msg) {
 			t.Errorf("%s: err %v; want %q", text, err, msg)
@@ -226,11 +284,11 @@ func TestRecurringIntervals(t *testing.T) {
 			[]isoSpan{{"2027-01-04", "2027-01-09"}, {"2027-01-11", "2027-01-16"}, {"2027-01-18", "2027-01-23"}}},
 		{"overlapping occurrences allowed", "x=2027-01-01/2w;every=1w;count=2", "2027-12-31",
 			[]isoSpan{{"2027-01-01", "2027-01-15"}, {"2027-01-08", "2027-01-22"}}},
-		{"START/END keeps its days", "x=2027-01-30/2027-02-02;every=1m;count=3", "2027-12-31",
+		{"START/END keeps its days", "x=2027-01-30/2027-02-01;every=1m;count=3", "2027-12-31",
 			[]isoSpan{{"2027-01-30", "2027-02-02"}, {"2027-02-28", "2027-03-03"}, {"2027-03-30", "2027-04-02"}}},
 		{"START/DURATION keeps the calendar duration", "x=2027-01-31/1m;every=1m;count=3", "2027-12-31",
 			[]isoSpan{{"2027-01-31", "2027-02-28"}, {"2027-02-28", "2027-03-28"}, {"2027-03-31", "2027-04-30"}}},
-		{"DURATION/END applies the period forward", "x=1m/2027-03-31;every=1m;count=2", "2027-12-31",
+		{"DURATION/END applies the period forward", "x=1m/2027-03-30;every=1m;count=2", "2027-12-31",
 			[]isoSpan{{"2027-02-28", "2027-03-31"}, {"2027-03-28", "2027-04-28"}}},
 		{"gap from the actual end", "x=2027-01-31/1m;gap=1d;count=2", "2027-12-31",
 			[]isoSpan{{"2027-01-31", "2027-02-28"}, {"2027-03-01", "2027-04-01"}}},
@@ -317,7 +375,7 @@ func TestInlineSourcesAndOrder(t *testing.T) {
 	srcs := []Source{
 		{Name: "roadmap.dates", Text: "release=2027-03-15\nqa=2027-03-01/@release"},
 		{Name: "--milestone[1]", Text: "extra_review=@release+3w", Expect: KindMilestone},
-		{Name: "--interval[1]", Text: "extra_qa=@release/@extra_review", Expect: KindInterval},
+		{Name: "--interval[1]", Text: "extra_qa=@release/<@extra_review", Expect: KindInterval},
 	}
 	m, err := Parse(srcs, today)
 	if err != nil {
@@ -367,8 +425,8 @@ func TestErrors(t *testing.T) {
 		{"zero duration", "x=2027-01-01/0d", "invalid date expression \"0d\""},
 		{"two durations", "x=2w/3d", "only one side of an interval may be a duration"},
 		{"two slashes", "x=2027-01-01/2027-01-05/2027-01-09", "exactly one '/'"},
-		{"empty interval", "x=2027-01-01/2027-01-01", "interval start 2027-01-01 must be before its end 2027-01-01"},
-		{"reversed interval", "x=2027-01-05/2027-01-01", "must be before its end"},
+		{"empty interval", "x=2027-01-01/<2027-01-01", "t.dates:1: interval 2027-01-01/<2027-01-01 has no days: an exclusive end must come after the start"},
+		{"reversed interval", "x=2027-01-05/2027-01-04", "t.dates:1: interval ends on 2027-01-04, before its start 2027-01-05"},
 		{"every and gap", "x=2027-01-01/2d;every=1w;gap=1d", "every and gap are mutually exclusive"},
 		{"gap on a milestone", "x=2027-01-01;gap=1w", "gap is only valid for intervals"},
 		{"count and until", "x=2027-01-01;every=1w;count=2;until=2027-02-01", "count and until are mutually exclusive"},
@@ -458,19 +516,20 @@ func TestInlineErrors(t *testing.T) {
 }
 
 // References to an interval's start or end (§18) and to one occurrence of a
-// series (§17). An interval's .end is its exclusive end, the END as written.
+// series (§17). An interval's .end is its last day, the END as written.
+// Interval values below are start/exclusive end.
 func TestBoundaryAndOccurrenceReferences(t *testing.T) {
 	m := mustParse(t, `
-qa      = 2027-03-01/2027-03-15
+qa      = 2027-03-01/2027-03-14
 done    = @qa.end; mark=star
 review  = 2027-01-04; every=1w; count=8
 labs    = 2027-01-11/2d; gap=1w; until=2027-03-01
 last    = @review[-1]
 third   = @review[3]+1d
-follow  = @qa.end/1w
-before  = 2w/@qa.start
+follow  = @qa.end+1d/1w
+before  = 2w/<@qa.start
 lab2    = @labs[2].start/@labs[2].end
-lablast = @labs[-1].end-1d
+lablast = @labs[-1].end
 start   = @qa.START; title="case-insensitive boundary"
 weekly  = @review[2]; every=1w; until=@review[-1]
 `)
@@ -482,13 +541,13 @@ weekly  = @review[2]; every=1w; until=@review[-1]
 		got[iv.ID] = iso(iv.Start) + "/" + iso(iv.End)
 	}
 	want := map[string]string{
-		"done":    "2027-03-15",
+		"done":    "2027-03-14", // the last day of qa
 		"last":    "2027-02-22", // 8th Monday from 4 Jan
 		"third":   "2027-01-19", // 18 Jan + 1d
 		"follow":  "2027-03-15/2027-03-22",
 		"before":  "2027-02-15/2027-03-01",
-		"lab2":    "2027-01-20/2027-01-22", // 13 Jan (end) + 1w gap
-		"lablast": "2027-02-26",            // last lab 25–26 Feb, exclusive end 27 Feb
+		"lab2":    "2027-01-20/2027-01-22", // 13 Jan (exclusive end) + 1w gap; 20–21 Jan
+		"lablast": "2027-02-26",            // last lab 25–26 Feb
 		"start":   "2027-03-01",
 		"weekly":  "2027-01-11",
 	}
@@ -520,7 +579,7 @@ func TestModelDate(t *testing.T) {
 	}
 	for expr, want := range map[string]string{
 		"2027-03-01": "2027-03-01", "today+2w": "2026-11-25", "@today": "2026-11-11",
-		"@kick": "2027-01-04", "@qa.end+1w": "2027-02-01", "@labs[-1].start": "2027-01-26",
+		"@kick": "2027-01-04", "@qa.end+1w": "2027-01-31", "@labs[-1].start": "2027-01-26",
 	} {
 		got, err := m.Date(expr)
 		if err != nil || iso(got) != want {
@@ -558,7 +617,7 @@ func TestTooManyOccurrences(t *testing.T) {
 // Day counts use calendar arithmetic, not time.Duration, which saturates
 // after about 292 years.
 func TestLongIntervalDays(t *testing.T) {
-	m, err := Parse(file("x=0001-01-01/2400-01-01; every=1000y; count=2"), today)
+	m, err := Parse(file("x=0001-01-01/2399-12-31; every=1000y; count=2"), today)
 	if err != nil {
 		t.Fatal(err)
 	}

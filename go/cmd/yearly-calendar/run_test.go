@@ -372,7 +372,7 @@ func TestRunDateExpressions(t *testing.T) {
 	dir := t.TempDir()
 	out := filepath.Join(dir, "x.pdf")
 	plan := filepath.Join(dir, "plan.dates")
-	err := os.WriteFile(plan, []byte("kick = 2027-01-04\nexam = 2027-03-01\nqa = 2027-02-01/2027-02-15\nfar = 2028-03-01\n"), 0o644)
+	err := os.WriteFile(plan, []byte("kick = 2027-01-04\nexam = 2027-03-01\nqa = 2027-02-01/2027-02-14\nfar = 2028-03-01\n"), 0o644)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -385,7 +385,7 @@ func TestRunDateExpressions(t *testing.T) {
 		{[]string{"--today", "2027-05-04", "--start", "today+3d", "--period", "10d"}, "2027-05-07 → 2027-05-16 (10 days)"},
 		{[]string{"--start", "@today", "--period", "1d"}, now + " → " + now + " (1 days)"},
 		{[]string{"--start", "@kick", "--until", "@exam+1w", "--file", plan}, "2027-01-04 → 2027-03-07 (63 days)"},
-		{[]string{"--start", "@kick", "--end", "@qa.end-1d", "--file", plan}, "2027-01-04 → 2027-02-14 (42 days)"},
+		{[]string{"--start", "@kick", "--end", "@qa.end", "--file", plan}, "2027-01-04 → 2027-02-14 (42 days)"},
 	} {
 		code, stdout, stderr := call(append(c.args, "-o", out)...)
 		if code != 0 || !strings.Contains(stdout, ": "+c.want) {

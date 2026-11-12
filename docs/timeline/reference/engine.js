@@ -129,11 +129,17 @@
           } else {
             var lr = splitTop(expr, '/');
             if (lr.length !== 2) throw new Error('an interval needs exactly one "/"');
-            var pl = parsePeriod(lr[0]), pr = parsePeriod(lr[1]), s, e, dur, refs = [];
+            // the END is the last day (inclusive); "<END" is the exclusive end (DSL §5)
+            var rhs = lr[1].trim(), excl = rhs.charAt(0) === '<';
+            if (lr[0].trim().charAt(0) === '<') throw new Error('the start is always included; < marks an exclusive end');
+            if (excl) rhs = rhs.slice(1);
+            var endOf = function (t) { return excl ? t : t + DAY; };
+            var pl = parsePeriod(lr[0]), pr = parsePeriod(rhs), s, e, dur, refs = [];
             if (pl && pr) throw new Error('only one side of a range may be a duration');
+            if (pr && excl) throw new Error('a duration has no end to exclude');
             if (pr) { var a = parseDate(lr[0], ctx); s = a.t; refs = a.refs; e = addP(s, pr.n, pr.u); dur = { kind: 'start', p: pr }; }
-            else if (pl) { var b = parseDate(lr[1], ctx); e = b.t; refs = b.refs; s = addP(e, -pl.n, pl.u); dur = { kind: 'end', p: pl }; }
-            else { var c1 = parseDate(lr[0], ctx), c2 = parseDate(lr[1], ctx); s = c1.t; e = c2.t; refs = c1.refs.concat(c2.refs); dur = { kind: 'dates', days: Math.round((e - s) / DAY) }; }
+            else if (pl) { var b = parseDate(rhs, ctx); e = endOf(b.t); refs = b.refs; s = addP(e, -pl.n, pl.u); dur = { kind: 'end', p: pl }; }
+            else { var c1 = parseDate(lr[0], ctx), c2 = parseDate(rhs, ctx); s = c1.t; e = endOf(c2.t); refs = c1.refs.concat(c2.refs); dur = { kind: 'dates', days: Math.round((e - s) / DAY) }; }
             if (!(s < e)) throw new Error('interval start must be before its end');
             if (rec && rec.until !== null && rec.until < s) throw new Error('until is before the first occurrence');
             out.intervals.push({ id: name, s: s, e: e, dur: dur, refs: refs, rec: rec, props: props, where: where, expr: expr });

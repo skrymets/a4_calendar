@@ -12,6 +12,6 @@ results = @exam+1w;     title="Results"; mark=dot
 # Intervals are half-open [start, end): the end day is not drawn.
 theory   = @kickoff/5w;        title="Theory"; color=teal; length=days
 labs     = 2026-11-16/2d;      title="Lab session"; every=2w; count=8; color=steel
-holidays = 2026-12-24/@term2;  title="Holidays"; style=hatch
+holidays = 2026-12-24/<@term2;  title="Holidays"; style=hatch
 practice = @term2/6w;          title="Practice sets"; color=violet; length=days
-revision = 2w/@exam;           title="Revision"; color=orange; length=days
+revision = 2w/<@exam;           title="Revision"; color=orange; length=days

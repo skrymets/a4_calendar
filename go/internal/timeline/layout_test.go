@@ -87,7 +87,7 @@ func TestPageClasses(t *testing.T) {
 }
 
 func TestRailCapsAndContinuation(t *testing.T) {
-	l := layoutOf(t, "a=2027-01-30/2027-02-03\nb=2027-02-03/2027-02-05", "2027-01-01", "2027-05-31", nil)
+	l := layoutOf(t, "a=2027-01-30/2027-02-02\nb=2027-02-03/2027-02-04", "2027-01-01", "2027-05-31", nil)
 	jan30, jan31, feb1, feb2 := day(t, l, "2027-01-30"), day(t, l, "2027-01-31"), day(t, l, "2027-02-01"), day(t, l, "2027-02-02")
 	if r := jan30.Rails[0]; !r.TopCap || r.BotCap {
 		t.Errorf("start day: %+v", r)
@@ -99,29 +99,29 @@ func TestRailCapsAndContinuation(t *testing.T) {
 		t.Errorf("day 1 continues flush: %+v", r)
 	}
 	if r := feb2.Rails[0]; r.TopCap || !r.BotCap {
-		t.Errorf("last drawn day (end exclusive): %+v", r)
+		t.Errorf("last day (the END, included): %+v", r)
 	}
 	feb3 := day(t, l, "2027-02-03")
 	if len(feb3.Rails) != 1 || !feb3.Rails[0].TopCap {
 		t.Errorf("back-to-back: Feb 3 holds only b, capped: %+v", feb3.Rails)
 	}
 	// clipped by the period start: no cap at the clipped end
-	l = layoutOf(t, "a=2027-01-10/2027-01-20", "2027-01-15", "2027-06-14", nil)
+	l = layoutOf(t, "a=2027-01-10/2027-01-19", "2027-01-15", "2027-06-14", nil)
 	if r := day(t, l, "2027-01-15").Rails[0]; r.TopCap {
 		t.Errorf("clipped start must not be capped: %+v", r)
 	}
 	// interval ending exactly on the period end
-	l = layoutOf(t, "a=2027-05-25/2027-06-01", "2027-01-01", "2027-05-31", nil)
+	l = layoutOf(t, "a=2027-05-25/2027-05-31", "2027-01-01", "2027-05-31", nil)
 	if r := day(t, l, "2027-05-31").Rails[0]; !r.BotCap {
 		t.Errorf("last drawn day = period end: %+v", r)
 	}
 }
 
 func TestPackingPriorityAndSpans(t *testing.T) {
-	text := `a=2027-03-01/2027-03-10;priority=low
-b=2027-03-02/2027-03-12
-c=2027-03-03/2027-03-08;priority=high
-d=2027-03-20/2027-03-25`
+	text := `a=2027-03-01/2027-03-09;priority=low
+b=2027-03-02/2027-03-11
+c=2027-03-03/2027-03-07;priority=high
+d=2027-03-20/2027-03-24`
 	l := layoutOf(t, text, "2027-01-01", "2027-05-31", func(o *Options) { o.LaneCap = 2 })
 	mar5 := day(t, l, "2027-03-05")
 	if len(mar5.Rails) != 2 || mar5.OverflowLane != 2 {
@@ -141,7 +141,7 @@ d=2027-03-20/2027-03-25`
 }
 
 func TestOverflowChipOnlyWhenCountChanges(t *testing.T) {
-	text := "a=2027-03-01/2027-03-20\nb=2027-03-01/2027-03-20\nc=2027-03-02/2027-03-10\nd=2027-03-05/2027-03-12"
+	text := "a=2027-03-01/2027-03-19\nb=2027-03-01/2027-03-19\nc=2027-03-02/2027-03-09\nd=2027-03-05/2027-03-11"
 	l := layoutOf(t, text, "2027-01-01", "2027-12-31", nil) // narrow: cap 3
 	want := map[string]string{"2027-03-04": "", "2027-03-05": "4|+1", "2027-03-06": "", "2027-03-13": ""}
 	for date, w := range want {
@@ -152,7 +152,7 @@ func TestOverflowChipOnlyWhenCountChanges(t *testing.T) {
 }
 
 func TestSeriesKeepsOneLane(t *testing.T) {
-	l := layoutOf(t, "a=2027-03-01/2027-03-31\ns=2027-03-02/2d;every=1w", "2027-01-01", "2027-05-31", nil)
+	l := layoutOf(t, "a=2027-03-01/2027-03-30\ns=2027-03-02/2d;every=1w", "2027-01-01", "2027-05-31", nil)
 	for _, date := range []string{"2027-03-02", "2027-03-09", "2027-03-16"} {
 		rails := day(t, l, date).Rails
 		if len(rails) != 2 || rails[1].Lane != 1 {
@@ -166,9 +166,9 @@ func TestSeriesKeepsOneLane(t *testing.T) {
 
 func TestTextLabels(t *testing.T) {
 	text := `m=2027-03-01
-a=2027-03-01/2027-04-05;title="Alpha";length=workdays
-b=2027-03-01/2027-03-05;title="Beta";status=tentative;length=days
-n=2027-03-10/2027-03-12;title="Hidden label";label=none
+a=2027-03-01/2027-04-04;title="Alpha";length=workdays
+b=2027-03-01/2027-03-04;title="Beta";status=tentative;length=days
+n=2027-03-10/2027-03-11;title="Hidden label";label=none
 s=2027-03-15/1d;every=1w;count=3;title="Sync";label=each
 2027-03-20/2d`
 	l := layoutOf(t, text, "2027-01-01", "2027-05-31", func(o *Options) { o.Weekend = map[int]bool{4: true, 5: true} })
@@ -189,7 +189,7 @@ s=2027-03-15/1d;every=1w;count=3;title="Sync";label=each
 }
 
 func TestKeyLabels(t *testing.T) {
-	text := "a=2026-12-20/2027-02-10\ns=2026-12-28/3d;every=1w\n2027-01-05/2d"
+	text := "a=2026-12-20/2027-02-09\ns=2026-12-28/3d;every=1w\n2027-01-05/2d"
 	// a narrow page: keys only, and never at the top of a column
 	l := layoutOf(t, text, "2026-12-01", "2027-11-30", nil)
 	if got := tops(day(t, l, "2027-01-01")); got != "" {
@@ -204,7 +204,7 @@ func TestKeyLabels(t *testing.T) {
 }
 
 func TestColumnTopKeysOnWidePages(t *testing.T) {
-	text := "a=2027-01-20/2027-02-10\nb=2027-01-20/2027-02-10\nc=2027-01-20/2027-02-10\nd=2027-01-20/2027-02-10\ns=2027-01-25/10d;every=1w"
+	text := "a=2027-01-20/2027-02-09\nb=2027-01-20/2027-02-09\nc=2027-01-20/2027-02-09\nd=2027-01-20/2027-02-09\ns=2027-01-25/10d;every=1w"
 	l := layoutOf(t, text, "2027-01-01", "2027-05-31", nil)
 	if col := column(t, l, time.February); col.Labels != KeyLabels {
 		t.Fatalf("February should use keys (k=%d)", col.K)
@@ -218,9 +218,9 @@ func TestColumnTopKeysOnWidePages(t *testing.T) {
 }
 
 func TestMergedGroups(t *testing.T) {
-	text := `carol=2027-03-10/2027-03-21;color=grey;style=dashed;group=people
-alice=2027-03-18/2027-03-27;color=teal;group=people
-pat=2027-03-01/2027-03-05;color=red;group=Pond`
+	text := `carol=2027-03-10/2027-03-20;color=grey;style=dashed;group=people
+alice=2027-03-18/2027-03-26;color=teal;group=people
+pat=2027-03-01/2027-03-04;color=red;group=Pond`
 	l := layoutOf(t, text, "2027-01-01", "2027-12-31", nil) // narrow: merged
 	if !l.GroupsMerged || len(l.Groups) != 2 || l.Groups[0].Key != "P" || l.Groups[1].Key != "PO" {
 		t.Fatalf("groups = %+v", l.Groups)
@@ -254,7 +254,7 @@ pat=2027-03-01/2027-03-05;color=red;group=Pond`
 }
 
 func TestFlowDailyAndWeekly(t *testing.T) {
-	text := "a=2027-03-01/2027-03-20\nb=2027-03-01/2027-03-05\nc=2027-03-02/2027-03-20"
+	text := "a=2027-03-01/2027-03-19\nb=2027-03-01/2027-03-04\nc=2027-03-02/2027-03-19"
 	// daily: b ends Mar 4 (last day), c slides inward on Mar 5 with a jog
 	l := layoutOf(t, text, "2027-01-01", "2027-05-31", func(o *Options) { o.Flow = true })
 	m4, m5 := day(t, l, "2027-03-04"), day(t, l, "2027-03-05")
@@ -278,13 +278,13 @@ func TestFlowDailyAndWeekly(t *testing.T) {
 }
 
 func TestFlowNoJogOnDay1AndStickyOverflow(t *testing.T) {
-	text := "a=2027-03-25/2027-04-03\nb=2027-03-20/2027-04-10\nx=2027-03-26/2027-04-05\ny=2027-03-27/2027-04-02"
+	text := "a=2027-03-25/2027-04-02\nb=2027-03-20/2027-04-09\nx=2027-03-26/2027-04-04\ny=2027-03-27/2027-04-01"
 	l := layoutOf(t, text, "2027-01-01", "2027-05-31", func(o *Options) { o.Flow = true; o.LaneCap = 2 })
 	// a arrives after b (lane 1); x and y overflow and stay there even after a ends
 	if dy := day(t, l, "2027-04-03"); dy.OverflowLane != 1 || len(dy.Rails) != 1 {
 		t.Errorf("Apr 3 (a ended): rails %+v, overflow lane %d; overflow stays sticky", dy.Rails, dy.OverflowLane)
 	}
-	l = layoutOf(t, "a=2027-03-25/2027-04-03\nb=2027-03-20/2027-04-10", "2027-01-01", "2027-05-31", func(o *Options) { o.Flow = true })
+	l = layoutOf(t, "a=2027-03-25/2027-04-02\nb=2027-03-20/2027-04-09", "2027-01-01", "2027-05-31", func(o *Options) { o.Flow = true })
 	for _, r := range day(t, l, "2027-04-01").Rails {
 		if r.JogFrom != -1 {
 			t.Errorf("no jog on day 1 of a column: %+v", r)
@@ -319,14 +319,45 @@ e=2027-01-03;title="Exam";countdown=5`
 	}
 }
 
+// A one-day interval is a rail one cell long: both caps on that day,
+// nothing on the days around it, its label on that day.
+func TestOneDayInterval(t *testing.T) {
+	for _, layer := range []string{"", ";style=dashed", ";style=hatch", ";layer=back"} {
+		l := layoutOf(t, `o=2027-03-10/2027-03-10;title="One";length=days`+layer, "2027-01-01", "2027-05-31", nil)
+		on, before, after := day(t, l, "2027-03-10"), day(t, l, "2027-03-09"), day(t, l, "2027-03-11")
+		switch layer {
+		case ";style=hatch":
+			if !on.Hatch || before.Hatch || after.Hatch {
+				t.Errorf("hatch: on %v, before %v, after %v", on.Hatch, before.Hatch, after.Hatch)
+			}
+		case ";layer=back":
+			if len(on.Back) != 1 || !on.Back[0].TopCap || !on.Back[0].BotCap || len(before.Back)+len(after.Back) != 0 {
+				t.Errorf("back line: %+v / %+v / %+v", before.Back, on.Back, after.Back)
+			}
+		default:
+			if len(on.Rails) != 1 || !on.Rails[0].TopCap || !on.Rails[0].BotCap || len(before.Rails)+len(after.Rails) != 0 {
+				t.Errorf("%s rail: %+v / %+v / %+v", layer, before.Rails, on.Rails, after.Rails)
+			}
+			if on.Rails[0].Dashed != (layer == ";style=dashed") {
+				t.Errorf("%s: dashed = %v", layer, on.Rails[0].Dashed)
+			}
+			if got := tops(on); got != "ONE · 1 D" {
+				t.Errorf("%s: label %q; want ONE · 1 D", layer, got)
+			}
+		}
+	}
+}
+
 func TestLegend(t *testing.T) {
 	text := `old=2026-06-01;title="Old"
 m=2027-02-01;title="Launch";mark=ring
 r=2027-01-04;title="Review";every=2w
-b=2027-01-01/2027-04-01;title="Q1";layer=back
+b=2027-01-01/2027-03-31;title="Q1";layer=back
 x=2027-01-10/3d;gap=4d;title="Sprint"
-t=2027-01-04/2027-01-09;status=tentative;length=workdays
-h=2027-02-01/2027-02-08;style=hatch;title="Holiday"`
+t=2027-01-04/2027-01-08;status=tentative;length=workdays
+h=2027-02-01/2027-02-07;style=hatch;title="Holiday"
+o=2027-03-10/2027-03-10;title="One day"
+w=2027-03-13/1d;title="Saturday";length=workdays`
 	l := layoutOf(t, text, "2027-01-01", "2027-03-31", nil)
 	var got []string
 	for _, e := range l.Legend {
@@ -339,6 +370,8 @@ h=2027-02-01/2027-02-08;style=hatch;title="Holiday"`
 		"2|Sprint|10 Jan–30 Mar · gap 4d · ×12",
 		"|Launch|1 Feb",
 		"4|Holiday|1 Feb–7 Feb · 7 d",
+		"5|One day|10 Mar · 1 d", // one day: named once
+		"6|Saturday|13 Mar · 0 wd",
 	}
 	if strings.Join(got, "\n") != strings.Join(want, "\n") {
 		t.Errorf("legend:\n%s\nwant:\n%s", strings.Join(got, "\n"), strings.Join(want, "\n"))

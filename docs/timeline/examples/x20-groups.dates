@@ -1,6 +1,6 @@
-carol = 2027-03-10/2027-03-21; title="Carol, leave"; color=grey; style=dashed; group=people
-alice = 2027-03-18/2027-03-27; title="Alice, leave"; color=grey; style=dashed; group=people
-bob   = 2027-03-22/2027-04-03; title="Bob, leave"; color=grey; style=dashed; group=people
-audit = 2027-03-01/2027-03-20; title="Security audit"; color=red; group=security
+carol = 2027-03-10/2027-03-20; title="Carol, leave"; color=grey; style=dashed; group=people
+alice = 2027-03-18/2027-03-26; title="Alice, leave"; color=grey; style=dashed; group=people
+bob   = 2027-03-22/2027-04-02; title="Bob, leave"; color=grey; style=dashed; group=people
+audit = 2027-03-01/2027-03-19; title="Security audit"; color=red; group=security
 pen   = 2027-03-22/5d;         title="Pen test"; color=red; group=security
-beta  = 2027-03-08/2027-04-10; title="Beta"; color=steel
+beta  = 2027-03-08/2027-04-09; title="Beta"; color=steel

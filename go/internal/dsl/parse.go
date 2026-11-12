@@ -175,42 +175,65 @@ func (p *parser) interval(src Source, line int, name, expr string, propParts []s
 	if len(sides) != 2 {
 		return fail(errorf("an interval needs exactly one '/'"))
 	}
-	left, lIsDur, err := parseDuration(sides[0])
+	// the END is the last day; "<END" is the day after the last (DSL §5)
+	lhs, rhs := strings.TrimSpace(sides[0]), strings.TrimSpace(sides[1])
+	if strings.HasPrefix(lhs, "<") {
+		return fail(errorf("the start is always included; < marks an exclusive end: START/<END"))
+	}
+	rhs, exclusive := strings.CutPrefix(rhs, "<")
+	left, lIsDur, err := parseDuration(lhs)
 	if err != nil {
 		return fail(err)
 	}
-	right, rIsDur, err := parseDuration(sides[1])
+	right, rIsDur, err := parseDuration(rhs)
 	if err != nil {
 		return fail(err)
+	}
+	// end resolves the END to the exclusive end kept in Interval.End
+	end := func() (time.Time, error) {
+		t, err := p.date(rhs)
+		if err != nil || exclusive {
+			return t, err
+		}
+		return period.AddDays(t, 1), nil
 	}
 	iv := &Interval{ID: name, Props: props, Source: src.Name, Line: line, Expr: expr}
 	switch {
 	case lIsDur && rIsDur:
 		return fail(errorf("only one side of an interval may be a duration"))
+	case rIsDur && exclusive:
+		return fail(errorf("a duration has no end to exclude; < goes before an end date"))
 	case rIsDur: // START/DURATION
-		if iv.Start, err = p.date(sides[0]); err != nil {
+		if iv.Start, err = p.date(lhs); err != nil {
 			return fail(err)
 		}
 		iv.End, iv.DurKind, iv.Duration = right.forward(iv.Start), StartDuration, right
 	case lIsDur: // DURATION/END
-		if iv.End, err = p.date(sides[1]); err != nil {
+		if iv.End, err = end(); err != nil {
 			return fail(err)
 		}
 		iv.Start, iv.DurKind, iv.Duration = left.backward(iv.End), DurationEnd, left
 	default: // START/END
-		if iv.Start, err = p.date(sides[0]); err != nil {
+		if iv.Start, err = p.date(lhs); err != nil {
 			return fail(err)
 		}
-		if iv.End, err = p.date(sides[1]); err != nil {
+		if iv.End, err = end(); err != nil {
 			return fail(err)
 		}
 		iv.DurKind = StartEnd
 	}
-	if !inRange(iv.Start) || !inRange(iv.End) {
-		return fail(errorf("interval %s–%s is outside the years 0001–9999", iso(iv.Start), iso(iv.End)))
+	last := period.AddDays(iv.End, -1)
+	if !inRange(iv.Start) || !inRange(last) {
+		return fail(errorf("interval %s–%s is outside the years 0001–9999", iso(iv.Start), iso(last)))
 	}
 	if !iv.Start.Before(iv.End) {
-		return fail(errorf("interval start %s must be before its end %s", iso(iv.Start), iso(iv.End)))
+		switch {
+		case iv.DurKind != StartEnd:
+			return fail(errorf("interval %s has no days: the duration must come to one day or more", expr))
+		case exclusive && iv.End.Equal(iv.Start):
+			return fail(errorf("interval %s has no days: an exclusive end must come after the start", expr))
+		}
+		return fail(errorf("interval ends on %s, before its start %s", iso(last), iso(iv.Start)))
 	}
 	iv.Days = period.DaysBetween(iv.Start, iv.End) // not Sub: Duration saturates after ~292 years
 	if iv.Rec, err = p.recurrence(props, true); err != nil {
@@ -263,8 +286,8 @@ func (p *parser) date(expr string) (time.Time, error) {
 }
 
 // reference resolves @name, @name[index] and either of them followed by
-// .start or .end (bound): a milestone's date, or an interval's start or
-// exclusive end, of the declaration or of one occurrence of its series
+// .start or .end (bound): a milestone's date, or an interval's first or
+// last day, of the declaration or of one occurrence of its series
 // (DSL spec §17, §18). Only names declared earlier are known.
 func (p *parser) reference(name, index, bound string) (time.Time, error) {
 	if strings.EqualFold(name, "today") { // @today is today: never a declaration
@@ -313,8 +336,8 @@ func (p *parser) reference(name, index, bound string) (time.Time, error) {
 			return time.Time{}, errorf("%s: %v", at, err)
 		}
 	}
-	if bound == "end" {
-		return sp.e, nil
+	if bound == "end" { // the last day, as an END is written
+		return period.AddDays(sp.e, -1), nil
 	}
 	return sp.s, nil
 }

@@ -1,2 +1,2 @@
-pre  = 2027-01-05/2027-01-25; title="Started earlier"; color=teal; length=days
-post = 2027-06-01/2027-07-01; title="Ends later"; color=violet; length=days
+pre  = 2027-01-05/2027-01-24; title="Started earlier"; color=teal; length=days
+post = 2027-06-01/2027-06-30; title="Ends later"; color=violet; length=days

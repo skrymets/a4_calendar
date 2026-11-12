@@ -3,31 +3,31 @@ kickoff = today;      title="Kick-off"
 rel2    = 2027-04-01; title="Release 2.0"; mark=star; color=red
 rel3    = 2027-10-01; title="Release 3.0"; mark=star; color=red
 
-okr1        = 2027-01-04/2027-07-01; title="OKRs H1"; color=grey; layer=back
-okr2        = 2027-07-01/2028-01-01; title="OKRs H2"; color=grey; layer=back
-migration   = 2026-11-16/2027-02-27; title="Platform migration"; color=teal
-xmas_freeze = 2026-12-21/2027-01-09; title="Holiday change freeze"; color=ink; group=release
-feature_a   = 2027-01-11/2027-03-13; title="Feature A"; color=teal
+okr1        = 2027-01-04/2027-06-30; title="OKRs H1"; color=grey; layer=back
+okr2        = 2027-07-01/2027-12-31; title="OKRs H2"; color=grey; layer=back
+migration   = 2026-11-16/2027-02-26; title="Platform migration"; color=teal
+xmas_freeze = 2026-12-21/2027-01-08; title="Holiday change freeze"; color=ink; group=release
+feature_a   = 2027-01-11/2027-03-12; title="Feature A"; color=teal
 oncall      = 2027-01-11/1w;         title="On-call"; every=6w; color=steel
-feature_b   = 2027-02-01/2027-03-27; title="Feature B"; color=violet
-audit       = 2027-03-01/2027-03-20; title="Security audit"; color=red; group=security
-beta2       = 2027-03-08/2027-04-10; title="Beta 2.0"; color=steel
+feature_b   = 2027-02-01/2027-03-26; title="Feature B"; color=violet
+audit       = 2027-03-01/2027-03-19; title="Security audit"; color=red; group=security
+beta2       = 2027-03-08/2027-04-09; title="Beta 2.0"; color=steel
 freeze2     = 2027-03-15/2w;         title="Code freeze 2.0"; color=ink; group=release
 qa2         = 2027-03-17/2w;         title="QA regression 2.0"; color=orange; group=release
-alice       = 2027-03-18/2027-03-27; title="Alice, leave"; color=grey; style=dashed; group=people
+alice       = 2027-03-18/2027-03-26; title="Alice, leave"; color=grey; style=dashed; group=people
 pentest     = 2027-03-22/5d;         title="Pen test"; color=red; group=security
-mkt2        = 2027-03-25/2027-05-01; title="Marketing 2.0"; color=magenta
+mkt2        = 2027-03-25/2027-04-30; title="Marketing 2.0"; color=magenta
 care2       = @rel2/1m;              title="Hypercare 2.0"; color=orange
-feature_c   = 2027-06-07/2027-09-11; title="Feature C"; color=teal
-feature_d   = 2027-07-05/2027-09-18; title="Feature D"; color=violet
-bob         = 2027-07-19/2027-08-07; title="Bob, leave"; color=grey; style=dashed; group=people
-alice_s     = 2027-08-02/2027-08-21; title="Alice, summer"; color=grey; style=dashed; group=people
-conf        = 2027-09-01/2027-10-14; title="Conference prep"; color=ochre
-beta3       = 2027-09-06/2027-10-09; title="Beta 3.0"; color=steel
+feature_c   = 2027-06-07/2027-09-10; title="Feature C"; color=teal
+feature_d   = 2027-07-05/2027-09-17; title="Feature D"; color=violet
+bob         = 2027-07-19/2027-08-06; title="Bob, leave"; color=grey; style=dashed; group=people
+alice_s     = 2027-08-02/2027-08-20; title="Alice, summer"; color=grey; style=dashed; group=people
+conf        = 2027-09-01/2027-10-13; title="Conference prep"; color=ochre
+beta3       = 2027-09-06/2027-10-08; title="Beta 3.0"; color=steel
 load        = 2027-09-08/2w;         title="Load testing"; color=magenta
 freeze3     = 2027-09-13/2w;         title="Code freeze 3.0"; color=ink; group=release
-carol       = 2027-09-13/2027-09-25; title="Carol, leave"; color=grey; style=dashed; group=people
-qa3         = 2027-09-15/2027-10-01; title="QA regression 3.0"; color=orange; group=release
-ext_audit   = 2027-09-20/2027-10-02; title="External audit"; color=red; group=security
+carol       = 2027-09-13/2027-09-24; title="Carol, leave"; color=grey; style=dashed; group=people
+qa3         = 2027-09-15/2027-09-30; title="QA regression 3.0"; color=orange; group=release
+ext_audit   = 2027-09-20/2027-10-01; title="External audit"; color=red; group=security
 care3       = @rel3/1m;              title="Hypercare 3.0"; color=orange
-planning    = 2027-10-18/2027-11-13; title="Year-end planning"; color=violet
+planning    = 2027-10-18/2027-11-12; title="Year-end planning"; color=violet
