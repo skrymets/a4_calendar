@@ -32,8 +32,9 @@ func (es Errors) Error() string {
 	return strings.Join(lines, "\n")
 }
 
-// errBroken marks a declaration that fails only because it refers to a
-// declaration that already failed; it is not reported again.
-var errBroken = errors.New("refers to a declaration with errors")
+// ErrBroken marks a declaration (or a Model.Date expression) that fails
+// only because it refers to a declaration that already failed; it is not
+// reported again.
+var ErrBroken = errors.New("refers to a declaration with errors")
 
 func errorf(format string, a ...any) error { return fmt.Errorf(format, a...) }

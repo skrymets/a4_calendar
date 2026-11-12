@@ -112,6 +112,18 @@ type Interval struct {
 type Model struct {
 	Milestones []*Milestone
 	Intervals  []*Interval
+
+	today time.Time      // what today and @today mean
+	names map[string]ref // every declared name, for Date
+}
+
+// Date resolves one date expression the way a declaration's date is
+// resolved, against every declaration of the Model, however late in the
+// sources: 2027-03-01, today+2w, @today, @exam-1d, @qa.end, @labs[-1].start.
+// An expression that refers to a declaration with errors returns an error
+// wrapping ErrBroken; that declaration's own error is among Parse's.
+func (m *Model) Date(expr string) (time.Time, error) {
+	return (&parser{today: m.today, names: m.names, model: m}).date(expr)
 }
 
 // MilestoneOcc is one dated occurrence of a milestone.

@@ -35,10 +35,11 @@ type parser struct {
 // a declaration that only fails because it refers to a failed one is not
 // reported twice. The Model is complete only when the error is nil.
 func Parse(sources []Source, today time.Time) (*Model, error) {
+	names := map[string]ref{}
 	p := &parser{
 		today: today,
-		names: map[string]ref{},
-		model: &Model{},
+		names: names,
+		model: &Model{today: today, names: names},
 	}
 	for _, src := range sources {
 		if src.inline() {
@@ -63,7 +64,7 @@ func Parse(sources []Source, today time.Time) (*Model, error) {
 // declaration parses one line and records its error, if any.
 func (p *parser) declaration(src Source, line int, text string) {
 	err := p.parseDecl(src, line, text)
-	if err == nil || errors.Is(err, errBroken) {
+	if err == nil || errors.Is(err, ErrBroken) {
 		return
 	}
 	msg := err.Error()
@@ -225,8 +226,8 @@ func (p *parser) interval(src Source, line int, name, expr string, propParts []s
 	return true
 }
 
-// date resolves a date expression: an anchor (ISO date, today, a
-// reference, or nothing = today) and at most one signed offset.
+// date resolves a date expression: an anchor (ISO date, today or @today,
+// a reference, or nothing = today) and at most one signed offset.
 func (p *parser) date(expr string) (time.Time, error) {
 	expr = strings.TrimSpace(expr)
 	m := dateRE.FindStringSubmatch(expr)
@@ -270,6 +271,12 @@ func (p *parser) date(expr string) (time.Time, error) {
 // exclusive end, of the declaration or of one occurrence of its series
 // (DSL spec §17, §18). Only names declared earlier are known.
 func (p *parser) reference(name, index, bound string) (time.Time, error) {
+	if strings.EqualFold(name, "today") { // @today is today: never a declaration
+		if index != "" || bound != "" {
+			return time.Time{}, errorf("@%s is a date, not a milestone or interval; leave out [N], .start and .end", name)
+		}
+		return p.today, nil
+	}
 	r, ok := p.names[strings.ToLower(name)]
 	at := "@" + name
 	if index != "" {
@@ -279,7 +286,7 @@ func (p *parser) reference(name, index, bound string) (time.Time, error) {
 	case !ok:
 		return time.Time{}, errorf("unknown name @%s (only milestones and intervals declared earlier can be referenced)", name)
 	case r.broken:
-		return time.Time{}, errBroken
+		return time.Time{}, ErrBroken
 	case r.ms != nil && bound != "":
 		return time.Time{}, errorf("@%s is a milestone; .start and .end apply to intervals", name)
 	case r.iv != nil && bound == "":

@@ -78,8 +78,8 @@ func TestRunUsageErrors(t *testing.T) {
 		{[]string{"--week-start", "x"}, "argument --week-start: invalid int value: 'x'"},
 		{[]string{"--note-lines", "1.5"}, "argument --note-lines: invalid int value: '1.5'"},
 		{[]string{"--margin", "x"}, "argument --margin: invalid float value: 'x'"},
-		{[]string{"--start", "2026-13-01"}, "argument --start: invalid fromisoformat value: '2026-13-01'"},
-		{[]string{"--start", "0000-01-01"}, "argument --start: invalid fromisoformat value: '0000-01-01'"},
+		{[]string{"--start", "2026-13-01"}, "argument --start: invalid date 2026-13-01"},
+		{[]string{"--start", "0000-01-01"}, "argument --start: invalid date 0000-01-01"},
 		{[]string{"--period", "1y", "--end", "2027-01-01"}, "--period, --end and --until are mutually exclusive"},
 		{[]string{"--end", "2027-01-01", "--until", "2027-01-02"}, "--period, --end and --until are mutually exclusive"},
 		{[]string{"--start", "2027-03-01", "--end", "2027-02-28"},
@@ -90,7 +90,7 @@ func TestRunUsageErrors(t *testing.T) {
 			"--end 2028-03-01 (426 days) exceeds the 1-year maximum (365 days from 2027-01-01)"},
 		{[]string{"--start", "2027-01-01", "--until", "2028-01-02"},
 			"--until 2028-01-02 (366 days) exceeds the 1-year maximum (365 days from 2027-01-01)"},
-		{[]string{"--end", "2027-02-30"}, "argument --end: invalid fromisoformat value: '2027-02-30'"},
+		{[]string{"--end", "2027-02-30"}, "argument --end: invalid date 2027-02-30"},
 		{[]string{"--until", ""}, "argument --until: expected a date"},
 		{[]string{"--bogus"}, "unknown flag: --bogus"},
 		{[]string{"extra"}, "unrecognized arguments: extra"},
@@ -364,6 +364,62 @@ func TestRunStartDefaultsToToday(t *testing.T) {
 	code, stdout, stderr := call("--today", "2027-05-04", "--period", "10d", "--milestone", "m=today+3d", "-o", out)
 	if code != 0 || !strings.Contains(stdout, ": 2027-05-04 → 2027-05-13 (10 days)") {
 		t.Errorf("exit %d, stdout %q, stderr %q", code, stdout, stderr)
+	}
+}
+
+// --start, --end and --until take date expressions, resolved against every
+// declaration; @today is today.
+func TestRunDateExpressions(t *testing.T) {
+	dir := t.TempDir()
+	out := filepath.Join(dir, "x.pdf")
+	plan := filepath.Join(dir, "plan.dates")
+	err := os.WriteFile(plan, []byte("kick = 2027-01-04\nexam = 2027-03-01\nqa = 2027-02-01/2027-02-15\nfar = 2028-03-01\n"), 0o644)
+	if err != nil {
+		t.Fatal(err)
+	}
+	now := time.Now().Format(time.DateOnly)
+	for _, c := range []struct {
+		args []string
+		want string
+	}{
+		{[]string{"--today", "2027-01-01", "--start", "@today", "--period", "1Y", "--file", plan}, "2027-01-01 → 2027-12-31 (365 days)"},
+		{[]string{"--today", "2027-05-04", "--start", "today+3d", "--period", "10d"}, "2027-05-07 → 2027-05-16 (10 days)"},
+		{[]string{"--start", "@today", "--period", "1d"}, now + " → " + now + " (1 days)"},
+		{[]string{"--start", "@kick", "--until", "@exam+1w", "--file", plan}, "2027-01-04 → 2027-03-07 (63 days)"},
+		{[]string{"--start", "@kick", "--end", "@qa.end-1d", "--file", plan}, "2027-01-04 → 2027-02-14 (42 days)"},
+	} {
+		code, stdout, stderr := call(append(c.args, "-o", out)...)
+		if code != 0 || !strings.Contains(stdout, ": "+c.want) {
+			t.Errorf("%v: exit %d, stdout %q, stderr %q; want %q", c.args, code, stdout, stderr, c.want)
+		}
+	}
+
+	for _, c := range []struct {
+		args []string
+		want string
+	}{
+		{[]string{"--until", "@exm"}, "Error: argument --until: unknown name @exm"},
+		{[]string{"--start", "@today[1]"}, "Error: argument --start: @today is a date, not a milestone or interval"},
+		{[]string{"--start", "2027-04-01", "--end", "@exam"}, "Error: argument --end: @exam = 2027-03-01 is before the start 2027-04-01"},
+		{[]string{"--start", "2027-01-01", "--end", "@far"},
+			"Error: --end @far = 2028-03-01 (426 days) exceeds the 1-year maximum (365 days from 2027-01-01)"},
+	} {
+		code, _, stderr := call(append(c.args, "--file", plan, "-o", out)...)
+		if code != 2 || !strings.HasPrefix(stderr, c.want) {
+			t.Errorf("%v: exit %d, stderr %q; want exit 2 with %q", c.args, code, stderr, c.want)
+		}
+	}
+
+	// a date option that refers to a declaration with errors reports the
+	// declaration errors, as the run would without the option
+	bad := filepath.Join(dir, "bad.dates")
+	if err := os.WriteFile(bad, []byte("ok = 2027-01-04\nb = @nope\nc = 2027-01-01; color=pink\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	code, _, stderr := call("--start", "@b", "--file", bad, "-o", out)
+	if want := bad + ":2: unknown name @nope"; code != 2 || !strings.HasPrefix(stderr, want) ||
+		!strings.Contains(stderr, bad+":3: ") || strings.Contains(stderr, "Error:") {
+		t.Errorf("broken reference: exit %d, stderr %q; want the declaration errors", code, stderr)
 	}
 }
 

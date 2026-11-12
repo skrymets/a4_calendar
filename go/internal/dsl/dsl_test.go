@@ -53,6 +53,9 @@ func TestMilestoneDates(t *testing.T) {
 		{"2027-01-31+1m", "2027-02-28"}, // clamped
 		{"2028-02-29+1y", "2029-02-28"},
 		{"2027-03-31-1m", "2027-02-28"},
+		{"@today", "2026-11-11"}, // @today is a spelling of today
+		{"@TODAY+2w", "2026-11-25"},
+		{"@today-3d", "2026-11-08"},
 	}
 	for _, c := range cases {
 		m := mustParse(t, "x="+c.expr)
@@ -297,6 +300,8 @@ func TestErrors(t *testing.T) {
 		{"boundary offset out of range", "q=9999-12-01/9999-12-31\nb=@q.end+1d", "outside the years 0001–9999"},
 		{"chained boundary offsets (phase 2)", "q=2027-01-01/2d\nb=@q.end+1d-2d", `invalid date expression "@q.end+1d-2d"`},
 		{"unknown boundary", "q=2027-01-01/2d\nb=@q.middle", `invalid date expression "@q.middle"`},
+		{"@today occurrence", "x=@today[1]", "t.dates:1: @today is a date, not a milestone or interval; leave out [N], .start and .end"},
+		{"@today boundary", "x=@today.end", "t.dates:1: @today is a date, not a milestone or interval"},
 		{"duplicate milestone", "a=2027-01-01\nA=2027-01-02", `t.dates:2: duplicate identifier "A"`},
 		{"duplicate across kinds", "a=2027-01-01\na=@a/2d", `t.dates:2: duplicate identifier "a"`},
 		{"today reserved", "Today=2027-01-01", `"today" is reserved`},
@@ -439,6 +444,34 @@ weekly  = @review[2]; every=1w; until=@review[-1]
 	}
 	if until := m.Milestones[len(m.Milestones)-1].Rec.Until; iso(until) != "2027-02-22" {
 		t.Errorf("weekly until = %s; want 2027-02-22", iso(until))
+	}
+}
+
+// Model.Date sees every declaration, also those after the point where an
+// option line would stand, and reports references to broken ones as
+// ErrBroken.
+func TestModelDate(t *testing.T) {
+	m, err := Parse(file("kick=2027-01-04\nqa=@kick+1w/2w\nlabs=2027-01-05/2d;every=1w;count=4\nbad=@nope"), today)
+	if err == nil {
+		t.Fatal("want the error for bad")
+	}
+	for expr, want := range map[string]string{
+		"2027-03-01": "2027-03-01", "today+2w": "2026-11-25", "@today": "2026-11-11",
+		"@kick": "2027-01-04", "@qa.end+1w": "2027-02-01", "@labs[-1].start": "2027-01-26",
+	} {
+		got, err := m.Date(expr)
+		if err != nil || iso(got) != want {
+			t.Errorf("Date(%q) = %s, %v; want %s", expr, iso(got), err, want)
+		}
+	}
+	if _, err := m.Date("@bad"); !errors.Is(err, ErrBroken) {
+		t.Errorf("Date(@bad) err = %v; want ErrBroken", err)
+	}
+	if _, err := m.Date("@exm"); err == nil || !strings.Contains(err.Error(), "unknown name @exm") {
+		t.Errorf("Date(@exm) err = %v", err)
+	}
+	if _, err := m.Date("2027-02-30"); err == nil || err.Error() != "invalid date 2027-02-30" {
+		t.Errorf("Date(2027-02-30) err = %v", err)
 	}
 }
 

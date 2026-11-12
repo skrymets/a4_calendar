@@ -124,9 +124,15 @@ func configure(o *options, changed func(string) bool, stderr io.Writer) (render.
 	if err != nil {
 		return cfg, "", err
 	}
-	start, err := parseDate("--start", o.start, today)
+	tl, err := readTimeline(o, today)
 	if err != nil {
 		return cfg, "", err
+	}
+	start := today
+	if o.start != "" {
+		if start, err = tl.date("--start", o.start); err != nil {
+			return cfg, "", err
+		}
 	}
 	lengths := 0
 	for _, f := range []string{"period", "end", "until"} {
@@ -153,7 +159,7 @@ func configure(o *options, changed func(string) bool, stderr io.Writer) (render.
 		if endText == "" {
 			return cfg, "", usagef("argument %s: expected a date", endFlag)
 		}
-		if endDate, err = parseDate(endFlag, endText, time.Time{}); err != nil {
+		if endDate, err = tl.date(endFlag, endText); err != nil {
 			return cfg, "", err
 		}
 	}
@@ -246,7 +252,7 @@ func configure(o *options, changed func(string) bool, stderr io.Writer) (render.
 		WorkdayColor: workday, WeekendColor: weekendColor,
 		MarginMM: margin, Header: o.header, ShowOutside: !o.hideOutside,
 	}
-	cfg.Timeline, err = loadTimeline(o, cfg, today, end, lanes, stderr)
+	cfg.Timeline, err = loadTimeline(o, tl, cfg, end, lanes, stderr)
 	return cfg, output, err
 }
 
@@ -255,6 +261,9 @@ func configure(o *options, changed func(string) bool, stderr io.Writer) (render.
 // (period.FromEnd); otherwise the end follows from *p. Either way the page
 // must start no later than it ends and stay within one year.
 func pageEnd(start time.Time, p *period.Period, flag, text string, date time.Time) (time.Time, error) {
+	if iso := date.Format(time.DateOnly); flag != "" && text != iso {
+		text += " = " + iso // an expression: show what it came to
+	}
 	var (
 		end  time.Time
 		err  error

@@ -2,6 +2,7 @@ package main
 
 import (
 	"cmp"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -57,26 +58,67 @@ func timelineSources(o *options) ([]dsl.Source, error) {
 	return srcs, nil
 }
 
-// loadTimeline parses, resolves and lays out the timeline for cfg. Without
-// any input it returns nil, so the page stays as it was (REQ-CLI-8); the
-// debug export is still written when asked for. DSL and key errors come back
-// as dsl.Errors (REQ-ER-1); warnings go to stderr.
-func loadTimeline(o *options, cfg render.Config, today, end time.Time, lanes int, stderr io.Writer) (*render.Timeline, error) {
+// tlInput is the timeline input of one run: the sources, the declarations
+// parsed from them and their rendering keys. err holds every DSL and key
+// error (dsl.Errors, REQ-ER-1); it is reported after the other options
+// are checked, unless a date option refers to a declaration with errors.
+type tlInput struct {
+	srcs     []dsl.Source
+	today    time.Time
+	model    *dsl.Model
+	decls    *timeline.Decls
+	warnings []timeline.Warning
+	err      error
+}
+
+// readTimeline reads and parses the timeline sources. Keys are checked on
+// what parsed, so one run reports both kinds of error.
+func readTimeline(o *options, today time.Time) (*tlInput, error) {
 	srcs, err := timelineSources(o)
-	if err != nil || (len(srcs) == 0 && o.debugJSON == "") {
+	if err != nil {
 		return nil, err
 	}
-	// keys are checked on what parsed, so one run reports both kinds of error
-	model, parseErr := dsl.Parse(srcs, today)
-	decls, warnings, keyErr := timeline.ReadKeys(model)
+	in := &tlInput{srcs: srcs, today: today}
+	var parseErr, keyErr error
+	in.model, parseErr = dsl.Parse(srcs, today)
+	in.decls, in.warnings, keyErr = timeline.ReadKeys(in.model)
 	if parseErr != nil || keyErr != nil {
-		return nil, joinErrors(srcs, parseErr, keyErr)
+		in.err = joinErrors(srcs, parseErr, keyErr)
+	}
+	return in, nil
+}
+
+// date resolves the value of a date option (--start, --end, --until): any
+// date expression, resolved against every declaration. One that refers to
+// a declaration with errors reports the declaration errors instead.
+func (in *tlInput) date(flag, expr string) (time.Time, error) {
+	t, err := in.model.Date(expr)
+	switch {
+	case errors.Is(err, dsl.ErrBroken):
+		return t, in.err
+	case err != nil:
+		return t, usagef("argument %s: %v", flag, err)
+	}
+	return t, nil
+}
+
+// loadTimeline expands and lays out the timeline for cfg. Without any
+// input it returns nil, so the page stays as it was (REQ-CLI-8); the debug
+// export is still written when asked for. DSL and key errors come back as
+// dsl.Errors (REQ-ER-1); warnings go to stderr.
+func loadTimeline(o *options, in *tlInput, cfg render.Config, end time.Time, lanes int, stderr io.Writer) (*render.Timeline, error) {
+	srcs, model, decls, today := in.srcs, in.model, in.decls, in.today
+	if in.err != nil {
+		return nil, in.err
+	}
+	if len(srcs) == 0 && o.debugJSON == "" {
+		return nil, nil
 	}
 	resolved, err := dsl.Expand(model, end)
 	if err != nil {
 		return nil, err
 	}
-	for _, w := range warnings {
+	for _, w := range in.warnings {
 		fmt.Fprintln(stderr, w)
 	}
 
