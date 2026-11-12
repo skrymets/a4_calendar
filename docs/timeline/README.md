@@ -1,6 +1,6 @@
 # Timeline on the calendar — milestones, intervals, recurrence
 
-Design guidelines and implementation requirements for drawing Date DSL timelines on the yearly-calendar PDF page.
+Design guidelines and implementation requirements for drawing Date DSL timelines on the PinPlan PDF page.
 
 **Status:** final for implementation (v1). Scope: the **packed** layout (default) and the **flow** layout.
 **Applies to:** the Go program in `go/` (go-pdf/fpdf). A Python version still existed when this design was written; it was retired in 0.2.0. The golden files are the contract.

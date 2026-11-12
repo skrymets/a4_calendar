@@ -1,4 +1,4 @@
-# yearly-calendar for coding agents: options, `.dates` files and the date language
+# PinPlan for coding agents: options, `.dates` files and the date language
 
 This is a self-contained reference for an agent that turns a person's request ("a calendar
 for my exam preparation, the exam is on 1 March, revise for two weeks before it") into a
@@ -21,7 +21,7 @@ user guide is `README.md`. This file is written to be enough on its own.
 
 ## 1. The tool in one paragraph
 
-`yearly-calendar` is a single binary (`yearly-calendar.exe` on Windows) with no
+PinPlan (the command `pinplan`, `pinplan.exe` on Windows) is a single binary with no
 dependencies. It writes **one PDF page**:
 - one **column per month**, and one **row per day** (31 rows);
 - room to write beside each date;
@@ -33,7 +33,7 @@ The page covers **one day up to one year**, on A4 or US Letter. Everything can b
 options, or written into one `.dates` text file that holds both the options and the dates.
 
 ```sh
-yearly-calendar plan.dates          # the whole job described by one file
+pinplan plan.dates          # the whole job described by one file
 ```
 
 ---
@@ -73,7 +73,7 @@ yearly-calendar plan.dates          # the whole job described by one file
 ## 3. Command line
 
 ```
-yearly-calendar [options] [FILE.dates ...]
+pinplan [options] [FILE.dates ...]
 ```
 
 ### Inputs and results
@@ -105,7 +105,7 @@ yearly-calendar [options] [FILE.dates ...]
 | 2 | an error in a declaration or an option line | one `source:line: message` per problem, without `Error:` |
 | 1 | anything else (unreadable `--file` or `--font`, output not writable) | `Error: <message>` |
 
-The PDF metadata: Creator is `yearly-calendar <version>`, and Subject names the `.dates`
+The PDF metadata: Creator is `PinPlan <version>`, and Subject names the `.dates`
 files when there is a timeline.
 
 ### Quoting
@@ -504,7 +504,7 @@ All examples assume today is 2026-11-12, and pass `--today` to fix it.
 ### 9.1 A plain year
 
 ```sh
-yearly-calendar --today 2026-11-12 --start 2027-01-01 -o calendar-2027.pdf
+pinplan --today 2026-11-12 --start 2027-01-01 -o calendar-2027.pdf
 ```
 
 ### 9.2 Exam preparation (one file holds everything)
@@ -531,7 +531,7 @@ revision = 2w/<@exam;          title="Revision"; color=orange; priority=high
 ```
 
 ```sh
-yearly-calendar exams.dates -o exams.pdf
+pinplan exams.dates -o exams.pdf
 ```
 
 The page runs from 12 November 2026 to 7 March 2027.
@@ -613,7 +613,7 @@ honeymoon = @wedding+1d/2w;     title="Honeymoon"; color=teal; length=days
 ### 9.7 A Ukrainian page
 
 ```sh
-yearly-calendar --today 2026-11-12 --start 2027-01-01 --font pt-sans-narrow \
+pinplan --today 2026-11-12 --start 2027-01-01 --font pt-sans-narrow \
   --day-letters "ПВСЧПСН" \
   --month-names "СІЧ,ЛЮТ,БЕР,КВІ,ТРА,ЧЕР,ЛИП,СЕР,ВЕР,ЖОВ,ЛИС,ГРУ" \
   --title "КАЛЕНДАР НА 2027 РІК" -o ua-2027.pdf
@@ -622,7 +622,7 @@ yearly-calendar --today 2026-11-12 --start 2027-01-01 --font pt-sans-narrow \
 ### 9.8 Inline declarations, without a file
 
 ```sh
-yearly-calendar --today 2026-11-12 --start 2027-01-01 --period 3m \
+pinplan --today 2026-11-12 --start 2027-01-01 --period 3m \
   --milestone 'launch=2027-02-15;title="Launch";mark=star;color=red' \
   --interval  'prep=2w/<@launch;title="Preparation";color=teal' \
   -o launch.pdf
@@ -744,7 +744,7 @@ small and avoids shell quoting.
 A sketch of an implementation:
 
 1. Write `dates` to `<tmpdir>/input.dates`.
-2. Run `yearly-calendar --today <today> <tmpdir>/input.dates -o <output>`. Options on the
+2. Run `pinplan --today <today> <tmpdir>/input.dates -o <output>`. Options on the
    command line override the file, so `-o` always wins.
 3. On exit 0, return the PDF path, the stdout line and any warnings.
 4. On exit 2, return stderr unchanged. Its `input.dates:LINE: message` lines point the agent
@@ -756,8 +756,8 @@ Possible additional tools, all built on the same binary:
 | Tool | What it does |
 |---|---|
 | `validate_dates` | runs with `--debug-timeline-json` into a temp file and returns the resolved dates without keeping the PDF |
-| `list_options` | returns `yearly-calendar --help` |
-| `version` | returns `yearly-calendar --version` |
+| `list_options` | returns `pinplan --help` |
+| `version` | returns `pinplan --version` |
 
 ---
 

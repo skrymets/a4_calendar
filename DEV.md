@@ -6,7 +6,7 @@
 |---|---|
 | `VERSION` | the version, the only place it is written down |
 | `LICENSE` | MIT; copied into every release archive |
-| `go/` | the program: module `a4calendar`, binary `yearly-calendar` |
+| `go/` | the program: module `pinplan`, binary `pinplan` |
 | `go/build.ps1` | cross-compiles windows/amd64, linux/amd64 and linux/arm64 into `go/dist/` |
 | `Release-Notes.md` | what changed, one section per version |
 | `.github/workflows/ci.yml` | every gate, on each push to and PR into `develop` and `main` |
@@ -32,7 +32,7 @@ one place: the `VERSION` file. Everything else derives from it:
 
 - `go/build.ps1` and the workflows pass it to the Go linker (`-X main.version=…`). A plain
   `go build` or `go run` reports `dev`.
-- `--version`, and the Creator field of every PDF (`yearly-calendar <version>`).
+- `--version`, and the Creator field of every PDF (`PinPlan <version>`).
 - The release title, the asset file names, and the release-notes section that gets published.
 
 The release workflow refuses a tag that disagrees with `VERSION`, and both workflows refuse a
@@ -51,7 +51,7 @@ printed page:
 While the version is `0.x`, the same intent applies shifted one place: MINOR for what would be
 MAJOR, PATCH for the rest. `Release-Notes.md` says so under **Changed** whenever it happens.
 
-A pre-release carries a hyphenated identifier (`0.2.0-rc.1`) and is published as a GitHub
+A pre-release carries a hyphenated identifier (`1.0.0-rc.1`) and is published as a GitHub
 pre-release. Build metadata (`+…`) is not used: the tag already names the commit.
 
 ## Releasing
@@ -69,7 +69,7 @@ failure later.
 Edit `VERSION`, following the rules above:
 
 ```
-0.2.0
+1.0.0
 ```
 
 ### 3. Write the release notes
@@ -78,7 +78,7 @@ Add a section to `Release-Notes.md` headed by the bare version, newest first, wi
 **Added**, **Changed** and **Fixed** subsections as needed:
 
 ```markdown
-## 0.2.0
+## 1.0.0
 
 ### Added
 
@@ -92,7 +92,7 @@ missing or empty.
 
 ```powershell
 git add VERSION Release-Notes.md
-git commit -m "Release 0.2.0"
+git commit -m "Release 1.0.0"
 git push
 ```
 
@@ -102,8 +102,8 @@ The tag is where that stops being true.
 ### 5. Tag and push the tag
 
 ```powershell
-git tag -a v0.2.0 -m "v0.2.0"
-git push origin v0.2.0
+git tag -a v1.0.0 -m "v1.0.0"
+git push origin v1.0.0
 ```
 
 The leading `v` matters: the workflow starts on tags matching `v*`. File names drop it.
@@ -119,12 +119,12 @@ The leading `v` matters: the workflow starts on tags matching `v*`. File names d
 3. Checks that `Release-Notes.md` has a `## <version>` section.
 4. Builds the binaries and checks their `--version` again.
 5. Packages the assets, each with a `.sha256` in `sha256sum` format:
-   - `yearly-calendar-<version>-windows-amd64.zip`;
-   - `yearly-calendar-<version>-linux-amd64.tar.gz`;
-   - `yearly-calendar-<version>-linux-arm64.tar.gz`.
-   - Each archive holds `yearly-calendar[.exe]`, `README.md` (from `go/`), `LICENSE`,
+   - `pinplan-<version>-windows-amd64.zip`;
+   - `pinplan-<version>-linux-amd64.tar.gz`;
+   - `pinplan-<version>-linux-arm64.tar.gz`.
+   - Each archive holds `pinplan[.exe]`, `README.md` (from `go/`), `LICENSE`,
      `OFL.txt` and `THIRD_PARTY_LICENSES.txt`.
-6. Creates the release titled `yearly-calendar <version>`. Its text is install and verify
+6. Creates the release titled `PinPlan <version>`. Its text is install and verify
    instructions, then the release-notes section, then GitHub's generated list of changes since
    the previous tag. A tag with a hyphen becomes a pre-release.
 
@@ -136,11 +136,11 @@ only a tag to delete.
 Download an archive and its `.sha256` from the release page, and verify them:
 
 ```sh
-sha256sum -c yearly-calendar-0.2.0-linux-amd64.tar.gz.sha256
+sha256sum -c pinplan-1.0.0-linux-amd64.tar.gz.sha256
 ```
 
 ```powershell
-(Get-FileHash yearly-calendar-0.2.0-windows-amd64.zip -Algorithm SHA256).Hash.ToLower()
+(Get-FileHash pinplan-1.0.0-windows-amd64.zip -Algorithm SHA256).Hash.ToLower()
 ```
 
 ## When a release fails
@@ -148,11 +148,11 @@ sha256sum -c yearly-calendar-0.2.0-linux-amd64.tar.gz.sha256
 Nothing was published, so remove the tag, fix the problem, and tag again:
 
 ```powershell
-git push origin :refs/tags/v0.2.0   # delete it on the remote first
-git tag -d v0.2.0                   # then locally
+git push origin :refs/tags/v1.0.0   # delete it on the remote first
+git tag -d v1.0.0                   # then locally
 # fix, commit, push, wait for CI
-git tag -a v0.2.0 -m "v0.2.0"
-git push origin v0.2.0
+git tag -a v1.0.0 -m "v1.0.0"
+git push origin v1.0.0
 ```
 
 If a release was published and turns out to be wrong, do not reuse its version. Fix the

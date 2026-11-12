@@ -1,4 +1,4 @@
-/* yearly-calendar timeline — reference renderer used to draw the design-guideline examples.
+/* PinPlan timeline — reference renderer used to draw the design-guideline examples.
  * Plain JS, no dependencies. Exposes window.TL = { parse, resolve, layout, renderPage, renderCrop }.
  * Units: CSS px at 96 dpi (1 px = 0.75 pt = 0.2646 mm). The A4 page is 794 x 1123 px.
  */

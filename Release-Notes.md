@@ -6,7 +6,10 @@ MINOR release may change behaviour you rely on, and says so under **Changed**.
 Each release has a section headed by its bare version (`## 0.1.0`). The release workflow
 publishes that section as the GitHub release text, and refuses a tag whose version has none.
 
-## 0.2.0
+## 1.0.0
+
+The first stable release, and the first under the name **PinPlan**: *Plan it. Print it.
+Pin it.*
 
 ### Added
 
@@ -40,12 +43,16 @@ publishes that section as the GitHub release text, and refuses a tag whose versi
 - **All options in one file**: a line starting with `--` in a `.dates` file sets an option
   as on the command line (`--start = @kickoff`, `--paper letter`), and `--file` in a file
   includes another at that line. Paths are relative to the file; the command line wins;
-  an option set twice in files is an error. `yearly-calendar plan.dates` reads a file
+  an option set twice in files is an error. `pinplan plan.dates` reads a file
   without `--file`.
 
 ### Changed
 
-- The PDF Creator metadata is now `yearly-calendar <version>`, without the `(Go)` suffix.
+- **The program is now called PinPlan.** The command is `pinplan` (`pinplan.exe` on
+  Windows), and the release archives are `pinplan-<version>-<platform>`. `--version` and
+  the PDF Creator metadata say `PinPlan <version>` (they said
+  `yearly-calendar <version> (Go)`). The options and the default PDF name
+  (`calendar_<start>.pdf`) are unchanged.
 
 ### Removed
 

@@ -1,8 +1,11 @@
-# A4 annual calendar
+# PinPlan
+
+> Plan it. Print it. Pin it.
 
 A one-page calendar to print: a column for every month, a row for every day, and room
 for a note beside each date. A4 or US Letter, a full year by default, or any shorter
-period from one day up.
+period from one day up. Give it your plan (milestones, holidays, phases, repeating
+meetings) and it draws them on the page.
 
 ![A full-year calendar starting on 7 November 2026](docs/images/calendar-preview.png)
 
@@ -30,11 +33,11 @@ run instructions are in [go/README.md](go/README.md).
 ## Quick start
 
 ```sh
-yearly-calendar                                # one year from today
-yearly-calendar --start 2027-01-01             # calendar year 2027 -> calendar_2027-01-01.pdf
-yearly-calendar --start 2026-11-07 --period 90d -o q4.pdf
-yearly-calendar --start 2027-01-01 --end 2027-06-30      # the first half of 2027
-yearly-calendar my-plans.dates                 # everything from a file
+pinplan                                # one year from today
+pinplan --start 2027-01-01             # calendar year 2027 -> calendar_2027-01-01.pdf
+pinplan --start 2026-11-07 --period 90d -o q4.pdf
+pinplan --start 2027-01-01 --end 2027-06-30      # the first half of 2027
+pinplan my-plans.dates                 # everything from a file
 ```
 
 The file is written to the current directory as `calendar_<start>.pdf`, or
@@ -69,7 +72,7 @@ not just `YYYY-MM-DD`: `today+1w`, or a date of the plan itself, so the page fol
 plan when a date moves:
 
 ```sh
-yearly-calendar --file exams.dates --start @kickoff --until @exam+1w
+pinplan --file exams.dates --start @kickoff --until @exam+1w
 ```
 
 The default title follows the period: `YEARLY CALENDAR` for `1y`, otherwise for example
@@ -83,8 +86,8 @@ days), written in a small date language, inline or in a `.dates` file.
 ![A 120-day plan with milestones, intervals and a legend](docs/images/timeline-preview.png)
 
 ```sh
-yearly-calendar --start 2026-11-11 --period 120d --file exams.dates --title "Prepare for Exams"
-yearly-calendar --milestone 'release=2027-03-15;title="Release"' \
+pinplan --start 2026-11-11 --period 120d --file exams.dates --title "Prepare for Exams"
+pinplan --milestone 'release=2027-03-15;title="Release"' \
                 --interval  'qa=@release-2w/<@release;title="Final QA";color=orange'
 ```
 
@@ -93,7 +96,7 @@ with a space fails. Put `--%` before the arguments and escape the quotes with a 
 After `--%` PowerShell passes the line on unchanged and no longer expands `$variables`:
 
 ```powershell
-& .\yearly-calendar.exe --% --milestone "release=2027-03-15;title=\"Release\"" --interval "qa=@release-2w/<@release;title=\"Final QA\""
+& .\pinplan.exe --% --milestone "release=2027-03-15;title=\"Release\"" --interval "qa=@release-2w/<@release;title=\"Final QA\""
 ```
 
 PowerShell 7.3 and later and Unix shells need none of this, and a `.dates` file avoids
@@ -188,8 +191,8 @@ exam    = 2027-03-01; title="Final exam"; mark=star
 ```
 
 ```sh
-yearly-calendar exams.dates                  # the same as --file exams.dates
-yearly-calendar exams.dates --paper a4       # the command line wins
+pinplan exams.dates                  # the same as --file exams.dates
+pinplan exams.dates --paper a4       # the command line wins
 ```
 
 - `--name = value`, `--name=value` and `--name value` all work; a switch such as
@@ -255,7 +258,7 @@ The built-in Helvetica covers Western European languages only. For Cyrillic or o
 give a TrueType font and the weekday and month names:
 
 ```sh
-yearly-calendar --start 2027-01-01 --font DejaVuSans.ttf \
+pinplan --start 2027-01-01 --font DejaVuSans.ttf \
     --day-letters "ПВСЧПСН" \
     --month-names "СІЧ,ЛЮТ,БЕР,КВІ,ТРА,ЧЕР,ЛИП,СЕР,ВЕР,ЖОВ,ЛИС,ГРУ" \
     --title "КАЛЕНДАР НА РІК"
@@ -268,7 +271,7 @@ and no font file is needed.
 
 Releases follow [Semantic Versioning](DEV.md#versioning). The version is in the
 [`VERSION`](VERSION) file. The program reports it with `--version` and writes it into
-every PDF it produces (Document Properties → Creator, e.g. `yearly-calendar 0.2.0`).
+every PDF it produces (Document Properties → Creator, e.g. `PinPlan 1.0.0`).
 What changed in each release is in [Release-Notes.md](Release-Notes.md). Downloads are on
 the repository's Releases page. How releases are made is in [DEV.md](DEV.md).
 
@@ -280,5 +283,5 @@ The binary also contains third-party work under its own licences. It embeds PT S
 Narrow (ParaType, SIL Open Font License 1.1). It links
 [go-pdf/fpdf](https://github.com/go-pdf/fpdf) (MIT), [spf13/pflag](https://github.com/spf13/pflag)
 (BSD-3-Clause) and the Go standard library (BSD-3-Clause).
-`yearly-calendar --licenses` prints these licences. Every release archive includes `LICENSE`,
+`pinplan --licenses` prints these licences. Every release archive includes `LICENSE`,
 `OFL.txt` and `THIRD_PARTY_LICENSES.txt`.
