@@ -128,6 +128,63 @@ monthEnd    = 2027-01-31/1M
 	}
 }
 
+// Offsets chain and durations have several terms (DSL spec §12, §14),
+// applied left to right, each month step clamped to the month end.
+func TestArithmetic(t *testing.T) {
+	m := mustParse(t, `
+a = 2027-03-15
+b = @a-1m+3d
+c = 2027-01-31+1m+1d
+d = +2w-1d
+e = 2027-03-31-1m-1d
+q = 2027-01-01/2027-01-08
+f = @q.end+1d-2d
+2027-08-01/1m+13d
+2027-08-01/1m2w
+2027-08-01/1M-1D
+1m+13d/2027-09-14
+2027-01-31/1m+1d
+`)
+	for id, want := range map[string]string{"b": "2027-02-18", "c": "2027-03-01", "d": "2026-11-24", "e": "2027-02-27", "f": "2027-01-07"} {
+		for _, ms := range m.Milestones {
+			if ms.ID == id && iso(ms.Date) != want {
+				t.Errorf("%s = %s; want %s", id, iso(ms.Date), want)
+			}
+		}
+	}
+	want := []isoSpan{
+		{"2027-01-01", "2027-01-08"},
+		{"2027-08-01", "2027-09-14"},
+		{"2027-08-01", "2027-09-15"},
+		{"2027-08-01", "2027-08-31"},
+		{"2027-08-01", "2027-09-14"}, // backward: 14 Sep -13d -1m
+		{"2027-01-31", "2027-03-01"}, // 28 Feb + 1d
+	}
+	for i, w := range want {
+		if iv := m.Intervals[i]; iso(iv.Start) != w.s || iso(iv.End) != w.e {
+			t.Errorf("interval %d = %s..%s; want %s..%s", i, iso(iv.Start), iso(iv.End), w.s, w.e)
+		}
+	}
+
+	// later occurrences apply the terms from each start
+	r := mustExpand(t, "2027-01-04/1m+1w; every=2m; count=3", "2027-12-31")
+	if got, want := intervalSpans(r), []isoSpan{{"2027-01-04", "2027-02-11"}, {"2027-03-04", "2027-04-11"}, {"2027-05-04", "2027-06-11"}}; !equal(got, want) {
+		t.Errorf("recurring = %v; want %v", got, want)
+	}
+
+	for text, msg := range map[string]string{
+		"x=2027-01-01/1d-1d":        "interval start 2027-01-01 must be before its end 2027-01-01",
+		"x=2027-01-01/1d+99999999d": "number 99999999 is too large",
+		"x=today+1d-99999999d":      "number 99999999 is too large",
+		"x=2027-01-01/1d+":          `invalid date expression "1d+"`,
+		"x=2027-01-01/+1d+1d":       "interval start 2027-01-01 must be before its end 2026-11-13", // a date: today+1d+1d
+	} {
+		if _, err := Parse(file(text), today); err == nil || !strings.Contains(err.Error(), msg) {
+			t.Errorf("%s: err %v; want %q", text, err, msg)
+		}
+	}
+}
+
 type isoSpan struct{ s, e string }
 
 func intervalSpans(r *Resolved) []isoSpan {
@@ -281,7 +338,6 @@ func TestErrors(t *testing.T) {
 		{"year 0", "x=0000-01-01", "invalid date 0000-01-01"},
 		{"out of range", "x=9999-12-31+1d", "outside the years 0001–9999"},
 		{"huge offset", "x=today+99999999d", "number 99999999 is too large"},
-		{"chained offsets (phase 2)", "a=2027-01-01\nb=@a+1d+2d", `t.dates:2: invalid date expression "@a+1d+2d"`},
 		{"unknown reference", "x=@nope", "t.dates:1: unknown name @nope (only milestones and intervals declared earlier"},
 		{"forward reference", "x=@y\ny=2027-01-01", "t.dates:1: unknown name @y"},
 		{"recurring reference", "r=2027-01-01;every=1w\nx=@r+1d", "t.dates:2: @r is recurring; pick one occurrence, e.g. @r[1] or @r[-1]"},
@@ -298,7 +354,6 @@ func TestErrors(t *testing.T) {
 		{"negative index unbounded", "a=2027-01-01;every=1w\nb=@a[-1]", "@a[-1]: counting back from the last occurrence needs a series limited by count or until"},
 		{"negative index too many", "a=1700-01-01;every=1d;until=9000-01-01\nb=@a[-1]", "@a[-1]: the series has more than 100000 occurrences"},
 		{"boundary offset out of range", "q=9999-12-01/9999-12-31\nb=@q.end+1d", "outside the years 0001–9999"},
-		{"chained boundary offsets (phase 2)", "q=2027-01-01/2d\nb=@q.end+1d-2d", `invalid date expression "@q.end+1d-2d"`},
 		{"unknown boundary", "q=2027-01-01/2d\nb=@q.middle", `invalid date expression "@q.middle"`},
 		{"@today occurrence", "x=@today[1]", "t.dates:1: @today is a date, not a milestone or interval; leave out [N], .start and .end"},
 		{"@today boundary", "x=@today.end", "t.dates:1: @today is a date, not a milestone or interval"},

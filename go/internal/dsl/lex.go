@@ -15,9 +15,12 @@ var (
 	identRE  = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
 	periodRE = regexp.MustCompile(`^(?i)([1-9][0-9]*)([dwmy])$`)
 	// anchor (ISO date | today | @name with an optional occurrence [n] and
-	// boundary .start|.end), then an optional single offset.
-	dateRE  = regexp.MustCompile(`^(?i)(?:([0-9]{4}-[0-9]{2}-[0-9]{2})|(today)|@([A-Za-z_][A-Za-z0-9_]*)(?:\[(-?[0-9]+)\])?(?:\.(start|end))?)?(?:([+-])([1-9][0-9]*)([dwmy]))?$`)
-	countRE = regexp.MustCompile(`^[1-9][0-9]*$`)
+	// boundary .start|.end), then any number of signed offsets.
+	dateRE = regexp.MustCompile(`^(?i)(?:([0-9]{4}-[0-9]{2}-[0-9]{2})|(today)|@([A-Za-z_][A-Za-z0-9_]*)(?:\[(-?[0-9]+)\])?(?:\.(start|end))?)?((?:[+-][1-9][0-9]*[dwmy])*)$`)
+	// a duration: terms, the first unsigned (1m+13d, 1m-1d, 1m2w)
+	durationRE = regexp.MustCompile(`^(?i)[1-9][0-9]*[dwmy](?:[+-]?[1-9][0-9]*[dwmy])*$`)
+	termRE     = regexp.MustCompile(`(?i)([+-]?)([1-9][0-9]*)([dwmy])`)
+	countRE    = regexp.MustCompile(`^[1-9][0-9]*$`)
 )
 
 // errUnquotedSpace marks a property value with whitespace but no quotes;
@@ -128,6 +131,34 @@ func parsePeriod(s string) (p period.Period, ok bool, err error) {
 		return period.Period{}, true, err
 	}
 	return period.Period{N: n, Unit: strings.ToLower(m[2])[0]}, true, nil
+}
+
+// parseDuration reads a duration of one or more terms ("2w", "1m+13d",
+// "1m2w"); ok is false if s is not a duration at all.
+func parseDuration(s string) (d Duration, ok bool, err error) {
+	s = strings.TrimSpace(s)
+	if !durationRE.MatchString(s) {
+		return nil, false, nil
+	}
+	d, err = parseTerms(s)
+	return d, true, err
+}
+
+// parseTerms reads the signed terms of a duration or of a date's offsets
+// (already checked by durationRE or dateRE); an unsigned term counts as +.
+func parseTerms(s string) (Duration, error) {
+	var d Duration
+	for _, m := range termRE.FindAllStringSubmatch(s, -1) {
+		n, err := amount(m[2])
+		if err != nil {
+			return nil, err
+		}
+		if m[1] == "-" {
+			n = -n
+		}
+		d = append(d, Term{N: n, Unit: strings.ToLower(m[3])[0]})
+	}
+	return d, nil
 }
 
 func amount(digits string) (int, error) {

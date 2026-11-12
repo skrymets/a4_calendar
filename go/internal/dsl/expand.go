@@ -102,5 +102,5 @@ func (iv *Interval) endFrom(s time.Time) time.Time {
 	if iv.DurKind == StartEnd {
 		return s.AddDate(0, 0, iv.Days)
 	}
-	return shift(s, iv.Duration.N, iv.Duration.Unit)
+	return iv.Duration.forward(s)
 }

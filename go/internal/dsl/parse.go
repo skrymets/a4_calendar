@@ -175,11 +175,11 @@ func (p *parser) interval(src Source, line int, name, expr string, propParts []s
 	if len(sides) != 2 {
 		return fail(errorf("an interval needs exactly one '/'"))
 	}
-	left, lIsDur, err := parsePeriod(sides[0])
+	left, lIsDur, err := parseDuration(sides[0])
 	if err != nil {
 		return fail(err)
 	}
-	right, rIsDur, err := parsePeriod(sides[1])
+	right, rIsDur, err := parseDuration(sides[1])
 	if err != nil {
 		return fail(err)
 	}
@@ -191,12 +191,12 @@ func (p *parser) interval(src Source, line int, name, expr string, propParts []s
 		if iv.Start, err = p.date(sides[0]); err != nil {
 			return fail(err)
 		}
-		iv.End, iv.DurKind, iv.Duration = shift(iv.Start, right.N, right.Unit), StartDuration, right
+		iv.End, iv.DurKind, iv.Duration = right.forward(iv.Start), StartDuration, right
 	case lIsDur: // DURATION/END
 		if iv.End, err = p.date(sides[1]); err != nil {
 			return fail(err)
 		}
-		iv.Start, iv.DurKind, iv.Duration = shift(iv.End, -left.N, left.Unit), DurationEnd, left
+		iv.Start, iv.DurKind, iv.Duration = left.backward(iv.End), DurationEnd, left
 	default: // START/END
 		if iv.Start, err = p.date(sides[0]); err != nil {
 			return fail(err)
@@ -227,7 +227,8 @@ func (p *parser) interval(src Source, line int, name, expr string, propParts []s
 }
 
 // date resolves a date expression: an anchor (ISO date, today or @today,
-// a reference, or nothing = today) and at most one signed offset.
+// a reference, or nothing = today) and any number of signed offsets,
+// applied left to right (DSL spec §14).
 func (p *parser) date(expr string) (time.Time, error) {
 	expr = strings.TrimSpace(expr)
 	m := dateRE.FindStringSubmatch(expr)
@@ -250,16 +251,11 @@ func (p *parser) date(expr string) (time.Time, error) {
 	default: // "today", or an offset alone
 		t = p.today
 	}
-	if m[6] != "" {
-		n, err := amount(m[7])
-		if err != nil {
-			return time.Time{}, err
-		}
-		if m[6] == "-" {
-			n = -n
-		}
-		t = shift(t, n, strings.ToLower(m[8])[0])
+	offsets, err := parseTerms(m[6])
+	if err != nil {
+		return time.Time{}, err
 	}
+	t = offsets.forward(t)
 	if !inRange(t) {
 		return time.Time{}, errorf("date expression %q is outside the years 0001–9999", expr)
 	}

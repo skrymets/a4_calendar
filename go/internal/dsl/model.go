@@ -85,6 +85,34 @@ const (
 	DurationEnd                      // DURATION/END: the duration from each later start
 )
 
+// Term is one signed part of a duration or of a date's offsets: -1m, +13d.
+type Term struct {
+	N    int
+	Unit byte // d, w, m or y
+}
+
+// Duration is a length of one or more terms (DSL spec §12): 2w, 1m+13d,
+// 1m-1d, 1m2w. Terms apply one after another, each with calendar
+// arithmetic, so 1m+13d is not 13d+1m.
+type Duration []Term
+
+// forward returns t moved by the terms in written order.
+func (d Duration) forward(t time.Time) time.Time {
+	for _, x := range d {
+		t = shift(t, x.N, x.Unit)
+	}
+	return t
+}
+
+// backward undoes forward: the terms negated, in reverse order, so that
+// DURATION/END and START/DURATION agree (1m+13d back from 14 Sep is 1 Aug).
+func (d Duration) backward(t time.Time) time.Time {
+	for i := len(d) - 1; i >= 0; i-- {
+		t = shift(t, -d[i].N, d[i].Unit)
+	}
+	return t
+}
+
 // Milestone is a declared milestone with its first (or only) date.
 type Milestone struct {
 	ID     string // as written; case-insensitive for references
@@ -102,8 +130,8 @@ type Interval struct {
 	Start    time.Time
 	End      time.Time // exclusive
 	DurKind  DurKind
-	Duration period.Period // StartDuration, DurationEnd
-	Days     int           // StartEnd: End - Start in days
+	Duration Duration // StartDuration, DurationEnd
+	Days     int      // StartEnd: End - Start in days
 	Rec      *Recurrence
 	Props    Props
 	Source   string
