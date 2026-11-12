@@ -1,0 +1,6 @@
+a = 2027-03-01; title="Diamond (default)"
+b = 2027-03-02; title="Star"; mark=star; color=red
+c = 2027-03-03; title="Dot"; mark=dot; color=steel
+d = 2027-03-04; title="Ring"; mark=ring; color=orange
+e = 2027-03-05; title="Two on one day"; color=teal
+f = 2027-03-05; title="Second"; mark=dot

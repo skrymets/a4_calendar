@@ -1,0 +1,3 @@
+okr     = 2027-02-15/2027-04-14; title="OKR cycle"; color=grey; layer=back
+quarter = 2027-03-01/1m;         title="Budget quarter"; color=steel; layer=back
+feature = 2027-03-03/2w;         title="Feature"; color=teal

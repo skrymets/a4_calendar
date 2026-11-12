@@ -1,0 +1,113 @@
+{
+ "fixture": "x12-keys.dates",
+ "options": {
+  "start": "2027-01-01",
+  "end": "2027-05-31",
+  "today": "2026-11-11"
+ },
+ "resolved": {
+  "milestones": [
+   {
+    "id": "review",
+    "date": "2027-03-08"
+   }
+  ],
+  "intervals": [
+   {
+    "id": "build",
+    "key": "1",
+    "start": "2027-03-01",
+    "endExclusive": "2027-03-22",
+    "lastDrawnDay": "2027-03-21"
+   },
+   {
+    "id": "test",
+    "key": "2",
+    "start": "2027-03-08",
+    "endExclusive": "2027-03-22",
+    "lastDrawnDay": "2027-03-21"
+   },
+   {
+    "id": "docs",
+    "key": "3",
+    "start": "2027-03-10",
+    "endExclusive": "2027-03-17",
+    "lastDrawnDay": "2027-03-16"
+   },
+   {
+    "id": "demo",
+    "key": "4",
+    "start": "2027-03-12",
+    "endExclusive": "2027-03-19",
+    "lastDrawnDay": "2027-03-18"
+   }
+  ]
+ },
+ "layout": {
+  "geometry": "wide",
+  "laneCap": 6,
+  "groupsMerged": false,
+  "layout": "packed",
+  "columns": [
+   {
+    "month": "JAN",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   },
+   {
+    "month": "FEB",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   },
+   {
+    "month": "MAR",
+    "railLanes": 4,
+    "labelMode": "keys",
+    "labels": [
+     {
+      "day": 1,
+      "items": [
+       "1"
+      ]
+     },
+     {
+      "day": 8,
+      "items": [
+       "2"
+      ]
+     },
+     {
+      "day": 8,
+      "milestone": "◆ Review"
+     },
+     {
+      "day": 10,
+      "items": [
+       "3"
+      ]
+     },
+     {
+      "day": 12,
+      "items": [
+       "4"
+      ]
+     }
+    ]
+   },
+   {
+    "month": "APR",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   },
+   {
+    "month": "MAY",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   }
+  ]
+ }
+}

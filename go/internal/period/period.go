@@ -1,5 +1,5 @@
-// Package period holds the calendar's date logic, ported 1:1 from
-// yearly_calendar.py: period parsing, period end, week numbers, months.
+// Package period holds the calendar's date logic: period parsing, period
+// end, week numbers, months, and month arithmetic.
 //
 // Dates are time.Time values at midnight UTC (see Date), so day
 // arithmetic is exact and never affected by DST.
@@ -66,8 +66,7 @@ func invalidPeriod(s string) error {
 	return fmt.Errorf("invalid period '%s': use <N>d, <N>w, <N>m or 1y (N >= 1)", s)
 }
 
-// ErrOutOfRange reports a period ending after year 9999 (where Python's
-// datetime overflows).
+// ErrOutOfRange reports a period ending after year 9999.
 var ErrOutOfRange = errors.New("period end out of range")
 
 // maxUnits exceeds the number of days between years 1 and 9999, so any
@@ -84,6 +83,16 @@ func AddMonths(d time.Time, n int) time.Time {
 		return Date(y, m, d.Day())
 	}
 	return Date(y, m+1, 1) // m < 12 here: December has 31 days
+}
+
+// AddMonthsClamped returns d shifted by n months (n may be negative). A day
+// missing in the target month is clamped to that month's last day
+// (Jan 31 + 1 month = Feb 28; Feb 29 + 12 months = Feb 28). This is the
+// Date DSL's calendar arithmetic; --period uses AddMonths.
+func AddMonthsClamped(d time.Time, n int) time.Time {
+	total := int(d.Month()) - 1 + n
+	y, m := d.Year()+floorDiv(total, 12), time.Month(mod(total, 12)+1)
+	return Date(y, m, min(d.Day(), DaysIn(y, m)))
 }
 
 // PeriodEnd returns the inclusive last day of period p starting at start.
@@ -106,6 +115,31 @@ func PeriodEnd(start time.Time, p Period) (time.Time, error) {
 		return time.Time{}, ErrOutOfRange
 	}
 	return end, nil
+}
+
+// FromEnd returns the shortest period from start whose last day is end
+// (inclusive, not before start): 1y, else <N>m, else <N>w, else <N>d.
+// It does not check the 1-year maximum.
+func FromEnd(start, end time.Time) Period {
+	for _, p := range append([]Period{FullYear}, months(11)...) {
+		if e, err := PeriodEnd(start, p); err == nil && e.Equal(end) {
+			return p
+		}
+	}
+	days := DaysBetween(start, end) + 1
+	if days%7 == 0 {
+		return Period{N: days / 7, Unit: 'w'}
+	}
+	return Period{N: days, Unit: 'd'}
+}
+
+// months returns the periods 1m … nm.
+func months(n int) []Period {
+	ps := make([]Period, n)
+	for i := range ps {
+		ps[i] = Period{N: i + 1, Unit: 'm'}
+	}
+	return ps
 }
 
 // MaxEnd is the last day of the longest allowed period: one year.

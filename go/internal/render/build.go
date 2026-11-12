@@ -5,8 +5,9 @@ import (
 	"strconv"
 	"time"
 
-	"a4calendar/internal/canvas"
-	"a4calendar/internal/period"
+	"pinplan/internal/canvas"
+	"pinplan/internal/period"
+	"pinplan/internal/timeline"
 )
 
 // Config is the validated input of Build (one field per CLI option).
@@ -31,12 +32,29 @@ type Config struct {
 	MarginMM     float64
 	Header       string // compact | full
 	ShowOutside  bool
+	Timeline     *Timeline // nil without --file/--milestone/--interval: page unchanged (REQ-CLI-8)
 }
+
+// Timeline is the timeline drawn on top of the calendar.
+type Timeline struct {
+	Layout     *timeline.Layout
+	Legend     bool     // --timeline-legend full
+	Files      []string // --file paths in load order
+	Inline     bool     // --milestone or --interval given
+	Milestones int      // declarations, hidden ones included (REQ-PG-3)
+	Intervals  int
+}
+
+// GridWidth is the width of the day grid in pt: the page minus its margins.
+func (cfg Config) GridWidth() float64 { return cfg.PaperW - 2*(cfg.MarginMM*MM) }
 
 // Result describes the rendered period.
 type Result struct {
 	Start, End time.Time
 	TotalDays  int
+	// LegendOverflow is the full legend, one entry per line, when it did
+	// not fit the page and ends in "+N more" (REQ-LG-5); nil otherwise.
+	LegendOverflow []string
 }
 
 func pick(cond bool, a, b float64) float64 {
@@ -65,7 +83,7 @@ func Build(cfg Config, c canvas.Canvas) (Result, error) {
 	months := period.MonthsBetween(start, end)
 	multiYear := months[0].Year != months[len(months)-1].Year
 	nCols := len(months)
-	gridW := pageW - 2*marginX
+	gridW := cfg.GridWidth()
 	colW := gridW / float64(nCols)
 
 	// --- title + period label
@@ -119,6 +137,13 @@ func Build(cfg Config, c canvas.Canvas) (Result, error) {
 	// --- day grid
 	gridTop := headerBot - pick(compact, 1.5, 3)
 	gridBot := marginBottom + pick(cfg.Footer, 8, 2)
+	footerY := gridBot - 8
+	tl := newTLDrawer(c, cfg.Timeline, font, pageH) // nil without a timeline
+	var legend legendPlan
+	if tl != nil && cfg.Timeline.Legend { // the grid rows shrink to make room (REQ-LG-1)
+		legend = planLegend(tl.l.Legend, gridTop-gridBot)
+		gridBot += legend.height
+	}
 	rowH := (gridTop - gridBot) / 31
 	pad := CellPad
 	// note guides start right of the widest possible label ("28W"), same x in every column
@@ -144,6 +169,7 @@ func Build(cfg Config, c canvas.Canvas) (Result, error) {
 				c.SetFillColor(WeekendBG)
 				c.Rect(x0, yb, colW, rowH)
 			}
+			tl.hatch(i, d, x0, yb, colW, rowH, isWeekend && inRange)
 			if !inRange && !cfg.ShowOutside {
 				continue
 			}
@@ -159,15 +185,20 @@ func Build(cfg Config, c canvas.Canvas) (Result, error) {
 				letterColor = pickColor(isWeekend, cfg.WeekendColor, cfg.WorkdayColor)
 			}
 			c.SetFillColor(letterColor)
-			c.DrawString(x0+pad+c.StringWidth(num, font, MainSize)+0.4, mainY, string(cfg.DayLetters[wd]))
+			numW := c.StringWidth(num, font, MainSize)
+			letter, letterX := string(cfg.DayLetters[wd]), x0+pad+numW+0.4
+			c.DrawString(letterX, mainY, letter)
 
 			if !inRange {
 				continue
 			}
 
 			// hairline dotted note guide(s) in the free right part of the cell
-			if cfg.NoteGuide && cfg.NoteLines > 0 {
-				gx0, gx1 := x0+guideX0Off, x0+colW-pad
+			gx0, gx1 := x0+guideX0Off, x0+colW-pad
+			if day := tl.day(i, d); day != nil {
+				gx1 = x0 + colW - day.Zone // the note line ends at the rail zone
+			}
+			if cfg.NoteGuide && cfg.NoteLines > 0 && (tl == nil || gx1 > gx0) { // a full rail zone leaves no note line
 				c.SetStrokeColor(Guide)
 				c.SetLineWidth(0.25)
 				c.SetDash(0.4, 1.2)
@@ -177,7 +208,7 @@ func Build(cfg Config, c canvas.Canvas) (Result, error) {
 					gy := mainY + float64(k)*step
 					c.Line(gx0, gy, gx1, gy)
 				}
-				c.ClearDash() // instead of Python's saveState/restoreState
+				c.ClearDash()
 				c.SetRoundCap(false)
 			}
 
@@ -194,6 +225,14 @@ func Build(cfg Config, c canvas.Canvas) (Result, error) {
 				small = fmt.Sprintf("%03d/%02d", idx, wk)
 			}
 			c.DrawString(x0+pad, mainY+MainSize*0.85+1.2, small)
+
+			if tl != nil {
+				tl.cell(i, d, tlCell{
+					x0: x0, w: colW, yt: yt, yb: yb, mainY: mainY, guideX: x0 + guideX0Off,
+					numX: x0 + pad, numW: numW,
+					letterEnd: letterX + c.StringWidth(letter, font, MainSize),
+				})
+			}
 		}
 	}
 
@@ -208,6 +247,12 @@ func Build(cfg Config, c canvas.Canvas) (Result, error) {
 	c.SetStrokeColor(Rule)
 	c.SetLineWidth(0.8)
 	c.Line(marginX, gridBot-2, pageW-marginX, gridBot-2)
+	res := Result{Start: start, End: end, TotalDays: totalDays}
+	if tl != nil {
+		tl.legend(legend, marginX, gridBot-2, gridW)
+		res.LegendOverflow = legend.overflowLines(tl.l.Legend)
+		c.SetSubject("timeline: " + cfg.Timeline.sourceNames()) // REQ-PG-4
+	}
 
 	if cfg.Footer {
 		c.SetFillColor(InkSoft)
@@ -217,9 +262,13 @@ func Build(cfg Config, c canvas.Canvas) (Result, error) {
 		if cfg.WeekMode != "iso" {
 			footer += fmt.Sprintf(" (%d weeks)", weeksTotal)
 		}
-		c.DrawString(marginX, gridBot-8, footer)
+		if tl != nil { // REQ-PG-3
+			footer = fitText(footer+cfg.Timeline.footerSuffix(), gridW, tlEllipsis,
+				func(s string) float64 { return c.StringWidth(s, font, 5.5) })
+		}
+		c.DrawString(marginX, footerY, footer)
 	}
-	return Result{Start: start, End: end, TotalDays: totalDays}, nil
+	return res, nil
 }
 
 func pickColor(cond bool, a, b canvas.RGB) canvas.RGB {

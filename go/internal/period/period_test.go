@@ -62,6 +62,30 @@ func TestAddMonths(t *testing.T) {
 	}
 }
 
+func TestAddMonthsClamped(t *testing.T) {
+	cases := []struct {
+		from time.Time
+		n    int
+		want time.Time
+	}{
+		{Date(2027, 1, 31), 1, Date(2027, 2, 28)},
+		{Date(2027, 1, 31), 2, Date(2027, 3, 31)},
+		{Date(2027, 1, 31), 3, Date(2027, 4, 30)},
+		{Date(2028, 1, 31), 1, Date(2028, 2, 29)}, // leap year
+		{Date(2028, 2, 29), 12, Date(2029, 2, 28)},
+		{Date(2027, 3, 31), -1, Date(2027, 2, 28)},
+		{Date(2027, 1, 15), -1, Date(2026, 12, 15)},
+		{Date(2027, 1, 15), -13, Date(2025, 12, 15)},
+		{Date(2026, 12, 31), 2, Date(2027, 2, 28)},
+		{Date(2026, 1, 15), 0, Date(2026, 1, 15)},
+	}
+	for _, c := range cases {
+		if got := AddMonthsClamped(c.from, c.n); !got.Equal(c.want) {
+			t.Errorf("AddMonthsClamped(%s, %d) = %s; want %s", c.from.Format("2006-01-02"), c.n, got.Format("2006-01-02"), c.want.Format("2006-01-02"))
+		}
+	}
+}
+
 func TestPeriodEnd(t *testing.T) {
 	s := Date(2026, 11, 7)
 	cases := []struct {
@@ -89,6 +113,37 @@ func TestPeriodEnd(t *testing.T) {
 	for _, p := range []Period{{999999, 'm'}, {9999999999, 'd'}} {
 		if _, err := PeriodEnd(s, p); !errors.Is(err, ErrOutOfRange) {
 			t.Errorf("PeriodEnd(%s) err = %v; want ErrOutOfRange", p, err)
+		}
+	}
+}
+
+func TestFromEnd(t *testing.T) {
+	s := Date(2027, 1, 1)
+	cases := []struct {
+		start, end time.Time
+		want       Period
+	}{
+		{s, Date(2027, 12, 31), Period{1, 'y'}},
+		{s, Date(2027, 6, 30), Period{6, 'm'}},
+		{s, Date(2027, 1, 31), Period{1, 'm'}},
+		{s, Date(2027, 1, 14), Period{2, 'w'}},
+		{s, Date(2027, 2, 14), Period{45, 'd'}},
+		{s, s, Period{1, 'd'}},
+		{s, Date(2027, 1, 7), Period{1, 'w'}},
+		{Date(2026, 11, 7), Date(2027, 11, 6), Period{1, 'y'}},
+		{Date(2026, 11, 7), Date(2027, 2, 6), Period{3, 'm'}},
+		{Date(2027, 1, 31), Date(2027, 2, 28), Period{1, 'm'}}, // Jan 31 + 1m rolls to Mar 1
+		{Date(2027, 1, 31), Date(2027, 2, 27), Period{4, 'w'}},
+		{Date(2028, 2, 29), Date(2029, 2, 28), Period{1, 'y'}},
+		{s, Date(2028, 1, 1), Period{366, 'd'}}, // past the maximum: the caller checks
+	}
+	for _, c := range cases {
+		got := FromEnd(c.start, c.end)
+		if got != c.want {
+			t.Errorf("FromEnd(%s, %s) = %s; want %s", c.start.Format("2006-01-02"), c.end.Format("2006-01-02"), got, c.want)
+		}
+		if end, _ := PeriodEnd(c.start, got); !end.Equal(c.end) {
+			t.Errorf("FromEnd(%s, %s) = %s ends on %s", c.start.Format("2006-01-02"), c.end.Format("2006-01-02"), got, end.Format("2006-01-02"))
 		}
 	}
 }

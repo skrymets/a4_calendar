@@ -1,0 +1,78 @@
+{
+ "fixture": "x09-hatch.dates",
+ "options": {
+  "start": "2027-01-01",
+  "end": "2027-05-31",
+  "today": "2026-11-11"
+ },
+ "resolved": {
+  "milestones": [],
+  "intervals": [
+   {
+    "id": "work",
+    "key": "1",
+    "start": "2027-03-01",
+    "endExclusive": "2027-03-22",
+    "lastDrawnDay": "2027-03-21"
+   },
+   {
+    "id": "holidays",
+    "key": "2",
+    "start": "2027-03-05",
+    "endExclusive": "2027-03-15",
+    "lastDrawnDay": "2027-03-14"
+   }
+  ]
+ },
+ "layout": {
+  "geometry": "wide",
+  "laneCap": 6,
+  "groupsMerged": false,
+  "layout": "packed",
+  "columns": [
+   {
+    "month": "JAN",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   },
+   {
+    "month": "FEB",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   },
+   {
+    "month": "MAR",
+    "railLanes": 1,
+    "labelMode": "text",
+    "labels": [
+     {
+      "day": 1,
+      "items": [
+       "WORK"
+      ]
+     },
+     {
+      "day": 5,
+      "items": [
+       "HOLIDAYS"
+      ]
+     }
+    ]
+   },
+   {
+    "month": "APR",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   },
+   {
+    "month": "MAY",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   }
+  ]
+ }
+}

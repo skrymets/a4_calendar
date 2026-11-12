@@ -1,8 +1,8 @@
-// Package render draws the calendar page; it is a line-by-line port of
-// build() in yearly_calendar.py and works in PDF-native coordinates.
+// Package render draws the calendar page, and the timeline on it, in
+// PDF-native coordinates.
 package render
 
-import "a4calendar/internal/canvas"
+import "pinplan/internal/canvas"
 
 var (
 	Ink       = canvas.MustHex("#1F1F1F")
@@ -24,7 +24,7 @@ const (
 	CellPad   = 1.8 // left padding inside a cell, pt
 )
 
-// Paper sizes in points, identical to reportlab.lib.pagesizes.
+// Paper sizes in points.
 const (
 	A4W     = 210 * MM
 	A4H     = 297 * MM

@@ -1,0 +1,427 @@
+{
+ "fixture": "exams.dates",
+ "options": {
+  "start": "2026-11-11",
+  "end": "2027-03-10",
+  "today": "2026-11-11"
+ },
+ "resolved": {
+  "milestones": [
+   {
+    "id": "kickoff",
+    "date": "2026-11-11"
+   },
+   {
+    "id": "quiz",
+    "date": "2026-12-16"
+   },
+   {
+    "id": "term2",
+    "date": "2027-01-07",
+    "hidden": true
+   },
+   {
+    "id": "exam",
+    "date": "2027-03-01"
+   },
+   {
+    "id": "tutor",
+    "date": "2026-11-19",
+    "occurrence": "1/15"
+   },
+   {
+    "id": "tutor",
+    "date": "2026-11-26",
+    "occurrence": "2/15"
+   },
+   {
+    "id": "tutor",
+    "date": "2026-12-03",
+    "occurrence": "3/15"
+   },
+   {
+    "id": "tutor",
+    "date": "2026-12-10",
+    "occurrence": "4/15"
+   },
+   {
+    "id": "tutor",
+    "date": "2026-12-17",
+    "occurrence": "5/15"
+   },
+   {
+    "id": "tutor",
+    "date": "2026-12-24",
+    "occurrence": "6/15"
+   },
+   {
+    "id": "tutor",
+    "date": "2026-12-31",
+    "occurrence": "7/15"
+   },
+   {
+    "id": "tutor",
+    "date": "2027-01-07",
+    "occurrence": "8/15"
+   },
+   {
+    "id": "tutor",
+    "date": "2027-01-14",
+    "occurrence": "9/15"
+   },
+   {
+    "id": "tutor",
+    "date": "2027-01-21",
+    "occurrence": "10/15"
+   },
+   {
+    "id": "tutor",
+    "date": "2027-01-28",
+    "occurrence": "11/15"
+   },
+   {
+    "id": "tutor",
+    "date": "2027-02-04",
+    "occurrence": "12/15"
+   },
+   {
+    "id": "tutor",
+    "date": "2027-02-11",
+    "occurrence": "13/15"
+   },
+   {
+    "id": "tutor",
+    "date": "2027-02-18",
+    "occurrence": "14/15"
+   },
+   {
+    "id": "tutor",
+    "date": "2027-02-25",
+    "occurrence": "15/15"
+   },
+   {
+    "id": "reg",
+    "date": "2027-01-30"
+   },
+   {
+    "id": "mock",
+    "date": "2027-02-19"
+   },
+   {
+    "id": "results",
+    "date": "2027-03-08"
+   }
+  ],
+  "intervals": [
+   {
+    "id": "theory",
+    "key": "1",
+    "start": "2026-11-11",
+    "endExclusive": "2026-12-16",
+    "lastDrawnDay": "2026-12-15"
+   },
+   {
+    "id": "labs",
+    "key": "2",
+    "start": "2026-11-16",
+    "endExclusive": "2026-11-18",
+    "lastDrawnDay": "2026-11-17",
+    "occurrence": "1/8"
+   },
+   {
+    "id": "labs",
+    "key": "2",
+    "start": "2026-11-30",
+    "endExclusive": "2026-12-02",
+    "lastDrawnDay": "2026-12-01",
+    "occurrence": "2/8"
+   },
+   {
+    "id": "labs",
+    "key": "2",
+    "start": "2026-12-14",
+    "endExclusive": "2026-12-16",
+    "lastDrawnDay": "2026-12-15",
+    "occurrence": "3/8"
+   },
+   {
+    "id": "labs",
+    "key": "2",
+    "start": "2026-12-28",
+    "endExclusive": "2026-12-30",
+    "lastDrawnDay": "2026-12-29",
+    "occurrence": "4/8"
+   },
+   {
+    "id": "labs",
+    "key": "2",
+    "start": "2027-01-11",
+    "endExclusive": "2027-01-13",
+    "lastDrawnDay": "2027-01-12",
+    "occurrence": "5/8"
+   },
+   {
+    "id": "labs",
+    "key": "2",
+    "start": "2027-01-25",
+    "endExclusive": "2027-01-27",
+    "lastDrawnDay": "2027-01-26",
+    "occurrence": "6/8"
+   },
+   {
+    "id": "labs",
+    "key": "2",
+    "start": "2027-02-08",
+    "endExclusive": "2027-02-10",
+    "lastDrawnDay": "2027-02-09",
+    "occurrence": "7/8"
+   },
+   {
+    "id": "labs",
+    "key": "2",
+    "start": "2027-02-22",
+    "endExclusive": "2027-02-24",
+    "lastDrawnDay": "2027-02-23",
+    "occurrence": "8/8"
+   },
+   {
+    "id": "holidays",
+    "key": "3",
+    "start": "2026-12-24",
+    "endExclusive": "2027-01-07",
+    "lastDrawnDay": "2027-01-06"
+   },
+   {
+    "id": "practice",
+    "key": "4",
+    "start": "2027-01-07",
+    "endExclusive": "2027-02-18",
+    "lastDrawnDay": "2027-02-17"
+   },
+   {
+    "id": "revision",
+    "key": "5",
+    "start": "2027-02-15",
+    "endExclusive": "2027-03-01",
+    "lastDrawnDay": "2027-02-28"
+   }
+  ]
+ },
+ "layout": {
+  "geometry": "wide",
+  "laneCap": 6,
+  "groupsMerged": false,
+  "layout": "packed",
+  "columns": [
+   {
+    "month": "NOV '26",
+    "railLanes": 2,
+    "labelMode": "text",
+    "labels": [
+     {
+      "day": 11,
+      "milestone": "◆ Kick-off"
+     },
+     {
+      "day": 12,
+      "items": [
+       "THEORY · 35 D"
+      ]
+     },
+     {
+      "day": 16,
+      "items": [
+       "LAB SESSION #1"
+      ]
+     },
+     {
+      "day": 19,
+      "milestone": "● Tutor call"
+     },
+     {
+      "day": 26,
+      "milestone": "●"
+     },
+     {
+      "day": 30,
+      "items": [
+       "#2"
+      ]
+     }
+    ]
+   },
+   {
+    "month": "DEC",
+    "railLanes": 2,
+    "labelMode": "text",
+    "labels": [
+     {
+      "day": 1,
+      "items": [
+       "THEORY (CONT.)"
+      ]
+     },
+     {
+      "day": 3,
+      "milestone": "● Tutor call"
+     },
+     {
+      "day": 10,
+      "milestone": "●"
+     },
+     {
+      "day": 14,
+      "items": [
+       "LAB SESSION #3"
+      ]
+     },
+     {
+      "day": 16,
+      "milestone": " Mock quiz"
+     },
+     {
+      "day": 17,
+      "milestone": "●"
+     },
+     {
+      "day": 24,
+      "milestone": "●"
+     },
+     {
+      "day": 25,
+      "items": [
+       "HOLIDAYS"
+      ]
+     },
+     {
+      "day": 28,
+      "items": [
+       "#4"
+      ]
+     },
+     {
+      "day": 31,
+      "milestone": "●"
+     }
+    ]
+   },
+   {
+    "month": "JAN '27",
+    "railLanes": 2,
+    "labelMode": "text",
+    "labels": [
+     {
+      "day": 1,
+      "items": [
+       "HOLIDAYS (CONT.)"
+      ]
+     },
+     {
+      "day": 7,
+      "milestone": "● Tutor call"
+     },
+     {
+      "day": 8,
+      "items": [
+       "PRACTICE SETS · 42 D"
+      ]
+     },
+     {
+      "day": 11,
+      "items": [
+       "LAB SESSION #5"
+      ]
+     },
+     {
+      "day": 14,
+      "milestone": "●"
+     },
+     {
+      "day": 21,
+      "milestone": "●"
+     },
+     {
+      "day": 25,
+      "items": [
+       "#6"
+      ]
+     },
+     {
+      "day": 28,
+      "milestone": "●"
+     },
+     {
+      "day": 30,
+      "milestone": "◆ Registration closes"
+     }
+    ]
+   },
+   {
+    "month": "FEB",
+    "railLanes": 3,
+    "labelMode": "text",
+    "labels": [
+     {
+      "day": 1,
+      "items": [
+       "PRACTICE SETS (CONT.)"
+      ]
+     },
+     {
+      "day": 4,
+      "milestone": "● Tutor call"
+     },
+     {
+      "day": 8,
+      "items": [
+       "LAB SESSION #7"
+      ]
+     },
+     {
+      "day": 11,
+      "milestone": "●"
+     },
+     {
+      "day": 15,
+      "items": [
+       "REVISION · 14 D"
+      ]
+     },
+     {
+      "day": 18,
+      "milestone": "●"
+     },
+     {
+      "day": 19,
+      "milestone": " Mock exam"
+     },
+     {
+      "day": 22,
+      "items": [
+       "#8"
+      ]
+     },
+     {
+      "day": 25,
+      "milestone": "●"
+     }
+    ]
+   },
+   {
+    "month": "MAR '27",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": [
+     {
+      "day": 1,
+      "milestone": "★ Final exam"
+     },
+     {
+      "day": 8,
+      "milestone": "● Results"
+     }
+    ]
+   }
+  ]
+ }
+}

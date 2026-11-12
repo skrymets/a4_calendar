@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Cross-compile yearly-calendar into go/dist (windows/amd64, linux/amd64, linux/arm64).
+  Cross-compile pinplan into go/dist (windows/amd64, linux/amd64, linux/arm64).
 .DESCRIPTION
   The version stamped into the binaries (--version, PDF Creator) is read from the
   repository's VERSION file, the single source of the version (see DEV.md).
@@ -22,14 +22,14 @@ try {
     foreach ($t in $targets) {
         $env:GOOS = $t.GOOS
         $env:GOARCH = $t.GOARCH
-        $out = "dist/yearly-calendar-$($t.GOOS)-$($t.GOARCH)$($t.Ext)"
-        go build -trimpath -ldflags "-s -w -X main.version=$version" -o $out ./cmd/yearly-calendar
+        $out = "dist/pinplan-$($t.GOOS)-$($t.GOARCH)$($t.Ext)"
+        go build -trimpath -ldflags "-s -w -X main.version=$version" -o $out ./cmd/pinplan
         if ($LASTEXITCODE -ne 0) { throw "build failed for $($t.GOOS)/$($t.GOARCH)" }
         Write-Host "built $out"
     }
     Copy-Item ../LICENSE dist/LICENSE
     Copy-Item internal/fonts/OFL.txt dist/OFL.txt
-    Copy-Item cmd/yearly-calendar/THIRD_PARTY_LICENSES.txt dist/THIRD_PARTY_LICENSES.txt
+    Copy-Item cmd/pinplan/THIRD_PARTY_LICENSES.txt dist/THIRD_PARTY_LICENSES.txt
 }
 finally {
     Remove-Item Env:GOOS, Env:GOARCH, Env:CGO_ENABLED -ErrorAction SilentlyContinue

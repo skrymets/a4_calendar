@@ -1,0 +1,132 @@
+{
+ "fixture": "x02-colors.dates",
+ "options": {
+  "start": "2027-01-01",
+  "end": "2027-05-31",
+  "today": "2026-11-11"
+ },
+ "resolved": {
+  "milestones": [
+   {
+    "id": "c1",
+    "date": "2027-03-08"
+   },
+   {
+    "id": "c2",
+    "date": "2027-03-09"
+   },
+   {
+    "id": "c3",
+    "date": "2027-03-10"
+   },
+   {
+    "id": "c4",
+    "date": "2027-03-11"
+   },
+   {
+    "id": "c5",
+    "date": "2027-03-12"
+   },
+   {
+    "id": "c6",
+    "date": "2027-03-13"
+   },
+   {
+    "id": "c7",
+    "date": "2027-03-14"
+   },
+   {
+    "id": "c8",
+    "date": "2027-03-15"
+   },
+   {
+    "id": "c9",
+    "date": "2027-03-16"
+   },
+   {
+    "id": "c10",
+    "date": "2027-03-17"
+   }
+  ],
+  "intervals": []
+ },
+ "layout": {
+  "geometry": "wide",
+  "laneCap": 6,
+  "groupsMerged": false,
+  "layout": "packed",
+  "columns": [
+   {
+    "month": "JAN",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   },
+   {
+    "month": "FEB",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   },
+   {
+    "month": "MAR",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": [
+     {
+      "day": 8,
+      "milestone": "◆ ink (default)"
+     },
+     {
+      "day": 9,
+      "milestone": "◆ red"
+     },
+     {
+      "day": 10,
+      "milestone": "◆ teal"
+     },
+     {
+      "day": 11,
+      "milestone": "◆ violet"
+     },
+     {
+      "day": 12,
+      "milestone": "◆ orange"
+     },
+     {
+      "day": 13,
+      "milestone": "◆ steel"
+     },
+     {
+      "day": 14,
+      "milestone": "◆ ochre"
+     },
+     {
+      "day": 15,
+      "milestone": "◆ magenta"
+     },
+     {
+      "day": 16,
+      "milestone": "◆ grey"
+     },
+     {
+      "day": 17,
+      "milestone": "◆ #2B7A9E"
+     }
+    ]
+   },
+   {
+    "month": "APR",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   },
+   {
+    "month": "MAY",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   }
+  ]
+ }
+}

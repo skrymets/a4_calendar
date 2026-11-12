@@ -1,4 +1,4 @@
-module a4calendar
+module pinplan
 
 go 1.24.3
 

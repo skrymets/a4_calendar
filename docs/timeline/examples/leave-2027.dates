@@ -1,0 +1,12 @@
+# leave-2027.dates — "Vacation Request", 2027 (12-column page)
+quota_reset  = 2027-01-01; title="Leave quota resets"; mark=dot
+summer_start = 2027-07-19; hide=yes
+request      = @summer_start-16w; title="Submit summer request"; mark=ring; color=red
+
+oncall  = 2027-01-11/1w;         title="On-call"; every=6w; until=2027-12-31; color=steel
+ski     = 2027-02-15/1w;         title="Ski trip"; color=teal; length=workdays; group=leave
+may     = 2027-05-01/2027-05-09; title="May holidays"; color=teal; length=workdays; group=leave
+summer  = @summer_start/3w;      title="Summer vacation"; color=teal; status=tentative; length=workdays; group=leave
+offsite = 2027-09-22/3d;         title="Team offsite"; color=violet
+freeze  = 2027-12-01/2027-12-22; title="Release freeze"; color=orange
+winter  = 2027-12-20/2027-12-31; title="Winter break"; color=teal; length=workdays; group=leave

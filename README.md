@@ -1,20 +1,83 @@
-# A4 annual calendar
+# <img src="media/icon/pinplan_48.svg" width="40" height="40" alt="" align="top"> PinPlan
+
+> Plan it. Print it. Pin it.
 
 A one-page calendar to print: a column for every month, a row for every day, and room
 for a note beside each date. A4 or US Letter, a full year by default, or any shorter
-period from one day up.
+period from one day up. Give it your plan (milestones, holidays, phases, repeating
+meetings) and it draws them on the page.
 
-![A full-year calendar starting on 7 November 2026](docs/images/calendar-preview.png)
+![A 2027 release plan: features, QA, code freezes, security work, documentation, planning, leave and public holidays, in the flow layout](docs/images/calendar-preview.png)
 
-There are two implementations with the same options and the same output:
+The page above is this one file ([docs/images/calendar-preview.dates](docs/images/calendar-preview.dates)),
+printed with `pinplan calendar-preview.dates`:
 
-| | For | Needs | Read |
-|---|---|---|---|
-| **Go** | everyday use | nothing: one binary for Windows or Linux | [go/README.md](go/README.md) |
-| **Python** | the reference implementation | Python 3 and ReportLab | [py/README.md](py/README.md) |
+```
+--title           = "Orion 2027 · Release plan"
+--start           = 2027-01-01
+--period          = 1y
+--today           = 2026-12-15
+--timeline-layout = flow
 
-Pick the Go binary unless you already work with Python. Both print the same page; the
-differences are listed in [go/README.md](go/README.md#differences-from-the-python-version).
+# Releases and kick-off
+kickoff = 2027-01-11; title="Kick-off"; mark=ring; color=teal
+r1      = 2027-03-31; title="R1 Login"; mark=star; color=red
+r2      = 2027-06-30; title="R2 Payments"; mark=star; color=red
+r3      = 2027-09-29; title="R3 Mobile"; mark=star; color=red
+ga      = 2027-12-08; title="GA 2.0"; mark=star; color=red
+
+# Planning: quarterly sessions, OKR quarters in the background, sprint demos
+planning = 2027-01-04/2027-01-05; title="Quarter planning"; every=3m; count=4; color=violet
+okr      = 2027-01-01/3m; title="OKR quarter"; every=3m; count=4; layer=back; color=grey
+demo     = 2027-01-29; title="Sprint demo"; every=2w; until=@ga; mark=dot; color=steel; label=none
+
+# Features
+auth      = @kickoff/<@r1-3w;   title="Auth revamp"; color=teal; length=workdays
+payments  = 2027-03-01/<@r2-3w; title="Payments v2"; color=teal; length=workdays
+mobile    = 2027-05-03/<@r3-3w; title="Mobile app"; color=teal; length=workdays
+search    = 2027-07-05/<@ga-5w; title="Search"; color=teal
+analytics = 2027-09-06/<@ga-3w; title="Analytics"; color=teal; status=tentative
+
+# QA and code freeze before each release
+qa1     = @r1-3w/<@r1-1w; title="QA"; color=orange
+freeze1 = 1w/<@r1;        title="Code freeze"; color=orange; style=dashed
+qa2     = @r2-3w/<@r2-1w; title="QA"; color=orange
+freeze2 = 1w/<@r2;        title="Code freeze"; color=orange; style=dashed
+qa3     = @r3-3w/<@r3-1w; title="QA"; color=orange
+freeze3 = 1w/<@r3;        title="Code freeze"; color=orange; style=dashed
+qa4     = @ga-4w/<@ga-1w; title="QA"; color=orange
+freeze4 = 1w/<@ga;        title="Code freeze"; color=orange; style=dashed
+
+# Security
+pentest1 = 2027-05-10/5d;  title="Pen test"; color=magenta; priority=high
+audit1   = 2027-06-01/2w;  title="Security audit"; color=magenta; priority=high
+pentest2 = 2027-11-08/5d;  title="Pen test"; color=magenta; priority=high
+audit2   = 2027-10-11/2w;  title="Security audit"; color=magenta; priority=high
+
+# Documentation
+docs1 = @r1-2w/@r1+1w; title="Release docs"; color=violet
+docs2 = @r3-2w/@r3+1w; title="Release docs"; color=violet
+docs3 = @ga-3w/@ga;    title="User guide"; color=violet; length=days
+
+# Vacations (one rail for the group on a full-year page)
+alice = 2027-02-15/2027-02-26; title="Alice, leave"; color=grey; style=dashed; group=people
+bob   = 2027-04-12/2027-04-23; title="Bob, leave"; color=grey; style=dashed; group=people
+carol = 2027-07-19/2027-08-06; title="Carol, leave"; color=grey; style=dashed; group=people
+dan   = 2027-08-02/2027-08-20; title="Dan, leave"; color=grey; style=dashed; group=people
+erin  = 2027-12-20/2027-12-31; title="Erin, leave"; color=grey; style=dashed; group=people
+
+# Public holidays
+newyear   = 2027-01-01/2027-01-01; title="New Year"; style=hatch
+easter    = 2027-03-26/2027-03-29; title="Easter"; style=hatch
+ascension = 2027-05-06/2027-05-06; title="Ascension Day"; style=hatch
+whit      = 2027-05-17/2027-05-17; title="Whit Monday"; style=hatch
+christmas = 2027-12-24/2027-12-26; title="Christmas"; style=hatch
+```
+
+How each line works is explained [below](#milestones-and-intervals).
+
+It is a single binary for Windows or Linux that needs nothing installed. Download, build and
+run instructions are in [go/README.md](go/README.md).
 
 ## What is on the page
 
@@ -31,16 +94,18 @@ differences are listed in [go/README.md](go/README.md#differences-from-the-pytho
 - **Days outside the period** in a month the period touches are drawn faint, or left out
   with `--hide-outside`.
 - **Footer**: the number of days and how weeks are counted.
+- **Milestones and intervals**, if you give any: marks, titles and coloured rails on the
+  cells, and a legend under the grid ([below](#milestones-and-intervals)).
 
 ## Quick start
 
 ```sh
-yearly-calendar                                # one year from today
-yearly-calendar --start 2027-01-01             # calendar year 2027 -> calendar_2027-01-01.pdf
-yearly-calendar --start 2026-11-07 --period 90d -o q4.pdf
+pinplan                                # one year from today
+pinplan --start 2027-01-01             # calendar year 2027 -> calendar_2027-01-01.pdf
+pinplan --start 2026-11-07 --period 90d -o q4.pdf
+pinplan --start 2027-01-01 --end 2027-06-30      # the first half of 2027
+pinplan my-plans.dates                 # everything from a file
 ```
-
-With Python, replace `yearly-calendar` with `python py/yearly_calendar.py`.
 
 The file is written to the current directory as `calendar_<start>.pdf`, or
 `calendar_<start>_<period>.pdf` for a period shorter than a year, unless `-o` names it.
@@ -59,15 +124,164 @@ The file is written to the current directory as `calendar_<start>.pdf`, or
 One year is the maximum: `53w`, `13m` or `400d` are refused. When the target day does not
 exist (31 January + 1 month), the period runs to the end of the shorter month.
 
+Instead of a length, give the last day with `--end` or the day after it with `--until`
+(only one of `--period`, `--end`, `--until`). The page is then named and titled after the
+shortest length that ends on that day:
+
+| From 2027-01-01 | Same as | Title, file |
+|---|---|---|
+| `--end 2027-06-30` | `--period 6m` | `6-MONTH CALENDAR`, `calendar_2027-01-01_6m.pdf` |
+| `--until 2028-01-01` | `--period 1y` | `YEARLY CALENDAR`, `calendar_2027-01-01.pdf` |
+| `--end 2027-02-14` | `--period 45d` | `45-DAY CALENDAR`, `calendar_2027-01-01_45d.pdf` |
+
+`--start`, `--end` and `--until` take any date of the [date language](#milestones-and-intervals),
+not just `YYYY-MM-DD`: `today+1w`, or a date of the plan itself, so the page follows the
+plan when a date moves:
+
+```sh
+pinplan --file exams.dates --start @kickoff --until @exam+1w
+```
+
 The default title follows the period: `YEARLY CALENDAR` for `1y`, otherwise for example
 `90-DAY CALENDAR`. A title too long to fit beside the period label is cut with `...`.
+
+## Milestones and intervals
+
+The calendar can carry a timeline: **milestones** (single days) and **intervals** (spans of
+days), written in a small date language, inline or in a `.dates` file.
+
+![A 120-day plan with milestones, intervals and a legend](docs/images/timeline-preview.png)
+
+```sh
+pinplan --start 2026-11-11 --period 120d --file exams.dates --title "Prepare for Exams"
+pinplan --milestone 'release=2027-03-15;title="Release"' \
+                --interval  'qa=@release-2w/<@release;title="Final QA";color=orange'
+```
+
+In **Windows PowerShell 5.1** the double quotes inside an argument are lost, so a title
+with a space fails. Put `--%` before the arguments and escape the quotes with a backslash.
+After `--%` PowerShell passes the line on unchanged and no longer expands `$variables`:
+
+```powershell
+& .\pinplan.exe --% --milestone "release=2027-03-15;title=\"Release\"" --interval "qa=@release-2w/<@release;title=\"Final QA\""
+```
+
+PowerShell 7.3 and later and Unix shells need none of this, and a `.dates` file avoids
+shell quoting altogether. In any PowerShell, quote a value that starts with `@`
+(`--start '@kickoff'`); unquoted, PowerShell reads it as a variable.
+
+A `.dates` file has one declaration per line; `#` starts a comment:
+
+```
+kickoff  = today;             title="Kick-off"
+exam     = 2027-03-01;        title="Final exam"; mark=star; color=red; countdown=7
+tutor    = 2026-11-19;        title="Tutor call"; every=1w; until=@exam; mark=dot
+theory   = @kickoff/5w;       title="Theory"; color=teal; length=days
+practice = @theory.end+1d/3w; title="Practice"; color=violet
+labs     = 2026-11-16/2d;     title="Lab session"; every=2w; count=8; color=steel
+lastlab  = @labs[-1].start;   title="Last lab"; mark=dot
+holidays = 2026-12-24/2027-01-06; title="Holidays"; style=hatch
+revision = 2w/<@exam;         title="Revision"; color=orange
+```
+
+- **Dates**: `2027-03-15`, `today` (also written `@today`), or a reference to something
+  declared earlier, each optionally shifted, once or more: `@exam-30d`, `today+2w`,
+  `@exam-1m+3d`. Units are `d`, `w`, `m` and `y`; months keep the day or stop at the
+  month's end, at each step.
+- **References**: `@exam` is a milestone's date; `@theory.start` and `@theory.end` are an
+  interval's first and last day, so `@theory.end+1d/3w` follows straight on. A repeat is
+  referenced by occurrence: `@tutor[3]` is the third, `@tutor[-1]` the last (this needs
+  `count` or `until`), and `@labs[2].start` the start of the second lab.
+- **Intervals** are `START/END`, `START/DURATION` or `DURATION/END`. The end date is
+  included: `2027-01-04/2027-01-08` covers 4–8 January. A `<` before it leaves it out:
+  `2027-01-04/<2027-01-08` covers 4–7 January, and `2w/<@exam` ends the day before the
+  exam. A duration is a length and may have several parts: `2027-08-01/1m+13d` covers
+  1 August to 13 September. One day is an interval too (`2027-11-17/2027-11-17`), drawn
+  as a rail one cell long. An interval may be anonymous (no `name =`).
+- **Repeats**: `every=2w` (from the first start) or `gap=1w` (after the previous end), with
+  `count=8` or `until=@exam`, or until the end of the page.
+- `--today YYYY-MM-DD` sets what `today` means, and is also the default `--start`.
+
+The full language is in [docs/timeline/date-dsl-specification.md](docs/timeline/date-dsl-specification.md).
+
+![Detail: hatched holidays, interval keys, marks and countdown](docs/images/timeline-detail.png)
+
+On the page, milestones get a mark after the weekday letter and their title on the note
+line (with 8 or more month columns, mark and a smaller title share the note line, and a
+long title is cut with `…`); intervals become vertical rails at the right edge of the
+cells, labelled at the top of a cell (or with a key when a column is crowded, numbered in
+date order). Everything drawn is listed in date order in the legend under the grid, which
+takes its room from the rows. The footer names the files the milestones and intervals
+come from, and how many there are of each.
+
+Optional keys on a declaration change how it is drawn; any other `key=value` is kept and
+ignored:
+
+| Key | Values (default first) | On | Effect |
+|---|---|---|---|
+| `title` | text | both | label, title and legend text (default: the name) |
+| `color` | `ink`, `red`, `teal`, `violet`, `orange`, `steel`, `ochre`, `magenta`, `grey`, `#RRGGBB` | both | colour |
+| `mark` | `diamond`, `star`, `dot`, `ring` | milestone | mark; `ring` circles the day number |
+| `countdown` | `1`–`99` | milestone | `T–7` … `T–1` on the days before (wide columns only) |
+| `style` | `solid`, `dashed`, `hatch` | interval | `hatch`: hatched cells instead of a rail |
+| `status` | `confirmed`, `tentative` | both | `tentative`: dashed rail and ` ?` after the title |
+| `length` | *(none)*, `days`, `workdays` | interval | adds ` · 14 d` or ` · 10 wd` (workdays skip `--weekend`) |
+| `layer` | `front`, `back` | interval | `back`: a thin line beside the day label, no rail |
+| `priority` | `normal`, `high`, `low` | interval | who gets a rail first when a column is full |
+| `group` | a name | interval | members share one rail on crowded pages (`--timeline-groups`) |
+| `hide` | `no`, `yes` | both | `yes`: usable as `@name`, never drawn |
+| `label` | `first`, `each`, `none` | both | which occurrences of a repeat get a text label |
+
+An error in a declaration stops the run before anything is written, with one
+`file:line: message` per problem and exit code 2.
+
+When a column runs out of room (6 rails on wide columns, 4 or 3 on narrower ones), further
+intervals share a dotted grey overflow rail and a grey `+N` counts them; their keys and the
+legend still name them. A legend too long for the page drops its dates, then ends with
+`+N more` and prints the full list on the terminal.
+
+## All options in one file
+
+A `.dates` file can also hold the options, so one file is the whole command. A line that
+starts with `--` sets an option, spelled as on the command line:
+
+```
+# exams.dates
+--title    = "Prepare for Exams"
+--start    = @kickoff
+--until    = @exam+1w
+--paper    = letter
+--hide-outside
+--file     = holidays.dates
+
+kickoff = 2026-11-11; title="Kick-off"
+exam    = 2027-03-01; title="Final exam"; mark=star
+```
+
+```sh
+pinplan exams.dates                  # the same as --file exams.dates
+pinplan exams.dates --paper a4       # the command line wins
+```
+
+- `--name = value`, `--name=value` and `--name value` all work; a switch such as
+  `--hide-outside` needs no value (`--hide-outside = false` turns it off). A value in double
+  quotes may contain `#` and `;`; `\"` is a quote.
+- Every option can be set except `--help`, `--version`, `--licenses`, `--milestone` and
+  `--interval` (write the declaration itself).
+- `--file` reads the other file at that line, so the lines after it can refer to its dates.
+  Paths in a file (`--file`, `--output`, `--font`) are relative to that file.
+- An option on the command line overrides the file. The same option twice in files is an
+  error; `--period`, `--end` and `--until` count as one.
+- A file with options only adds nothing else to the page: no legend and no footer note.
 
 ## Options
 
 | Option | Default | Meaning |
 |---|---|---|
-| `--start YYYY-MM-DD` | today | first day of the period |
+| `--start DATE` | today | first day of the period: `YYYY-MM-DD` or a date such as `@kickoff`, `today+1w` |
 | `--period P` | `1y` | `<N>d`, `<N>w`, `<N>m` or `1y` |
+| `--end DATE` | | last day of the period, instead of `--period` |
+| `--until DATE` | | the day after the period, instead of `--period` |
 | `-o`, `--output PATH` | `calendar_<start>[_<period>].pdf` | output file |
 | `--title TEXT` | from the period | page title; `--title ""` for none |
 | `--paper a4\|letter` | `a4` | paper size |
@@ -86,6 +300,15 @@ The default title follows the period: `YEARLY CALENDAR` for `1y`, otherwise for 
 | `--day-letters LLLLLLL` | `MTWTFSS` | weekday letters, Monday first |
 | `--month-names A,B,…` | `JAN,…,DEC` | 12 comma-separated month names |
 | `--font PATH.ttf` | Helvetica | a TrueType font, needed for non-Latin scripts |
+| `--file PATH` | | milestones, intervals and options from a `.dates` file; repeatable; a path without `--file` is read the same way |
+| `--milestone DECL` | | one milestone, e.g. `'exam=2027-03-01;title="Exam"'`; repeatable |
+| `--interval DECL` | | one interval, e.g. `'qa=@exam-2w/<@exam'`; repeatable |
+| `--today YYYY-MM-DD` | today | the date `today` and `@today` stand for |
+| `--timeline-layout packed\|flow` | `packed` | `packed`: rails arranged per month; `flow`: rails keep their place across months and close up as intervals end |
+| `--timeline-compact daily\|weekly` | `daily` | `flow` only: close up every day, or on `--week-start` |
+| `--timeline-lanes auto\|1–12` | `auto` | rails per column before the overflow rail |
+| `--timeline-groups auto\|merge\|separate` | `auto` | one rail per `group`; `auto` merges when columns are narrow (A4: 8 or more) |
+| `--timeline-legend full\|off` | `full` | the legend under the grid |
 | `--version` | | print the version |
 
 `--help` lists them too.
@@ -103,20 +326,20 @@ The built-in Helvetica covers Western European languages only. For Cyrillic or o
 give a TrueType font and the weekday and month names:
 
 ```sh
-yearly-calendar --start 2027-01-01 --font DejaVuSans.ttf \
+pinplan --start 2027-01-01 --font DejaVuSans.ttf \
     --day-letters "ПВСЧПСН" \
     --month-names "СІЧ,ЛЮТ,БЕР,КВІ,ТРА,ЧЕР,ЛИП,СЕР,ВЕР,ЖОВ,ЛИС,ГРУ" \
     --title "КАЛЕНДАР НА РІК"
 ```
 
-The Go binary has PT Sans Narrow built in, which covers Cyrillic: use `--font pt-sans-narrow`
+The binary has PT Sans Narrow built in, which covers Cyrillic: use `--font pt-sans-narrow`
 and no font file is needed.
 
 ## Versions
 
 Releases follow [Semantic Versioning](DEV.md#versioning). The version is in the
-[`VERSION`](VERSION) file. Each implementation reports it with `--version` and writes it into
-every PDF it produces (Document Properties → Creator, e.g. `yearly-calendar 0.1.0 (Go)`).
+[`VERSION`](VERSION) file. The program reports it with `--version` and writes it into
+every PDF it produces (Document Properties → Creator, e.g. `PinPlan 1.0.0`).
 What changed in each release is in [Release-Notes.md](Release-Notes.md). Downloads are on
 the repository's Releases page. How releases are made is in [DEV.md](DEV.md).
 
@@ -124,10 +347,9 @@ the repository's Releases page. How releases are made is in [DEV.md](DEV.md).
 
 This project is released under the [MIT License](LICENSE).
 
-The Go binary also contains third-party work under its own licences. It embeds PT Sans
+The binary also contains third-party work under its own licences. It embeds PT Sans
 Narrow (ParaType, SIL Open Font License 1.1). It links
 [go-pdf/fpdf](https://github.com/go-pdf/fpdf) (MIT), [spf13/pflag](https://github.com/spf13/pflag)
-(BSD-3-Clause) and the Go standard library (BSD-3-Clause). The Python version uses
-[ReportLab](https://www.reportlab.com/) (BSD), installed separately.
-`yearly-calendar --licenses` prints these licences. Every release archive includes `LICENSE`,
-and the Go archives also include `OFL.txt` and `THIRD_PARTY_LICENSES.txt`.
+(BSD-3-Clause) and the Go standard library (BSD-3-Clause).
+`pinplan --licenses` prints these licences. Every release archive includes `LICENSE`,
+`OFL.txt` and `THIRD_PARTY_LICENSES.txt`.

@@ -1,0 +1,22 @@
+# release.dates — "Release Plan", 1 Jan – 31 May 2027 (crowded 5-column page)
+kickoff = 2027-01-04; title="Kick-off"
+beta    = 2027-03-08; title="Beta launch"; mark=dot; color=steel
+release = 2027-04-01; title="Release 2.0"; mark=star; color=red
+
+okr       = 2027-01-04/2027-04-01; title="Q1 OKR cycle"; color=grey; layer=back
+sprint    = 2027-01-04/2w;         title="Sprint"; every=2w; until=2027-05-31; color=grey
+feature_a = 2027-01-11/2027-03-12; title="Feature A"; color=teal
+feature_b = 2027-02-01/2027-03-26; title="Feature B"; color=violet
+audit     = 2027-03-01/2027-03-19; title="Security audit"; color=red; group=security
+beta_prog = @beta/2027-04-09;      title="Beta program"; color=steel
+docs      = 2027-03-10/2027-04-02; title="Docs & training"; color=ochre
+freeze    = 2027-03-15/2w;         title="Code freeze"; color=ink; group=release
+qa        = 2027-03-17/2w;         title="QA regression"; color=orange; group=release
+alice     = 2027-03-18/2027-03-26; title="Alice, leave"; color=grey; style=dashed; group=people
+migration = 2027-03-20/2d;         title="Migration window"; color=teal; group=release
+bob       = 2027-03-22/2027-04-02; title="Bob, leave"; color=grey; style=dashed; group=people
+pentest   = 2027-03-22/5d;         title="Pen test"; color=red; group=security; priority=high
+marketing = 2027-03-25/2027-04-30; title="Marketing campaign"; color=magenta
+q2plan    = 2027-03-29/2027-04-09; title="Q2 planning"; color=violet
+hypercare = @release/1m;           title="Hypercare"; color=orange
+bugbash   = 2027-04-12/5d;         title="Bug bash"; color=teal

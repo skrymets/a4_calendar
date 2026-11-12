@@ -1,0 +1,250 @@
+{
+ "fixture": "x13-adaptive.dates",
+ "options": {
+  "cap": 8,
+  "start": "2027-01-01",
+  "end": "2027-05-31",
+  "today": "2026-11-11"
+ },
+ "resolved": {
+  "milestones": [],
+  "intervals": [
+   {
+    "id": "j1",
+    "key": "1",
+    "start": "2027-01-04",
+    "endExclusive": "2027-01-21",
+    "lastDrawnDay": "2027-01-20"
+   },
+   {
+    "id": "j2",
+    "key": "2",
+    "start": "2027-01-10",
+    "endExclusive": "2027-01-26",
+    "lastDrawnDay": "2027-01-25"
+   },
+   {
+    "id": "f1",
+    "key": "3",
+    "start": "2027-02-01",
+    "endExclusive": "2027-02-11",
+    "lastDrawnDay": "2027-02-10"
+   },
+   {
+    "id": "f2",
+    "key": "4",
+    "start": "2027-02-03",
+    "endExclusive": "2027-02-13",
+    "lastDrawnDay": "2027-02-12"
+   },
+   {
+    "id": "f3",
+    "key": "5",
+    "start": "2027-02-05",
+    "endExclusive": "2027-02-15",
+    "lastDrawnDay": "2027-02-14"
+   },
+   {
+    "id": "f4",
+    "key": "6",
+    "start": "2027-02-07",
+    "endExclusive": "2027-02-17",
+    "lastDrawnDay": "2027-02-16"
+   },
+   {
+    "id": "f5",
+    "key": "7",
+    "start": "2027-02-09",
+    "endExclusive": "2027-02-19",
+    "lastDrawnDay": "2027-02-18"
+   },
+   {
+    "id": "m1",
+    "key": "8",
+    "start": "2027-03-01",
+    "endExclusive": "2027-03-13",
+    "lastDrawnDay": "2027-03-12"
+   },
+   {
+    "id": "m2",
+    "key": "9",
+    "start": "2027-03-02",
+    "endExclusive": "2027-03-14",
+    "lastDrawnDay": "2027-03-13"
+   },
+   {
+    "id": "m3",
+    "key": "10",
+    "start": "2027-03-03",
+    "endExclusive": "2027-03-15",
+    "lastDrawnDay": "2027-03-14"
+   },
+   {
+    "id": "m4",
+    "key": "11",
+    "start": "2027-03-04",
+    "endExclusive": "2027-03-16",
+    "lastDrawnDay": "2027-03-15"
+   },
+   {
+    "id": "m5",
+    "key": "12",
+    "start": "2027-03-05",
+    "endExclusive": "2027-03-17",
+    "lastDrawnDay": "2027-03-16"
+   },
+   {
+    "id": "m6",
+    "key": "13",
+    "start": "2027-03-06",
+    "endExclusive": "2027-03-18",
+    "lastDrawnDay": "2027-03-17"
+   },
+   {
+    "id": "m7",
+    "key": "14",
+    "start": "2027-03-07",
+    "endExclusive": "2027-03-19",
+    "lastDrawnDay": "2027-03-18"
+   },
+   {
+    "id": "m8",
+    "key": "15",
+    "start": "2027-03-08",
+    "endExclusive": "2027-03-20",
+    "lastDrawnDay": "2027-03-19"
+   }
+  ]
+ },
+ "layout": {
+  "geometry": "wide",
+  "laneCap": 8,
+  "groupsMerged": false,
+  "layout": "packed",
+  "columns": [
+   {
+    "month": "JAN",
+    "railLanes": 2,
+    "labelMode": "text",
+    "labels": [
+     {
+      "day": 4,
+      "items": [
+       "J1"
+      ]
+     },
+     {
+      "day": 10,
+      "items": [
+       "J2"
+      ]
+     }
+    ]
+   },
+   {
+    "month": "FEB",
+    "railLanes": 5,
+    "labelMode": "keys",
+    "labels": [
+     {
+      "day": 1,
+      "items": [
+       "3"
+      ]
+     },
+     {
+      "day": 3,
+      "items": [
+       "4"
+      ]
+     },
+     {
+      "day": 5,
+      "items": [
+       "5"
+      ]
+     },
+     {
+      "day": 7,
+      "items": [
+       "6"
+      ]
+     },
+     {
+      "day": 9,
+      "items": [
+       "7"
+      ]
+     }
+    ]
+   },
+   {
+    "month": "MAR",
+    "railLanes": 8,
+    "labelMode": "keys",
+    "labels": [
+     {
+      "day": 1,
+      "items": [
+       "8"
+      ]
+     },
+     {
+      "day": 2,
+      "items": [
+       "9"
+      ]
+     },
+     {
+      "day": 3,
+      "items": [
+       "10"
+      ]
+     },
+     {
+      "day": 4,
+      "items": [
+       "11"
+      ]
+     },
+     {
+      "day": 5,
+      "items": [
+       "12"
+      ]
+     },
+     {
+      "day": 6,
+      "items": [
+       "13"
+      ]
+     },
+     {
+      "day": 7,
+      "items": [
+       "14"
+      ]
+     },
+     {
+      "day": 8,
+      "items": [
+       "15"
+      ]
+     }
+    ]
+   },
+   {
+    "month": "APR",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   },
+   {
+    "month": "MAY",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   }
+  ]
+ }
+}

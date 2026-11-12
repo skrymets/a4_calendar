@@ -8,8 +8,8 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"a4calendar/internal/canvas"
-	"a4calendar/internal/period"
+	"pinplan/internal/canvas"
+	"pinplan/internal/period"
 )
 
 // Align is the horizontal anchor of DrawSpaced's x.
@@ -21,12 +21,12 @@ const (
 	AlignRight
 )
 
-// SpacedWidth is the width of s with letter-spacing (Python spaced_width).
+// SpacedWidth is the width of s with letter-spacing.
 func SpacedWidth(c canvas.Canvas, s string, f canvas.Font, size, spacing float64) float64 {
 	return c.StringWidth(s, f, size) + spacing*float64(utf8.RuneCountInString(s)-1)
 }
 
-// DrawSpaced draws letter-spaced text anchored at x (Python draw_spaced).
+// DrawSpaced draws letter-spaced text anchored at x.
 func DrawSpaced(c canvas.Canvas, s string, x, y float64, f canvas.Font, size, spacing float64, a Align) {
 	w := SpacedWidth(c, s, f, size, spacing)
 	switch a {
@@ -39,16 +39,21 @@ func DrawSpaced(c canvas.Canvas, s string, x, y float64, f canvas.Font, size, sp
 	c.DrawSpaced(x, y, s, spacing)
 }
 
-// FitText truncates text with "..." so that width(text) <= maxW
-// (Python fit_text).
+// FitText truncates text with "..." so that width(text) <= maxW.
 func FitText(text string, maxW float64, width func(string) float64) string {
+	return fitText(text, maxW, "...", width)
+}
+
+// fitText truncates text with ell so that width(text) <= maxW; "" if
+// nothing fits.
+func fitText(text string, maxW float64, ell string, width func(string) float64) string {
 	if width(text) <= maxW {
 		return text
 	}
 	r := []rune(text)
 	for len(r) > 0 {
 		r = r[:len(r)-1]
-		cut := strings.TrimRightFunc(string(r), unicode.IsSpace) + "..."
+		cut := strings.TrimRightFunc(string(r), unicode.IsSpace) + ell
 		if width(cut) <= maxW {
 			return cut
 		}

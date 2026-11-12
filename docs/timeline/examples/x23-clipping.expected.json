@@ -1,0 +1,85 @@
+{
+ "fixture": "x23-clipping.dates",
+ "options": {
+  "start": "2027-01-15",
+  "end": "2027-06-14",
+  "today": "2026-11-11"
+ },
+ "resolved": {
+  "milestones": [],
+  "intervals": [
+   {
+    "id": "pre",
+    "key": "1",
+    "start": "2027-01-05",
+    "endExclusive": "2027-01-25",
+    "lastDrawnDay": "2027-01-24"
+   },
+   {
+    "id": "post",
+    "key": "2",
+    "start": "2027-06-01",
+    "endExclusive": "2027-07-01",
+    "lastDrawnDay": "2027-06-30"
+   }
+  ]
+ },
+ "layout": {
+  "geometry": "wide",
+  "laneCap": 4,
+  "groupsMerged": false,
+  "layout": "packed",
+  "columns": [
+   {
+    "month": "JAN",
+    "railLanes": 1,
+    "labelMode": "text",
+    "labels": [
+     {
+      "day": 15,
+      "items": [
+       "STARTED EARLIER · 20 D"
+      ]
+     }
+    ]
+   },
+   {
+    "month": "FEB",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   },
+   {
+    "month": "MAR",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   },
+   {
+    "month": "APR",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   },
+   {
+    "month": "MAY",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   },
+   {
+    "month": "JUN",
+    "railLanes": 1,
+    "labelMode": "text",
+    "labels": [
+     {
+      "day": 1,
+      "items": [
+       "ENDS LATER · 30 D"
+      ]
+     }
+    ]
+   }
+  ]
+ }
+}

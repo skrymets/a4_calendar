@@ -5,9 +5,11 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
 	"testing"
 
-	"a4calendar/internal/fonts"
+	"pinplan/internal/fonts"
 )
 
 func TestHex(t *testing.T) {
@@ -28,8 +30,8 @@ func TestHex(t *testing.T) {
 	}
 }
 
-// Widths must equal ReportLab's pdfmetrics.stringWidth (values from Python).
-func TestHelveticaWidthsMatchReportLab(t *testing.T) {
+// Widths are the standard Helvetica AFM metrics.
+func TestHelveticaWidths(t *testing.T) {
 	c := New(595.2755905511812, 841.8897637795277)
 	cases := []struct {
 		s    string
@@ -139,5 +141,53 @@ func TestSaveFailureLeavesNoFile(t *testing.T) {
 	out := filepath.Join(t.TempDir(), "nodir", "x.pdf")
 	if err := c.Save(out); err == nil {
 		t.Error("expected error")
+	}
+}
+
+func TestBoldHelvetica(t *testing.T) {
+	c := New(595.2755905511812, 841.8897637795277)
+	c.pdf.SetCompression(false)
+	bold := Helvetica.Bolder()
+	// Helvetica-Bold AFM: "A" 722, "B" 722; regular: 667, 667
+	if got := c.StringWidth("AB", bold, 10); math.Abs(got-14.44) > 1e-3 {
+		t.Errorf("bold width = %.4f; want 14.44", got)
+	}
+	c.SetFont(bold, 10)
+	c.DrawString(10, 10, "AB")
+	var buf bytes.Buffer
+	if err := c.pdf.Output(&buf); err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Contains(buf.Bytes(), []byte("/BaseFont /Helvetica-Bold")) {
+		t.Error("Helvetica-Bold not used")
+	}
+}
+
+// Synthetic bold and the raw shapes must leave the graphics state balanced.
+func TestSyntheticBoldAndShapes(t *testing.T) {
+	c := New(595.2755905511812, 841.8897637795277)
+	c.pdf.SetCompression(false)
+	pt := TTF("PTSansNarrow", fonts.PTSansNarrow).Bolder()
+	c.SetFillColor(MustHex("#8E1B1B"))
+	c.SetFont(pt, 8)
+	c.DrawString(10, 10, "Bold")
+	c.RoundedRect(10, 20, 3, 30, 0.75, 0, true)
+	c.RoundedRect(20, 20, 10, 8, 4, 4, false)
+	c.Polygon([]Point{{1, 1}, {2, 3}, {3, 1}})
+	c.Circle(50, 50, 2)
+	var buf bytes.Buffer
+	if err := c.pdf.Output(&buf); err != nil {
+		t.Fatal(err)
+	}
+	pdf := buf.String()
+	for _, want := range []string{"q 0.557 0.106 0.106 RG 0.280 w 2 Tr", "10.750 50.000 m", "1.000 1.000 m"} {
+		if !strings.Contains(pdf, want) {
+			t.Errorf("content lacks %q", want)
+		}
+	}
+	q := regexp.MustCompile(`(?m)(^|\s)q(\s|$)`).FindAllStringIndex(pdf, -1)
+	Q := regexp.MustCompile(`(?m)(^|\s)Q(\s|$)`).FindAllStringIndex(pdf, -1)
+	if len(q) != len(Q) {
+		t.Errorf("unbalanced graphics state: %d q, %d Q", len(q), len(Q))
 	}
 }

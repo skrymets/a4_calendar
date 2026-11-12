@@ -1,10 +1,66 @@
 # Release notes
 
-Versions follow [Semantic Versioning](DEV.md#versioning). While the version is `0.x`, a
-MINOR release may change behaviour you rely on, and says so under **Changed**.
+Versions follow [Semantic Versioning](DEV.md#versioning). Since 1.0.0, only a MAJOR release
+changes behaviour you rely on, and says so under **Changed**.
 
 Each release has a section headed by its bare version (`## 0.1.0`). The release workflow
 publishes that section as the GitHub release text, and refuses a tag whose version has none.
+
+## 1.0.0
+
+The first stable release, and the first under the name **PinPlan**: *Plan it. Print it.
+Pin it.*
+
+### Added
+
+- **Milestones and intervals** on the calendar, from `.dates` files (`--file`) or inline
+  (`--milestone`, `--interval`), written in a small date language: fixed dates, `today`,
+  durations, repeats (`every`, `gap`, `count`, `until`), and references with offsets to
+  earlier milestones (`@exam-2w`), to an interval's first or last day (`@qa.end+1d`) and to
+  one occurrence of a repeat (`@review[3]`, `@review[-1]`). Offsets chain
+  (`@release-1m+3d`) and durations may have several parts (`2027-08-01/1m+13d`).
+  `--today` sets the evaluation date and is the default `--start`.
+  - An interval includes both dates written (`2027-08-13/2027-09-05` ends on 5 September);
+    `<` before the end leaves it out (`2w/<@exam` ends the day before the exam). An
+    interval may be a single day (`2027-11-17/2027-11-17`), drawn one cell long.
+  - Milestones: a mark (diamond, star, dot, or a ring around the day number), a title on
+    the note line, and an optional countdown.
+  - Intervals: coloured rails at the right edge of the cells, solid, dashed or hatched,
+    labelled or numbered; margin lines for background spans; merged groups on crowded
+    pages; an overflow rail with `+N` when a column is full.
+  - A legend under the grid, in date order and read column by column; interval keys are
+    numbered in that order. The rows give up the room it needs. The footer names the
+    timeline sources, and the PDF Subject lists them.
+  - Options: `--timeline-layout packed|flow`, `--timeline-compact daily|weekly`,
+    `--timeline-lanes`, `--timeline-groups auto|merge|separate`, `--timeline-legend full|off`.
+  - Errors in declarations stop the run with one `file:line: message` per problem (exit 2).
+  - Without milestones or intervals the page is exactly as before.
+- **`--end` and `--until`** give the period by its last day, or the day after it, instead of
+  `--period`. The title and file name follow the shortest matching length
+  (`--end 2027-06-30` from 1 January: `6-MONTH CALENDAR`, `calendar_2027-01-01_6m.pdf`).
+- **Date expressions in `--start`, `--end` and `--until`**: `today+1w`, `@kickoff`,
+  `@exam+1w`, `@qa.end`; the page follows the plan. `@today` is another spelling of `today`,
+  in options and declarations alike.
+- **All options in one file**: a line starting with `--` in a `.dates` file sets an option
+  as on the command line (`--start = @kickoff`, `--paper letter`), and `--file` in a file
+  includes another at that line. Paths are relative to the file; the command line wins;
+  an option set twice in files is an error. `pinplan plan.dates` reads a file
+  without `--file`.
+- **An icon**: `pinplan.exe` shows the PinPlan calendar icon in Explorer and the taskbar.
+
+### Changed
+
+- **The program is now called PinPlan.** The command is `pinplan` (`pinplan.exe` on
+  Windows), and the release archives are `pinplan-<version>-<platform>`. `--version` and
+  the PDF Creator metadata say `PinPlan <version>` (they said
+  `yearly-calendar <version> (Go)`). The options and the default PDF name
+  (`calendar_<start>.pdf`) are unchanged.
+
+### Removed
+
+- **The Python version** (`py/yearly_calendar.py`) and its release archive
+  (`yearly-calendar-py-<version>.zip`). The Go binary prints the same page with the same
+  options. The Python/Go comparison tool (`tools/parity.py`) is gone with it.
 
 ## 0.1.0
 

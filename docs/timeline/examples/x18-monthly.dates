@@ -1,0 +1,1 @@
+report = 2027-01-31; title="Report"; every=1m; count=5; color=red; label=each

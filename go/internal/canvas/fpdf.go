@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/go-pdf/fpdf"
@@ -17,6 +18,7 @@ type FPDF struct {
 	cp1252 func(string) string
 	cur    Font
 	size   float64
+	fill   RGB // current fill (= text) colour, for synthetic bold
 	loaded map[string]bool
 }
 
@@ -95,7 +97,16 @@ func CheckTTF(data []byte) (err error) {
 	return p.Error()
 }
 
+// style is the fpdf style string: core Helvetica has a real bold face.
+func style(f Font) string {
+	if f.Bold && f.TTF == nil {
+		return "B"
+	}
+	return ""
+}
+
 func (c *FPDF) SetFillColor(col RGB) {
+	c.fill = col
 	r, g, b := int(col.R), int(col.G), int(col.B)
 	c.pdf.SetFillColor(r, g, b)
 	c.pdf.SetTextColor(r, g, b) // same colour: Text() then adds no q/Q wrapper
@@ -120,15 +131,90 @@ func (c *FPDF) Line(x1, y1, x2, y2 float64) { c.pdf.Line(x1, c.pageH-y1, x2, c.p
 
 func (c *FPDF) SetFont(f Font, size float64) {
 	c.cur, c.size = f, size
-	c.pdf.SetFont(c.family(f), "", size)
+	c.pdf.SetFont(c.family(f), style(f), size)
 }
 
+// syntheticBold is the outline width of synthetic bold, relative to the size.
+const syntheticBold = 0.035
+
+// DrawString draws s with its baseline at y. A bold TrueType font is drawn
+// with text render mode 2 (fill and stroke) inside q/Q, so the stroke colour,
+// line width and render mode do not leak into later drawing.
 func (c *FPDF) DrawString(x, y float64, s string) {
+	if c.cur.Bold && c.cur.TTF != nil {
+		c.pdf.RawWriteStr(fmt.Sprintf("q %s RG %s w 2 Tr", rgb(c.fill), num(syntheticBold*c.size)))
+		defer c.pdf.RawWriteStr("Q")
+	}
 	c.pdf.Text(x, c.pageH-y, c.enc(c.cur, s))
 }
 
+// RoundedRect, Polygon and Circle write their paths directly: user space is
+// already PDF-native points, and fpdf's RoundedRect leaves a q unbalanced.
+
+func (c *FPDF) RoundedRect(x, y, w, h, rTop, rBottom float64, fill bool) {
+	rTop, rBottom = min(rTop, w/2, h/2), min(rBottom, w/2, h/2)
+	const k = 0.5523 // Bézier handle length of a quarter circle
+	var b strings.Builder
+	m := func(op string, v ...float64) {
+		for _, f := range v {
+			b.WriteString(num(f) + " ")
+		}
+		b.WriteString(op + "\n")
+	}
+	x1, y1 := x+w, y+h
+	m("m", x+rTop, y1)
+	m("l", x1-rTop, y1)
+	if rTop > 0 {
+		m("c", x1-rTop+k*rTop, y1, x1, y1-rTop+k*rTop, x1, y1-rTop)
+	}
+	m("l", x1, y+rBottom)
+	if rBottom > 0 {
+		m("c", x1, y+rBottom-k*rBottom, x1-rBottom+k*rBottom, y, x1-rBottom, y)
+	}
+	m("l", x+rBottom, y)
+	if rBottom > 0 {
+		m("c", x+rBottom-k*rBottom, y, x, y+rBottom-k*rBottom, x, y+rBottom)
+	}
+	m("l", x, y1-rTop)
+	if rTop > 0 {
+		m("c", x, y1-rTop+k*rTop, x+rTop-k*rTop, y1, x+rTop, y1)
+	}
+	if fill {
+		b.WriteString("f")
+	} else {
+		b.WriteString("s") // close and stroke
+	}
+	c.pdf.RawWriteStr(b.String())
+}
+
+func (c *FPDF) Polygon(pts []Point) {
+	if len(pts) < 3 {
+		return
+	}
+	var b strings.Builder
+	for i, p := range pts {
+		op := " l\n"
+		if i == 0 {
+			op = " m\n"
+		}
+		b.WriteString(num(p.X) + " " + num(p.Y) + op)
+	}
+	b.WriteString("f")
+	c.pdf.RawWriteStr(b.String())
+}
+
+func (c *FPDF) Circle(x, y, r float64) { c.RoundedRect(x-r, y-r, 2*r, 2*r, r, r, true) }
+
+// num formats a coordinate for a content stream.
+func num(f float64) string { return strconv.FormatFloat(f, 'f', 3, 64) }
+
+// rgb formats a colour as three 0..1 components.
+func rgb(col RGB) string {
+	return fmt.Sprintf("%s %s %s", num(float64(col.R)/255), num(float64(col.G)/255), num(float64(col.B)/255))
+}
+
 // DrawSpaced draws with letter-spacing via the Tc operator and resets it,
-// since Tc persists in the text state (as draw_spaced in Python).
+// since Tc persists in the text state.
 func (c *FPDF) DrawSpaced(x, y float64, s string, spacing float64) {
 	c.pdf.RawWriteStr(fmt.Sprintf("%.2f Tc", spacing)) // RawWriteStr appends "\n"
 	c.DrawString(x, y, s)
@@ -137,15 +223,16 @@ func (c *FPDF) DrawSpaced(x, y float64, s string, spacing float64) {
 
 // StringWidth measures s in f at size without changing the current font.
 func (c *FPDF) StringWidth(s string, f Font, size float64) float64 {
-	c.pdf.SetFont(c.family(f), "", size)
+	c.pdf.SetFont(c.family(f), style(f), size)
 	w := c.pdf.GetStringWidth(c.enc(f, s))
 	if c.size > 0 {
-		c.pdf.SetFont(c.family(c.cur), "", c.size)
+		c.pdf.SetFont(c.family(c.cur), style(c.cur), c.size)
 	}
 	return w
 }
 
-func (c *FPDF) SetTitle(s string) { c.pdf.SetTitle(s, true) }
+func (c *FPDF) SetTitle(s string)   { c.pdf.SetTitle(s, true) }
+func (c *FPDF) SetSubject(s string) { c.pdf.SetSubject(s, true) }
 
 // SetCreator records the producing program in the document metadata. The
 // value is ASCII (program name and version), so it is stored as plain text.

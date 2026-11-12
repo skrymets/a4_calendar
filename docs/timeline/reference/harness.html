@@ -1,0 +1,37 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+body{margin:0;background:#fff;font-family:'Liberation Sans',Helvetica,Arial,sans-serif;color:#1F1F1F}
+#stage{display:inline-block;padding:0}
+.page{box-sizing:border-box;background:#fff;display:flex;flex-direction:column}
+.title{display:flex;justify-content:space-between;align-items:baseline;height:22px;font-size:14px;letter-spacing:.14em}
+.title .per{font-size:11px}
+.band{display:grid;height:22px;box-sizing:border-box;background:#E6E6E6;border-top:1px solid #8C8C8C;border-bottom:.5px solid #8C8C8C;margin-top:8px;font-size:9px;letter-spacing:.12em;line-height:21px;text-align:center;white-space:nowrap;overflow:hidden}
+.crop .band{margin-top:0}
+.grid{display:grid;border-bottom:1px solid #8C8C8C}
+.col{border-left:1px solid #D0D0D0;min-width:0}
+.cell{position:relative;overflow:hidden;box-sizing:border-box}
+.lab{position:absolute;bottom:4px}
+.tiny{font-size:5.2px;line-height:7px;color:#7A7A7A;white-space:nowrap}
+.main{font-size:9.33px;line-height:11px;white-space:nowrap;display:flex;align-items:center}
+.num{border:1px solid transparent;border-radius:7px;padding:0 1px;margin-left:-2px}
+.glyph{font-size:6.5px;margin-left:2px}
+.cd{position:absolute;top:3px;font-size:5.5px;font-weight:700;letter-spacing:.04em}
+.top{position:absolute;top:3px;display:flex;justify-content:flex-end;gap:2.5px;white-space:nowrap;overflow:hidden;font-size:6px;line-height:7.5px;font-weight:700;letter-spacing:.06em}
+.top span.t{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.top.narrow{flex-wrap:wrap;height:15px;font-size:5.5px;line-height:7px;column-gap:2px;letter-spacing:0;align-content:flex-start}
+.mst{position:absolute;bottom:5px;font-size:7.5px;line-height:9px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.msg{position:absolute;bottom:5px;font-size:7px;line-height:8px}
+.legend{display:grid;column-gap:12px;row-gap:2px;margin-top:8px}
+.crop .legend{margin-top:8px;max-width:720px}
+.li{display:flex;align-items:center;gap:4px;font-size:6.5px;line-height:8px;min-width:0}
+.sw{flex:none;width:3px;height:8px;border-radius:1px}
+.lk{flex:none;width:9px;text-align:right;font-weight:700}
+.lt{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.lw{flex:none;color:#7A7A7A;white-space:nowrap}
+.foot{margin-top:auto;font-size:6.5px;color:#7A7A7A;white-space:nowrap;overflow:hidden}
+.crop{position:relative;display:inline-block;background:#fff;padding:4px}
+.co{position:absolute;width:12px;height:12px;border-radius:6px;background:#1A3A7A;color:#fff;font:700 7.5px/12px 'Liberation Sans',sans-serif;text-align:center;box-shadow:0 0 0 1.5px #fff}
+</style>
+<script src="engine.js"></script>
+</head><body><div id="stage"></div></body></html>

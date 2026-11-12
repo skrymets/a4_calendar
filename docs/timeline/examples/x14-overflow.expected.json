@@ -1,0 +1,164 @@
+{
+ "fixture": "x14-overflow.dates",
+ "options": {
+  "start": "2027-01-01",
+  "end": "2027-05-31",
+  "today": "2026-11-11"
+ },
+ "resolved": {
+  "milestones": [],
+  "intervals": [
+   {
+    "id": "i1",
+    "key": "1",
+    "start": "2027-03-01",
+    "endExclusive": "2027-03-11",
+    "lastDrawnDay": "2027-03-10"
+   },
+   {
+    "id": "i2",
+    "key": "2",
+    "start": "2027-03-02",
+    "endExclusive": "2027-03-12",
+    "lastDrawnDay": "2027-03-11"
+   },
+   {
+    "id": "i3",
+    "key": "3",
+    "start": "2027-03-03",
+    "endExclusive": "2027-03-13",
+    "lastDrawnDay": "2027-03-12"
+   },
+   {
+    "id": "i4",
+    "key": "4",
+    "start": "2027-03-04",
+    "endExclusive": "2027-03-14",
+    "lastDrawnDay": "2027-03-13"
+   },
+   {
+    "id": "i5",
+    "key": "5",
+    "start": "2027-03-05",
+    "endExclusive": "2027-03-15",
+    "lastDrawnDay": "2027-03-14"
+   },
+   {
+    "id": "i6",
+    "key": "6",
+    "start": "2027-03-06",
+    "endExclusive": "2027-03-16",
+    "lastDrawnDay": "2027-03-15"
+   },
+   {
+    "id": "i7",
+    "key": "7",
+    "start": "2027-03-07",
+    "endExclusive": "2027-03-17",
+    "lastDrawnDay": "2027-03-16"
+   },
+   {
+    "id": "i8",
+    "key": "8",
+    "start": "2027-03-08",
+    "endExclusive": "2027-03-18",
+    "lastDrawnDay": "2027-03-17"
+   }
+  ]
+ },
+ "layout": {
+  "geometry": "wide",
+  "laneCap": 6,
+  "groupsMerged": false,
+  "layout": "packed",
+  "columns": [
+   {
+    "month": "JAN",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   },
+   {
+    "month": "FEB",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   },
+   {
+    "month": "MAR",
+    "railLanes": 7,
+    "labelMode": "keys",
+    "labels": [
+     {
+      "day": 1,
+      "items": [
+       "1"
+      ]
+     },
+     {
+      "day": 2,
+      "items": [
+       "2"
+      ]
+     },
+     {
+      "day": 3,
+      "items": [
+       "3"
+      ]
+     },
+     {
+      "day": 4,
+      "items": [
+       "4"
+      ]
+     },
+     {
+      "day": 5,
+      "items": [
+       "5"
+      ]
+     },
+     {
+      "day": 6,
+      "items": [
+       "6",
+       "+1"
+      ]
+     },
+     {
+      "day": 7,
+      "items": [
+       "7",
+       "+2"
+      ]
+     },
+     {
+      "day": 8,
+      "items": [
+       "8"
+      ]
+     },
+     {
+      "day": 16,
+      "items": [
+       "+1"
+      ]
+     }
+    ]
+   },
+   {
+    "month": "APR",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   },
+   {
+    "month": "MAY",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   }
+  ]
+ }
+}

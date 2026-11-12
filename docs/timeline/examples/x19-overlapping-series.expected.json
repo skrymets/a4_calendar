@@ -1,0 +1,108 @@
+{
+ "fixture": "x19-overlapping-series.dates",
+ "options": {
+  "start": "2027-01-01",
+  "end": "2027-05-31",
+  "today": "2026-11-11"
+ },
+ "resolved": {
+  "milestones": [],
+  "intervals": [
+   {
+    "id": "review",
+    "key": "1",
+    "start": "2027-03-01",
+    "endExclusive": "2027-03-11",
+    "lastDrawnDay": "2027-03-10",
+    "occurrence": "1/4"
+   },
+   {
+    "id": "review",
+    "key": "1",
+    "start": "2027-03-08",
+    "endExclusive": "2027-03-18",
+    "lastDrawnDay": "2027-03-17",
+    "occurrence": "2/4"
+   },
+   {
+    "id": "review",
+    "key": "1",
+    "start": "2027-03-15",
+    "endExclusive": "2027-03-25",
+    "lastDrawnDay": "2027-03-24",
+    "occurrence": "3/4"
+   },
+   {
+    "id": "review",
+    "key": "1",
+    "start": "2027-03-22",
+    "endExclusive": "2027-04-01",
+    "lastDrawnDay": "2027-03-31",
+    "occurrence": "4/4"
+   }
+  ]
+ },
+ "layout": {
+  "geometry": "wide",
+  "laneCap": 6,
+  "groupsMerged": false,
+  "layout": "packed",
+  "columns": [
+   {
+    "month": "JAN",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   },
+   {
+    "month": "FEB",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   },
+   {
+    "month": "MAR",
+    "railLanes": 2,
+    "labelMode": "text",
+    "labels": [
+     {
+      "day": 1,
+      "items": [
+       "REVIEW #1"
+      ]
+     },
+     {
+      "day": 8,
+      "items": [
+       "#2"
+      ]
+     },
+     {
+      "day": 15,
+      "items": [
+       "#3"
+      ]
+     },
+     {
+      "day": 22,
+      "items": [
+       "#4"
+      ]
+     }
+    ]
+   },
+   {
+    "month": "APR",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   },
+   {
+    "month": "MAY",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   }
+  ]
+ }
+}

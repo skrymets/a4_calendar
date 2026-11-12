@@ -1,0 +1,157 @@
+{
+ "fixture": "x16-recurring-interval.dates",
+ "options": {
+  "start": "2027-01-01",
+  "end": "2027-05-31",
+  "today": "2026-11-11"
+ },
+ "resolved": {
+  "milestones": [],
+  "intervals": [
+   {
+    "id": "course",
+    "key": "1",
+    "start": "2027-01-04",
+    "endExclusive": "2027-02-15",
+    "lastDrawnDay": "2027-02-14"
+   },
+   {
+    "id": "labs",
+    "key": "2",
+    "start": "2027-01-11",
+    "endExclusive": "2027-01-13",
+    "lastDrawnDay": "2027-01-12",
+    "occurrence": "1/6"
+   },
+   {
+    "id": "labs",
+    "key": "2",
+    "start": "2027-01-25",
+    "endExclusive": "2027-01-27",
+    "lastDrawnDay": "2027-01-26",
+    "occurrence": "2/6"
+   },
+   {
+    "id": "labs",
+    "key": "2",
+    "start": "2027-02-08",
+    "endExclusive": "2027-02-10",
+    "lastDrawnDay": "2027-02-09",
+    "occurrence": "3/6"
+   },
+   {
+    "id": "labs",
+    "key": "2",
+    "start": "2027-02-22",
+    "endExclusive": "2027-02-24",
+    "lastDrawnDay": "2027-02-23",
+    "occurrence": "4/6"
+   },
+   {
+    "id": "labs",
+    "key": "2",
+    "start": "2027-03-08",
+    "endExclusive": "2027-03-10",
+    "lastDrawnDay": "2027-03-09",
+    "occurrence": "5/6"
+   },
+   {
+    "id": "labs",
+    "key": "2",
+    "start": "2027-03-22",
+    "endExclusive": "2027-03-24",
+    "lastDrawnDay": "2027-03-23",
+    "occurrence": "6/6"
+   }
+  ]
+ },
+ "layout": {
+  "geometry": "wide",
+  "laneCap": 6,
+  "groupsMerged": false,
+  "layout": "packed",
+  "columns": [
+   {
+    "month": "JAN",
+    "railLanes": 2,
+    "labelMode": "text",
+    "labels": [
+     {
+      "day": 4,
+      "items": [
+       "COURSE"
+      ]
+     },
+     {
+      "day": 11,
+      "items": [
+       "LAB #1"
+      ]
+     },
+     {
+      "day": 25,
+      "items": [
+       "#2"
+      ]
+     }
+    ]
+   },
+   {
+    "month": "FEB",
+    "railLanes": 2,
+    "labelMode": "text",
+    "labels": [
+     {
+      "day": 1,
+      "items": [
+       "COURSE (CONT.)"
+      ]
+     },
+     {
+      "day": 8,
+      "items": [
+       "LAB #3"
+      ]
+     },
+     {
+      "day": 22,
+      "items": [
+       "#4"
+      ]
+     }
+    ]
+   },
+   {
+    "month": "MAR",
+    "railLanes": 1,
+    "labelMode": "text",
+    "labels": [
+     {
+      "day": 8,
+      "items": [
+       "LAB #5"
+      ]
+     },
+     {
+      "day": 22,
+      "items": [
+       "#6"
+      ]
+     }
+    ]
+   },
+   {
+    "month": "APR",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   },
+   {
+    "month": "MAY",
+    "railLanes": 0,
+    "labelMode": "text",
+    "labels": []
+   }
+  ]
+ }
+}
