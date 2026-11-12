@@ -85,7 +85,7 @@ days), written in a small date language, inline or in a `.dates` file.
 ```sh
 yearly-calendar --start 2026-11-11 --period 120d --file exams.dates --title "Prepare for Exams"
 yearly-calendar --milestone 'release=2027-03-15;title="Release"' \
-                --interval  'qa=@release-2w/@release;title="Final QA";color=orange'
+                --interval  'qa=@release-2w/<@release;title="Final QA";color=orange'
 ```
 
 In **Windows PowerShell 5.1** the double quotes inside an argument are lost, so a title
@@ -93,7 +93,7 @@ with a space fails. Put `--%` before the arguments and escape the quotes with a 
 After `--%` PowerShell passes the line on unchanged and no longer expands `$variables`:
 
 ```powershell
-& .\yearly-calendar.exe --% --milestone "release=2027-03-15;title=\"Release\"" --interval "qa=@release-2w/@release;title=\"Final QA\""
+& .\yearly-calendar.exe --% --milestone "release=2027-03-15;title=\"Release\"" --interval "qa=@release-2w/<@release;title=\"Final QA\""
 ```
 
 PowerShell 7.3 and later and Unix shells need none of this, and a `.dates` file avoids
@@ -103,27 +103,31 @@ shell quoting altogether. In any PowerShell, quote a value that starts with `@`
 A `.dates` file has one declaration per line; `#` starts a comment:
 
 ```
-kickoff  = today;           title="Kick-off"
-exam     = 2027-03-01;      title="Final exam"; mark=star; color=red; countdown=7
-tutor    = 2026-11-19;      title="Tutor call"; every=1w; until=@exam; mark=dot
-theory   = @kickoff/5w;     title="Theory"; color=teal; length=days
-practice = @theory.end/3w;  title="Practice"; color=violet
-labs     = 2026-11-16/2d;   title="Lab session"; every=2w; count=8; color=steel
-lastlab  = @labs[-1].start; title="Last lab"; mark=dot
-revision = 2w/@exam;        title="Revision"; color=orange
+kickoff  = today;             title="Kick-off"
+exam     = 2027-03-01;        title="Final exam"; mark=star; color=red; countdown=7
+tutor    = 2026-11-19;        title="Tutor call"; every=1w; until=@exam; mark=dot
+theory   = @kickoff/5w;       title="Theory"; color=teal; length=days
+practice = @theory.end+1d/3w; title="Practice"; color=violet
+labs     = 2026-11-16/2d;     title="Lab session"; every=2w; count=8; color=steel
+lastlab  = @labs[-1].start;   title="Last lab"; mark=dot
+holidays = 2026-12-24/2027-01-06; title="Holidays"; style=hatch
+revision = 2w/<@exam;         title="Revision"; color=orange
 ```
 
 - **Dates**: `2027-03-15`, `today` (also written `@today`), or a reference to something
-  declared earlier, each optionally shifted: `@exam-30d`, `today+2w`. Units are `d`, `w`, `m` and `y`; months keep
-  the day or stop at the month's end.
+  declared earlier, each optionally shifted, once or more: `@exam-30d`, `today+2w`,
+  `@exam-1m+3d`. Units are `d`, `w`, `m` and `y`; months keep the day or stop at the
+  month's end, at each step.
 - **References**: `@exam` is a milestone's date; `@theory.start` and `@theory.end` are an
-  interval's start and end (the end as written, the day after its last day, so
-  `@theory.end/3w` follows straight on). A repeat is referenced by occurrence: `@tutor[3]`
-  is the third, `@tutor[-1]` the last (this needs `count` or `until`), and
-  `@labs[2].start` the start of the second lab.
-- **Intervals** are `START/END`, `START/DURATION` or `DURATION/END`. The end is not
-  included: `2027-01-04/2027-01-08` covers 4–7 January. An interval may be anonymous
-  (no `name =`).
+  interval's first and last day, so `@theory.end+1d/3w` follows straight on. A repeat is
+  referenced by occurrence: `@tutor[3]` is the third, `@tutor[-1]` the last (this needs
+  `count` or `until`), and `@labs[2].start` the start of the second lab.
+- **Intervals** are `START/END`, `START/DURATION` or `DURATION/END`. The end date is
+  included: `2027-01-04/2027-01-08` covers 4–8 January. A `<` before it leaves it out:
+  `2027-01-04/<2027-01-08` covers 4–7 January, and `2w/<@exam` ends the day before the
+  exam. A duration is a length and may have several parts: `2027-08-01/1m+13d` covers
+  1 August to 13 September. One day is an interval too (`2027-11-17/2027-11-17`), drawn
+  as a rail one cell long. An interval may be anonymous (no `name =`).
 - **Repeats**: `every=2w` (from the first start) or `gap=1w` (after the previous end), with
   `count=8` or `until=@exam`, or until the end of the page.
 - `--today YYYY-MM-DD` sets what `today` means, and is also the default `--start`.
@@ -227,7 +231,7 @@ yearly-calendar exams.dates --paper a4       # the command line wins
 | `--font PATH.ttf` | Helvetica | a TrueType font, needed for non-Latin scripts |
 | `--file PATH` | | milestones, intervals and options from a `.dates` file; repeatable; a path without `--file` is read the same way |
 | `--milestone DECL` | | one milestone, e.g. `'exam=2027-03-01;title="Exam"'`; repeatable |
-| `--interval DECL` | | one interval, e.g. `'qa=@exam-2w/@exam'`; repeatable |
+| `--interval DECL` | | one interval, e.g. `'qa=@exam-2w/<@exam'`; repeatable |
 | `--today YYYY-MM-DD` | today | the date `today` and `@today` stand for |
 | `--timeline-layout packed\|flow` | `packed` | `packed`: rails arranged per month; `flow`: rails keep their place across months and close up as intervals end |
 | `--timeline-compact daily\|weekly` | `daily` | `flow` only: close up every day, or on `--week-start` |

@@ -13,13 +13,17 @@ publishes that section as the GitHub release text, and refuses a tag whose versi
 - **Milestones and intervals** on the calendar, from `.dates` files (`--file`) or inline
   (`--milestone`, `--interval`), written in a small date language: fixed dates, `today`,
   durations, repeats (`every`, `gap`, `count`, `until`), and references with offsets to
-  earlier milestones (`@exam-2w`), to an interval's start or end (`@qa.end+1d`) and to one
-  occurrence of a repeat (`@review[3]`, `@review[-1]`). `--today` sets the evaluation date
-  and is the default `--start`.
+  earlier milestones (`@exam-2w`), to an interval's first or last day (`@qa.end+1d`) and to
+  one occurrence of a repeat (`@review[3]`, `@review[-1]`). Offsets chain
+  (`@release-1m+3d`) and durations may have several parts (`2027-08-01/1m+13d`).
+  `--today` sets the evaluation date and is the default `--start`.
+  - An interval includes both dates written (`2027-08-13/2027-09-05` ends on 5 September);
+    `<` before the end leaves it out (`2w/<@exam` ends the day before the exam). An
+    interval may be a single day (`2027-11-17/2027-11-17`), drawn one cell long.
   - Milestones: a mark (diamond, star, dot, or a ring around the day number), a title on
     the note line, and an optional countdown.
-  - Intervals: coloured rails at the right edge of the cells, solid, dashed or hatched,
-    labelled or numbered; margin lines for background spans; merged groups on crowded
+  - Intervals: colored rails at the right edge of the cells, solid, dashed or hatched,
+    labeled or numbered; margin lines for background spans; merged groups on crowded
     pages; an overflow rail with `+N` when a column is full.
   - A legend under the grid; the rows give up the room it needs. The footer names the
     timeline sources, and the PDF Subject lists them.

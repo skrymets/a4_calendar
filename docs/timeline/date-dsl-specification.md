@@ -77,15 +77,14 @@ Each interval has:
 Examples:
 
 ```
-2027-01-01/2027-02-01
-qa=@freeze/@release
+2027-01-01/2027-01-31
+qa=@freeze/<@release
 support=@release/1m
 maintenance=@release/5d;every=2w;count=6
+holiday=2027-12-24/2027-12-24
 ```
 
-Intervals use **half-open boundaries**: `[start, end)`.
-
-The start date is included; the end date is excluded.
+Both dates as written are **included**: `2027-01-01/2027-01-31` is all of January. A `<` before the end date excludes it: `qa=@freeze/<@release` ends the day before release (§5). An interval may be a single day.
 
 ---
 
@@ -126,7 +125,7 @@ Dates may be calculated relative to today, another absolute date, or a named mil
 
 The `@` prefix denotes a reference to a previously defined milestone or interval (§3.4). `@today` is the one exception: it is another spelling of `today` (so `@today-1w` is `today-1w`), since `today` is reserved and never names a declaration. `@today[N]`, `@today.start` and `@today.end` are errors.
 
-A date expression supports at most one arithmetic offset in Phase 1.
+A date expression may carry several offsets, applied left to right (§14): `@release-1m+3d`, `today+2w-1d`.
 
 ### 3.3. Duration units
 
@@ -157,32 +156,31 @@ Examples:
 ```
 @release-2m     # Two months before release
 @release/2m     # Interval lasting two months
-2m/@release     # Interval ending on release
+2m/@release     # Interval of two months ending on release day
+2m/<@release    # Interval of two months ending the day before release
 ```
 
-A duration must be a strictly positive integer followed by exactly one unit.
-
-Composite durations are reserved for Phase 2.
+A duration term is a strictly positive integer followed by one unit. In an interval a duration may have several terms (`1m+13d`, `1m-1d`, `1m2w`; §12); in `every=` and `gap=` it has exactly one.
 
 ### 3.4. References
 
-A reference names a declaration made earlier (in an earlier line or an earlier source) and stands for one of its dates. It may be followed by one offset, like any other anchor.
+A reference names a declaration made earlier (in an earlier line or an earlier source) and stands for one of its dates. It may be followed by offsets, like any other anchor.
 
 |Reference|Refers to|Valid for|
 |---|---|---|
 |`@name`|The milestone's date|Non-recurring milestones|
 |`@name.start`|The interval's first day|Non-recurring intervals|
-|`@name.end`|The interval's end as written: the first day after it (ends are exclusive, §5)|Non-recurring intervals|
+|`@name.end`|The interval's last day (the end as written without `<`, §5)|Non-recurring intervals|
 |`@name[N]`|Occurrence N of the series, counted from 1|Recurring milestones|
 |`@name[-N]`|Occurrence N counted back from the last; `-1` is the last|Recurring milestones with `count` or `until`|
-|`@name[N].start`, `@name[N].end`, `@name[-N].start`, `@name[-N].end`|The start or end of that occurrence|Recurring intervals (negative N: with `count` or `until`)|
+|`@name[N].start`, `@name[N].end`, `@name[-N].start`, `@name[-N].end`|The first or last day of that occurrence|Recurring intervals (negative N: with `count` or `until`)|
 
 Examples:
 
 ```
-qa       = 2027-03-01/2027-03-15
-qa_done  = @qa.end; title="QA done"           # 2027-03-15
-followup = @qa.end/1w                          # 2027-03-15 to 2027-03-22, right after qa
+qa       = 2027-03-01/2027-03-14
+qa_done  = @qa.end; title="QA done"           # 2027-03-14, the last day of qa
+followup = @qa.end+1d/1w                       # 2027-03-15 to 2027-03-21, right after qa
 review   = 2027-01-04; every=1w; count=8
 last     = @review[-1]                         # 2027-02-22
 labs     = 2027-01-11/2d; gap=1w; count=6
@@ -203,7 +201,7 @@ Rules:
     
 6. Only names declared earlier can be referenced: forward references remain unsupported (§20).
     
-7. Chained offsets remain Phase 2 (§14): `@qa.end+1d-2d` is invalid.
+7. Offsets chain as on any anchor (§14): `@qa.end+1d-2d` is the day before qa's last day.
     
 
 ---
@@ -265,42 +263,50 @@ Every form supports optional metadata.
 Examples:
 
 ```
-# Explicit dates
-2027-01-01/2027-02-01
+# Explicit dates: all of January
+2027-01-01/2027-01-31
 
-# Named interval
-qa=@freeze/@release
+# Named interval, up to the day before release
+qa=@freeze/<@release
 
 # Start and duration
 support=@release/1m
 
-# Duration and end
-preparation=2w/@freeze
+# Duration and end: two weeks, the last on the day before freeze
+preparation=2w/<@freeze
 
 # Relative start and end
 audit=@release+1w/@release+3w
 
+# A duration of several terms: 1 August to 13 September
+holidays=2027-08-01/1m+13d
+
+# One day
+open_day=2027-11-17/2027-11-17
+
 # Metadata
-qa=@freeze/@release;title="Final QA";team=backend
+qa=@freeze/<@release;title="Final QA";team=backend
 ```
 
 ### Rules
 
 - Both interval boundaries resolve to calendar dates.
     
-- The start must be strictly earlier than the end.
+- The start is included. The end date as written is included too: `2027-08-13/2027-09-05` ends on 5 September.
     
-- The end is exclusive.
+- `<` directly before the end date excludes it: `2027-08-13/<2027-09-05` ends on 4 September, and `2w/<@exam` ends the day before the exam. `<` is allowed only there: not before the start (the start is always included), not before a duration (a duration has no end to exclude), and not in a milestone or `until=`.
+    
+- The interval must cover at least one day: the start equal to the last day is a one-day interval (`2027-11-17/2027-11-17`, `2027-11-17/1d`, `1d/2027-11-17`, `2027-11-17/<2027-11-18`). An end before the start, `2027-11-17/<2027-11-17`, and a duration that comes to zero or less are errors.
     
 - Anonymous intervals are permitted.
     
 - Named intervals have unique identifiers.
     
-- A duration may appear on either side, but not both.
+- A duration may appear on either side, but not both. It is a length, so `<` does not apply to it: `2027-08-01/1m` is 1–31 August.
     
-- A duration on the right is added to the start.
+- A duration on the right is added to the start, its terms in order.
     
-- A duration on the left is subtracted from the end.
+- A duration on the left is subtracted from the end (the day after the last day), its terms in reverse order, so that `1m+13d/2027-09-13` and `2027-08-01/1m+13d` are the same interval.
     
 
 ---
@@ -366,11 +372,11 @@ sprint=2027-01-01/2w;every=3w;count=3
 
 Resolved occurrences:
 
-|#|Start|End (exclusive)|
+|#|Start|Last day|
 |---|---|---|
-|1|Jan 1|Jan 15|
-|2|Jan 22|Feb 5|
-|3|Feb 12|Feb 26|
+|1|Jan 1|Jan 14|
+|2|Jan 22|Feb 4|
+|3|Feb 12|Feb 25|
 
 The interval lasts two weeks, while consecutive starts are separated by three weeks.
 
@@ -395,11 +401,11 @@ work=2027-01-04/5d;gap=2d;count=3
 
 Resolved occurrences:
 
-|#|Start|End (exclusive)|
+|#|Start|Last day|
 |---|---|---|
-|1|Jan 4|Jan 9|
-|2|Jan 11|Jan 16|
-|3|Jan 18|Jan 23|
+|1|Jan 4|Jan 8|
+|2|Jan 11|Jan 15|
+|3|Jan 18|Jan 22|
 
 Each interval lasts five calendar days, followed by a two-calendar-day gap.
 
@@ -506,7 +512,7 @@ Examples:
 
 ```
 release=2027-03-15;title="Public Release"
-qa=@freeze/@release;team=backend;priority=high
+qa=@freeze/<@release;team=backend;priority=high
 review=today;every=1m;count=6;title="Monthly Review";owner=alice
 ```
 
@@ -569,7 +575,7 @@ For example:
 ```
 RELEASE=2027-03-15
 freeze=@Release-2W
-QA=@FREEZE/@release;TITLE="Final QA"
+QA=@FREEZE/<@release;TITLE="Final QA"
 ```
 
 Metadata values and titles retain their original case.
@@ -597,7 +603,7 @@ myapp \
   --milestone 'release=2027-03-15;title="Release"' \
   --milestone 'freeze=@release-2w' \
   --milestone 'review=@release+1w;every=2w;count=5' \
-  --interval 'qa=@freeze/@release;title="Final QA"' \
+  --interval 'qa=@freeze/<@release;title="Final QA"' \
   --interval 'support=@release/1m;gap=1w;count=3'
 ```
 
@@ -654,7 +660,7 @@ backup  = today; every=1w; title="Weekly Backup"
 # ==========================================
 
 # Ordinary intervals
-qa      = @freeze/@release; title="Final QA"
+qa      = @freeze/<@release; title="Final QA"
 support = @release/1m; title="Hypercare"
 
 # Recurring intervals
@@ -682,7 +688,7 @@ Files and CLI declarations may be combined:
 myapp \
   --file roadmap.dates \
   --milestone 'extra_review=@release+3w' \
-  --interval 'extra_qa=@release/@extra_review'
+  --interval 'extra_qa=@release/<@extra_review'
 ```
 
 Processing order:
@@ -721,12 +727,16 @@ milestone         = identifier, "=", date_expr, properties ;
 
 interval          = [ identifier, "=" ], range, properties ;
 
-range             = date_expr, "/", date_expr
-                  | date_expr, "/", period
-                  | period, "/", date_expr ;
+range             = date_expr, "/", end
+                  | date_expr, "/", duration
+                  | duration, "/", end ;
 
-date_expr         = anchor, [ sign, period ]
-                  | sign, period ;
+end               = [ "<" ], date_expr ;      (* "<": the end date is excluded *)
+
+duration          = period, { [ sign ], period } ;
+
+date_expr         = anchor, { sign, period }
+                  | sign, period, { sign, period } ;
 
 anchor            = iso_date
                   | "today" | "@today"
@@ -797,7 +807,7 @@ Additional semantic constraints:
     
 - Calendar dates must be valid Gregorian dates.
     
-- Resolved interval starts must precede their ends.
+- A resolved interval covers at least one day: its start is not after its last day.
     
 - Date expressions may reference only previously defined milestones and named intervals, in the forms of §3.4.
     
@@ -825,17 +835,20 @@ Additional semantic constraints:
 
 Relative dates are resolved against that fixed evaluation date or a reference (§3.4).
 
-Months and years use calendar arithmetic with day clamping.
+Months and years use calendar arithmetic with day clamping. Several offsets apply left to right, each step clamped: `2027-01-31+1m+1d` is 28 February + 1 day = 1 March.
 
 ### 11.3. Interval evaluation
 
-All intervals are half-open:
+An interval covers its start, its last day and every day between. As written, the end is the last day; with `<` it is the day after the last day. Evaluation works on the half-open form `[start, end)`, where `end` is the day after the last day:
 
 ```
-[start, end)
+2027-08-13/2027-09-05    ->  [2027-08-13, 2027-09-06)
+2027-08-13/<2027-09-05   ->  [2027-08-13, 2027-09-05)
+2027-08-01/1m+13d        ->  [2027-08-01, 2027-09-14)
+1m+13d/2027-09-13        ->  [2027-08-01, 2027-09-14)
 ```
 
-End-date subtraction and start-date addition follow calendar arithmetic.
+A duration on the right is added to the start, its terms in order; one on the left is subtracted from `end`, its terms negated and in reverse order. Each step follows calendar arithmetic.
 
 Adding and subtracting calendar months are not necessarily inverse operations.
 
@@ -854,7 +867,7 @@ For `gap`:
 
 - First occurrence uses the original interval.
     
-- Each subsequent start is the previous end plus the gap.
+- Each subsequent start is the day after the previous occurrence's last day plus the gap.
     
 - The interval's original duration semantics are preserved as specified in Section 6.7.
     
@@ -919,7 +932,7 @@ Allow multiple duration components:
 1y2m5d
 ```
 
-Define explicit component ordering for calendar arithmetic.
+**Implemented** for interval durations, also with signs (`1m+13d`, `1m-1d`); `every=` and `gap=` keep one term. Ordering: the terms apply as written, left to right, each with calendar arithmetic; subtracting a duration (`DURATION/END`) applies them negated in reverse order (§11.3).
 
 ## 13. ISO 8601 period compatibility
 
@@ -934,6 +947,8 @@ P1Y2M
 The short syntax remains canonical.
 
 ## 14. Chained date arithmetic
+
+**Implemented**: offsets apply left to right, each step clamped to the month end (§11.2).
 
 Support multiple offsets within one expression:
 
@@ -1069,7 +1084,7 @@ Preserve both original expressions and resolved dates when useful.
 
 Language-conformance tests should cover dates, references, recurrences, metadata, and month-end behaviour.
 
-**Compatibility guarantee:** Phase 2 extensions must preserve the interpretation of all valid Phase 1 declarations.
+**Compatibility guarantee:** Phase 2 extensions must preserve the interpretation of all valid Phase 1 declarations. One deliberate exception was made before the first release: an interval's end date, once exclusive, is now included, with `<` for the exclusive form (§5).
 
 ---
 
@@ -1081,8 +1096,10 @@ The core DSL uses a small set of concepts:
 |---|---|
 |Milestone|`name=date`|
 |Relative milestone|`name=@other+2w`|
-|Interval|`name=start/end`|
-|Duration-based interval|`name=start/2w`|
+|Interval (end included)|`name=start/end`|
+|Interval (end excluded)|`name=start/<end`|
+|One-day interval|`name=day/day`|
+|Duration-based interval|`name=start/2w`, `name=start/1m+13d`|
 |Recurring milestone|`name=date;every=2w`|
 |Recurring interval|`name=start/1w;every=2w`|
 |Gap-based recurrence|`name=start/1w;gap=3d`|

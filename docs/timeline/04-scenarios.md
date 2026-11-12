@@ -61,7 +61,7 @@ exam = 2027-03-12; title="Exam"; mark=star; color=red; countdown=5
 
 ```text
 term   = 2027-03-08; hide=yes
-before = 2027-03-01/@term; title="Before"; color=teal
+before = 2027-03-01/<@term; title="Before"; color=teal
 after  = @term/1w;        title="After"; color=violet
 ```
 
@@ -77,19 +77,19 @@ after  = @term/1w;        title="After"; color=violet
 *Options:* `--start 2027-01-01 --period 5m` (5 columns, wide) · *Requirements:* REQ-RES-3, REQ-IV-1, -2, REQ-KEY-7
 
 ```text
-sprint = 2027-03-03/2027-03-10; title="Sprint"; color=teal; length=days
+sprint = 2027-03-03/2027-03-09; title="Sprint"; color=teal; length=days
 ```
 
 ![One interval](img/x05-interval.png)
 
-`2027-03-03/2027-03-10` is drawn 3–9 Mar. Rounded caps 3 pt inside the first and last cell. Label on the first day: title + ` · 7 d` from `length=days`.
+`2027-03-03/2027-03-09` is drawn 3–9 Mar: both dates are included. Rounded caps 3 pt inside the first and last cell. Label on the first day: title + ` · 7 d` from `length=days`.
 
 ### Across a month boundary
 
 *Options:* `--start 2027-01-01 --period 5m` (5 columns, wide) · *Requirements:* REQ-IV-4, REQ-LB-3
 
 ```text
-project = 2027-02-10/2027-03-13; title="Project"; color=violet; length=days
+project = 2027-02-10/2027-03-12; title="Project"; color=violet; length=days
 ```
 
 ![Across a month boundary](img/x07-continuation.png)
@@ -115,7 +115,7 @@ b = 2027-03-09/1w; title="Maybe"; status=tentative; color=teal
 
 ```text
 work     = 2027-03-01/3w;         title="Work"; color=teal
-holidays = 2027-03-05/2027-03-15; title="Holidays"; style=hatch
+holidays = 2027-03-05/2027-03-14; title="Holidays"; style=hatch
 ```
 
 ![Hatch](img/x09-hatch.png)
@@ -127,7 +127,7 @@ Holidays hatch the covered cells, over weekend grey too; no lane is used, so `Wo
 *Options:* `--start 2027-01-01 --period 5m` (5 columns, wide) · *Requirements:* REQ-KEY-8, REQ-IV-10
 
 ```text
-okr     = 2027-02-15/2027-04-15; title="OKR cycle"; color=grey; layer=back
+okr     = 2027-02-15/2027-04-14; title="OKR cycle"; color=grey; layer=back
 quarter = 2027-03-01/1m;         title="Budget quarter"; color=steel; layer=back
 feature = 2027-03-03/2w;         title="Feature"; color=teal
 ```
@@ -177,8 +177,8 @@ A fourth lane switches the column to keys: the declaration number on each start 
 *Options:* `--start 2027-01-01 --period 5m` (5 columns, wide) and `--timeline-lanes 8` · *Requirements:* REQ-PK-5, 02 §3
 
 ```text
-j1 = 2027-01-04/2027-01-21; title="J1"; color=teal
-j2 = 2027-01-10/2027-01-26; title="J2"; color=violet
+j1 = 2027-01-04/2027-01-20; title="J1"; color=teal
+j2 = 2027-01-10/2027-01-25; title="J2"; color=violet
 f1 = 2027-02-01/10d; title="F1"; color=teal
 f2 = 2027-02-03/10d; title="F2"; color=violet
 f3 = 2027-02-05/10d; title="F3"; color=orange
@@ -290,12 +290,12 @@ review = 2027-03-01/10d; title="Review"; every=1w; count=4; color=orange
 *Options:* `--start 2027-01-01` (12 columns, narrow) · *Requirements:* REQ-GR-1 … -4, REQ-LB-5
 
 ```text
-carol = 2027-03-10/2027-03-21; title="Carol, leave"; color=grey; style=dashed; group=people
-alice = 2027-03-18/2027-03-27; title="Alice, leave"; color=grey; style=dashed; group=people
-bob   = 2027-03-22/2027-04-03; title="Bob, leave"; color=grey; style=dashed; group=people
-audit = 2027-03-01/2027-03-20; title="Security audit"; color=red; group=security
+carol = 2027-03-10/2027-03-20; title="Carol, leave"; color=grey; style=dashed; group=people
+alice = 2027-03-18/2027-03-26; title="Alice, leave"; color=grey; style=dashed; group=people
+bob   = 2027-03-22/2027-04-02; title="Bob, leave"; color=grey; style=dashed; group=people
+audit = 2027-03-01/2027-03-19; title="Security audit"; color=red; group=security
 pen   = 2027-03-22/5d;         title="Pen test"; color=red; group=security
-beta  = 2027-03-08/2027-04-10; title="Beta"; color=steel
+beta  = 2027-03-08/2027-04-09; title="Beta"; color=steel
 ```
 
 ![Groups merged (narrow default)](img/x20-groups-merged.png)
@@ -307,12 +307,12 @@ People out (`P`) is one rail: dashed while one person is away, thicker where two
 *Options:* `--start 2027-01-01` (12 columns, narrow) · *Requirements:* REQ-GR-5, REQ-PK-3
 
 ```text
-carol = 2027-03-10/2027-03-21; title="Carol, leave"; color=grey; style=dashed; group=people
-alice = 2027-03-18/2027-03-27; title="Alice, leave"; color=grey; style=dashed; group=people
-bob   = 2027-03-22/2027-04-03; title="Bob, leave"; color=grey; style=dashed; group=people
-audit = 2027-03-01/2027-03-20; title="Security audit"; color=red; group=security
+carol = 2027-03-10/2027-03-20; title="Carol, leave"; color=grey; style=dashed; group=people
+alice = 2027-03-18/2027-03-26; title="Alice, leave"; color=grey; style=dashed; group=people
+bob   = 2027-03-22/2027-04-02; title="Bob, leave"; color=grey; style=dashed; group=people
+audit = 2027-03-01/2027-03-19; title="Security audit"; color=red; group=security
 pen   = 2027-03-22/5d;         title="Pen test"; color=red; group=security
-beta  = 2027-03-08/2027-04-10; title="Beta"; color=steel
+beta  = 2027-03-08/2027-04-09; title="Beta"; color=steel
 ```
 
 ![Same, `--timeline-groups separate`](img/x20-groups-unmerged.png)
@@ -366,8 +366,8 @@ Gaps stay until Monday (15 and 22 Mar), then everything closes up at once: fewer
 *Options:* `--start 2027-01-15 --period 5m` (6 columns) · *Requirements:* REQ-IV-5, REQ-PG-2
 
 ```text
-pre  = 2027-01-05/2027-01-25; title="Started earlier"; color=teal; length=days
-post = 2027-06-01/2027-07-01; title="Ends later"; color=violet; length=days
+pre  = 2027-01-05/2027-01-24; title="Started earlier"; color=teal; length=days
+post = 2027-06-01/2027-06-30; title="Ends later"; color=violet; length=days
 ```
 
 ![Clipped by the period](img/x23-clipping.png)

@@ -40,7 +40,7 @@ Terms used throughout:
 |---|---|
 | **REQ-RES-1** | Parsing, references, recurrence expansion and DSL errors MUST follow the Date DSL spec. This document adds no syntax. |
 | **REQ-RES-2** | Recurrences MUST be expanded only up to the period's last day; unbounded series stop there. Occurrences entirely before the period are resolved but not drawn. |
-| **REQ-RES-3** | Interval ends are exclusive (`[start, end)`). The **last drawn day** is `end − 1 day`. Every drawing rule below uses the last drawn day. |
+| **REQ-RES-3** | An interval resolves to the half-open `[start, end)`, where `end` is the day after its last day (DSL §11.3; as written, the end date is included unless `<` precedes it). The **last drawn day** is `end − 1 day`. Every drawing rule below uses the last drawn day. A one-day interval (start = last drawn day) is drawn like any other, one cell long. |
 | **REQ-RES-4** | Resolution MUST finish before layout; layout never re-evaluates dates. |
 
 ## 3. Rendering keys
