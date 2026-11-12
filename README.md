@@ -33,6 +33,8 @@ run instructions are in [go/README.md](go/README.md).
 yearly-calendar                                # one year from today
 yearly-calendar --start 2027-01-01             # calendar year 2027 -> calendar_2027-01-01.pdf
 yearly-calendar --start 2026-11-07 --period 90d -o q4.pdf
+yearly-calendar --start 2027-01-01 --end 2027-06-30      # the first half of 2027
+yearly-calendar my-plans.dates                 # everything from a file
 ```
 
 The file is written to the current directory as `calendar_<start>.pdf`, or
@@ -51,6 +53,24 @@ The file is written to the current directory as `calendar_<start>.pdf`, or
 
 One year is the maximum: `53w`, `13m` or `400d` are refused. When the target day does not
 exist (31 January + 1 month), the period runs to the end of the shorter month.
+
+Instead of a length, give the last day with `--end` or the day after it with `--until`
+(only one of `--period`, `--end`, `--until`). The page is then named and titled after the
+shortest length that ends on that day:
+
+| From 2027-01-01 | Same as | Title, file |
+|---|---|---|
+| `--end 2027-06-30` | `--period 6m` | `6-MONTH CALENDAR`, `calendar_2027-01-01_6m.pdf` |
+| `--until 2028-01-01` | `--period 1y` | `YEARLY CALENDAR`, `calendar_2027-01-01.pdf` |
+| `--end 2027-02-14` | `--period 45d` | `45-DAY CALENDAR`, `calendar_2027-01-01_45d.pdf` |
+
+`--start`, `--end` and `--until` take any date of the [date language](#milestones-and-intervals),
+not just `YYYY-MM-DD`: `today+1w`, or a date of the plan itself, so the page follows the
+plan when a date moves:
+
+```sh
+yearly-calendar --file exams.dates --start @kickoff --until @exam+1w
+```
 
 The default title follows the period: `YEARLY CALENDAR` for `1y`, otherwise for example
 `90-DAY CALENDAR`. A title too long to fit beside the period label is cut with `...`.
@@ -77,7 +97,8 @@ After `--%` PowerShell passes the line on unchanged and no longer expands `$vari
 ```
 
 PowerShell 7.3 and later and Unix shells need none of this, and a `.dates` file avoids
-shell quoting altogether.
+shell quoting altogether. In any PowerShell, quote a value that starts with `@`
+(`--start '@kickoff'`); unquoted, PowerShell reads it as a variable.
 
 A `.dates` file has one declaration per line; `#` starts a comment:
 
@@ -92,8 +113,8 @@ lastlab  = @labs[-1].start; title="Last lab"; mark=dot
 revision = 2w/@exam;        title="Revision"; color=orange
 ```
 
-- **Dates**: `2027-03-15`, `today`, or a reference to something declared earlier, each
-  optionally shifted: `@exam-30d`, `today+2w`. Units are `d`, `w`, `m` and `y`; months keep
+- **Dates**: `2027-03-15`, `today` (also written `@today`), or a reference to something
+  declared earlier, each optionally shifted: `@exam-30d`, `today+2w`. Units are `d`, `w`, `m` and `y`; months keep
   the day or stop at the month's end.
 - **References**: `@exam` is a milestone's date; `@theory.start` and `@theory.end` are an
   interval's start and end (the end as written, the day after its last day, so
@@ -115,8 +136,8 @@ On the page, milestones get a mark after the weekday letter and their title on t
 line (with 8 or more month columns, mark and a smaller title share the note line, and a
 long title is cut with `…`); intervals become vertical rails at the right edge of the cells, labelled at the top
 of a cell (or with a numbered key when a column is crowded). Everything drawn is listed in
-the legend under the grid, which takes its room from the rows. The footer names the
-timeline's files and counts.
+the legend under the grid, which takes its room from the rows. The footer names the files
+the milestones and intervals come from, and how many there are of each.
 
 Optional keys on a declaration change how it is drawn; any other `key=value` is kept and
 ignored:
@@ -144,12 +165,48 @@ intervals share a dotted grey overflow rail and a grey `+N` counts them; their k
 legend still name them. A legend too long for the page drops its dates, then ends with
 `+N more` and prints the full list on the terminal.
 
+## All options in one file
+
+A `.dates` file can also hold the options, so one file is the whole command. A line that
+starts with `--` sets an option, spelled as on the command line:
+
+```
+# exams.dates
+--title    = "Prepare for Exams"
+--start    = @kickoff
+--until    = @exam+1w
+--paper    = letter
+--hide-outside
+--file     = holidays.dates
+
+kickoff = 2026-11-11; title="Kick-off"
+exam    = 2027-03-01; title="Final exam"; mark=star
+```
+
+```sh
+yearly-calendar exams.dates                  # the same as --file exams.dates
+yearly-calendar exams.dates --paper a4       # the command line wins
+```
+
+- `--name = value`, `--name=value` and `--name value` all work; a switch such as
+  `--hide-outside` needs no value (`--hide-outside = false` turns it off). A value in double
+  quotes may contain `#` and `;`; `\"` is a quote.
+- Every option can be set except `--help`, `--version`, `--licenses`, `--milestone` and
+  `--interval` (write the declaration itself).
+- `--file` reads the other file at that line, so the lines after it can refer to its dates.
+  Paths in a file (`--file`, `--output`, `--font`) are relative to that file.
+- An option on the command line overrides the file. The same option twice in files is an
+  error; `--period`, `--end` and `--until` count as one.
+- A file with options only adds nothing else to the page: no legend and no footer note.
+
 ## Options
 
 | Option | Default | Meaning |
 |---|---|---|
-| `--start YYYY-MM-DD` | today | first day of the period |
+| `--start DATE` | today | first day of the period: `YYYY-MM-DD` or a date such as `@kickoff`, `today+1w` |
 | `--period P` | `1y` | `<N>d`, `<N>w`, `<N>m` or `1y` |
+| `--end DATE` | | last day of the period, instead of `--period` |
+| `--until DATE` | | the day after the period, instead of `--period` |
 | `-o`, `--output PATH` | `calendar_<start>[_<period>].pdf` | output file |
 | `--title TEXT` | from the period | page title; `--title ""` for none |
 | `--paper a4\|letter` | `a4` | paper size |
@@ -168,10 +225,10 @@ legend still name them. A legend too long for the page drops its dates, then end
 | `--day-letters LLLLLLL` | `MTWTFSS` | weekday letters, Monday first |
 | `--month-names A,B,…` | `JAN,…,DEC` | 12 comma-separated month names |
 | `--font PATH.ttf` | Helvetica | a TrueType font, needed for non-Latin scripts |
-| `--file PATH` | | milestones and intervals from a `.dates` file; repeatable |
+| `--file PATH` | | milestones, intervals and options from a `.dates` file; repeatable; a path without `--file` is read the same way |
 | `--milestone DECL` | | one milestone, e.g. `'exam=2027-03-01;title="Exam"'`; repeatable |
 | `--interval DECL` | | one interval, e.g. `'qa=@exam-2w/@exam'`; repeatable |
-| `--today YYYY-MM-DD` | today | the date `today` stands for |
+| `--today YYYY-MM-DD` | today | the date `today` and `@today` stand for |
 | `--timeline-layout packed\|flow` | `packed` | `packed`: rails arranged per month; `flow`: rails keep their place across months and close up as intervals end |
 | `--timeline-compact daily\|weekly` | `daily` | `flow` only: close up every day, or on `--week-start` |
 | `--timeline-lanes auto\|1–12` | `auto` | rails per column before the overflow rail |

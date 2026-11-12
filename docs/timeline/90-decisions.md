@@ -62,6 +62,9 @@ The design canvas (Design artifact "Milestones & Intervals") shows each rejected
 | `@x[N]` on a non-recurring declaration and a recurring one without `[N]` are errors, as are `.start`/`.end` on a milestone and an interval without them | Each mistake gets a message that shows the right form. |
 | Narrow pages draw the milestone title too (REQ-MS-3 changed): on the note line, 1 pt after the glyph, 4.9 pt bold, clipped with `…` | With 8–9 columns a short title such as "Kick-off" fits whole; without it the reader had to look up every mark in the legend. The narrow reference pictures (`page-year-*`, `page-leave`, `x20-*`) predate this and show the glyph alone. |
 | A milestone title that would keep fewer than three characters before the `…` is left out, on wide and narrow pages | "Ki…" tells nothing; the mark and the legend still show the milestone. |
+| `--start`, `--end` and `--until` take DSL date expressions, resolved after every declaration is parsed (an option line at the top of a file may name a later declaration); `@today` is `today` (DSL §3.2) | The page can follow the plan (`--until @exam+1w`). Declarations never depend on the page (decision 61), so parsing first is safe. |
+| Option lines (`--name = value`) and `--file` includes in `.dates` files (DSL §9.2 rules 10–11, README "All options in one file"): paths relative to the file, the command line wins, an option set twice in files is an error, `--period`/`--end`/`--until` count as one | One file can hold the whole command; no hidden order between files. |
+| The timeline exists only when something is declared: a file of options alone, or an empty file, leaves the page as the same flags would (no legend, footer suffix or Subject); footer and Subject name only files that declare something, in reading order | REQ-CLI-8 holds for option files; a file that only sets `--paper` is not a timeline source. |
 
 ## Open items (not blocking v1)
 

@@ -112,6 +112,7 @@ Dates may be calculated relative to today, another absolute date, or a named mil
 |Expression|Meaning|
 |---|---|
 |`today`|Current calendar date|
+|`@today`|The same as `today`|
 |`+2w`|Two weeks from today|
 |`-3d`|Three days before today|
 |`today+1m`|One month from today|
@@ -123,7 +124,7 @@ Dates may be calculated relative to today, another absolute date, or a named mil
 |`@qa.end+1w`|One week after the end of `qa`|
 |`@review[3]`|Third occurrence of recurring milestone `review`|
 
-The `@` prefix denotes a reference to a previously defined milestone or interval (§3.4).
+The `@` prefix denotes a reference to a previously defined milestone or interval (§3.4). `@today` is the one exception: it is another spelling of `today` (so `@today-1w` is `today-1w`), since `today` is reserved and never names a declaration. `@today[N]`, `@today.start` and `@today.end` are errors.
 
 A date expression supports at most one arithmetic offset in Phase 1.
 
@@ -628,6 +629,10 @@ Rules:
     
 9. A declaration is classified as an interval if its expression contains `/` outside quoted text; otherwise it is a milestone.
     
+10. A line whose first non-blank characters are `--` is not a declaration: it sets an option of the application, spelled as on its command line (`--start = 2027-01-01`, `--start 2027-01-01`, a bare `--hide-outside`; a value in double quotes may contain `#` and `;`). An identifier never starts with `-`, so the two cannot be confused. Which options exist, and which a file may set, is up to the application (for yearly-calendar: the README, "All options in one file").
+    
+11. `--file PATH` in a file reads PATH at that line, PATH taken relative to the including file: its declarations come between the lines around it, so later lines may refer to them (rule 7). A file read twice, by a cycle or otherwise, is an error.
+    
 
 Example `roadmap.dates`:
 
@@ -704,6 +709,7 @@ The following grammar defines the core structure. Lexical handling of whitespace
 ```
 document          = { blank_line
                     | comment_line
+                    | option_line          (* §9.2 rules 10–11, defined by the application *)
                     | declaration_line } ;
 
 declaration_line  = declaration, newline ;
@@ -723,7 +729,7 @@ date_expr         = anchor, [ sign, period ]
                   | sign, period ;
 
 anchor            = iso_date
-                  | "today"
+                  | "today" | "@today"
                   | reference ;
 
 reference         = "@", identifier,

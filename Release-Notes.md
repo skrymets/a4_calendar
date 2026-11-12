@@ -27,6 +27,17 @@ publishes that section as the GitHub release text, and refuses a tag whose versi
     `--timeline-lanes`, `--timeline-groups auto|merge|separate`, `--timeline-legend full|off`.
   - Errors in declarations stop the run with one `file:line: message` per problem (exit 2).
 - Without milestones or intervals the page is exactly as before.
+- **`--end` and `--until`** give the period by its last day, or the day after it, instead of
+  `--period`. The title and file name follow the shortest matching length
+  (`--end 2027-06-30` from 1 January: `6-MONTH CALENDAR`, `calendar_2027-01-01_6m.pdf`).
+- **Date expressions in `--start`, `--end` and `--until`**: `today+1w`, `@kickoff`,
+  `@exam+1w`, `@qa.end`; the page follows the plan. `@today` is another spelling of `today`,
+  in options and declarations alike.
+- **All options in one file**: a line starting with `--` in a `.dates` file sets an option
+  as on the command line (`--start = @kickoff`, `--paper letter`), and `--file` in a file
+  includes another at that line. Paths are relative to the file; the command line wins;
+  an option set twice in files is an error. `yearly-calendar plan.dates` reads a file
+  without `--file`.
 
 ### Changed
 
