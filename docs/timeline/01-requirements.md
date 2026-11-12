@@ -32,7 +32,7 @@ Terms used throughout:
 | **REQ-CLI-6** | `--timeline-groups auto\|merge\|separate` controls group merging (§8). Default `auto` = merge on narrow pages, separate on wide pages. |
 | **REQ-CLI-7** | `--timeline-legend full\|off` controls the legend (§10). Default `full` when at least one milestone or interval is drawn. |
 | **REQ-CLI-8** | Without any `--file/--milestone/--interval`, output MUST be identical to the current release (no layout, size or metadata change). |
-| **REQ-CLI-9** | All timeline options MUST appear in `--help` and in both implementations with the same names, defaults and validation. |
+| **REQ-CLI-9** | All timeline options MUST appear in `--help` with the names, defaults and validation given here. |
 
 ## 2. Resolution
 
@@ -176,5 +176,5 @@ The DSL reserves `title`, `every`, `gap`, `count`, `until`. The calendar gives m
 |---|---|
 | **REQ-ER-1** | DSL errors and rendering-key errors MUST stop the run before any PDF is written, with exit code 2 and one line per error: `source:line: message`. |
 | **REQ-ER-2** | Layout never fails: anything that does not fit is clipped, overflowed or moved to the legend, never an error. |
-| **REQ-DT-1** | Same inputs + same `--today` MUST produce the same layout decisions (lanes, overflow, labels, keys, legend) in Go and in Python, byte-identical to `examples/*.expected.json` when serialized the same way (05). |
+| **REQ-DT-1** | Same inputs + same `--today` MUST produce the same layout decisions (lanes, overflow, labels, keys, legend), byte-identical to `examples/*.expected.json` when serialized the same way (05). |
 | **REQ-DT-2** | No randomness, no dependency on map/hash iteration order, no locale-dependent date maths. |

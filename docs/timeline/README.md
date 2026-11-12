@@ -3,7 +3,7 @@
 Design guidelines and implementation requirements for drawing Date DSL timelines on the yearly-calendar PDF page.
 
 **Status:** final for implementation (v1). Scope: the **packed** layout (default) and the **flow** layout.
-**Applies to:** the Go program in `go/` (go-pdf/fpdf). The design was written while a Python version also existed; that version was retired in 0.2.0, so wherever these documents say "both implementations" or "Go and Python", read "the Go program". The golden files remain the contract.
+**Applies to:** the Go program in `go/` (go-pdf/fpdf). A Python version still existed when this design was written; it was retired in 0.2.0. The golden files are the contract.
 **Depends on:** [Date DSL Specification](date-dsl-specification.md) (Phase 1 with recurrence). That document defines the syntax, resolution and errors for dates; this one defines everything that happens after the dates are resolved.
 
 ## Reading order
@@ -41,7 +41,7 @@ If a picture and a requirement disagree, **the requirement wins**; report the mi
 7. `layer=back` draws long, low-attention intervals as a 1 px **margin line** instead of a rail.
 8. **Flow** layout (opt-in): rails slide inward when an inner one ends; the note line follows each day's outermost rail.
 9. A recurring series keeps **one lane**; its title appears once per column, then `#n`.
-10. Everything is deterministic: same input + `--today` → same PDF, in Go and in Python.
+10. Everything is deterministic: same input + `--today` → same PDF.
 
 ## Regenerating pictures and golden files
 

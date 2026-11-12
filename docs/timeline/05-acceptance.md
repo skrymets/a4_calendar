@@ -39,7 +39,7 @@ Golden JSON shape (one file per row):
 
 `railLanes` is `k` (lanes shown + overflow rail). `items` lists the top-row texts of that day in drawing order (labels, keys, `+N`). `milestone` is the glyphs plus the title shown, if any.
 
-Implementations SHOULD expose this export behind a hidden flag (for example `--debug-timeline-json PATH`) so the same tests run against Go and Python.
+The program exposes this export behind the hidden flag `--debug-timeline-json PATH`, so the golden tests also run through the command line.
 
 ## 2. Unit tests (automated)
 
@@ -58,7 +58,7 @@ Implementations SHOULD expose this export behind a hidden flag (for example `--d
 
 ## 3. Visual checks (manual, per release)
 
-Render the six full pages from 04 in Go and in Python and compare with `img/page-*.png` side by side:
+Render the six full pages from 04 and compare with `img/page-*.png` side by side:
 
 1. Label block, header, weekend shading and fonts are pixel-identical to a page without a timeline.
 2. No cell is tinted; only weekends are grey; hatch appears only where `style=hatch`.
@@ -82,4 +82,4 @@ Render the six full pages from 04 in Go and in Python and compare with `img/page
 | REQ-GR-* | x20 (both), year-plan, leave-2027 |
 | REQ-LB-* | x11, x12, x15, x16, all golden files |
 | REQ-LG-* | full pages, legend unit tests |
-| REQ-PG-*, REQ-ER-*, REQ-DT-* | visual checks, error tests, Go ↔ Python golden comparison |
+| REQ-PG-*, REQ-ER-*, REQ-DT-* | visual checks, error tests, golden comparison through `--debug-timeline-json` |

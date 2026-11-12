@@ -1,8 +1,8 @@
 # Implementation plan (for the coding agent)
 
-Read [README](README.md), then [01](01-requirements.md), [02](02-visual-guidelines.md), [03](03-layout-algorithms.md). Pictures in [04](04-scenarios.md) show the expected result of each rule. Done means [05](05-acceptance.md) passes in both implementations.
+Read [README](README.md), then [01](01-requirements.md), [02](02-visual-guidelines.md), [03](03-layout-algorithms.md). Pictures in [04](04-scenarios.md) show the expected result of each rule. Done means [05](05-acceptance.md) passes.
 
-Keep the domain model independent of PDF drawing: **parse → resolve → layout (pure, testable) → draw**. Only the last step touches ReportLab / fpdf.
+Keep the domain model independent of PDF drawing: **parse → resolve → layout (pure, testable) → draw**. Only the last step touches fpdf.
 
 | Step | Deliverable | Requirements | Proof |
 |---|---|---|---|

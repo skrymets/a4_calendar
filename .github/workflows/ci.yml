@@ -83,3 +83,13 @@ jobs:
           bin=go/dist/yearly-calendar-linux-amd64
           "$bin" --start 2026-01-01 -o "$RUNNER_TEMP/jan1.pdf"
           "$bin" --start 2026-11-07 --period 90d -o "$RUNNER_TEMP/mid.pdf"
+          ex=docs/timeline/examples
+          "$bin" --today 2026-11-11 --start 2026-11-11 --period 120d --file "$ex/exams.dates" -o "$RUNNER_TEMP/timeline.pdf"
+          "$bin" --today 2026-11-11 --start 2026-11-11 --file "$ex/year-plan.dates" --timeline-layout flow -o "$RUNNER_TEMP/flow.pdf"
+          # a broken declaration fails with exit code 2 and writes nothing
+          code=0
+          "$bin" --milestone 'x=@nope' -o "$RUNNER_TEMP/bad.pdf" || code=$?
+          if [ "$code" != 2 ] || [ -e "$RUNNER_TEMP/bad.pdf" ]; then
+            echo "::error::a broken declaration gave exit code $code or wrote a PDF"
+            exit 1
+          fi

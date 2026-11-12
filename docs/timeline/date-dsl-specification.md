@@ -997,7 +997,7 @@ Preserve both original expressions and resolved dates when useful.
 
 ## Implementation strategy
 
-**Go — primary implementation**
+**Go implementation**
 
 - Implement a small lexer, parser, and evaluator.
     
@@ -1010,16 +1010,7 @@ Preserve both original expressions and resolved dates when useful.
 - Support lazy recurrence generation.
     
 
-**Python — secondary implementation**
-
-- Use `datetime.date`.
-    
-- Use `dateutil.relativedelta` for calendar arithmetic.
-    
-- Implement equivalent parsing and recurrence semantics.
-    
-
-Both implementations should share language-conformance tests for dates, references, recurrences, metadata, and month-end behaviour.
+Language-conformance tests should cover dates, references, recurrences, metadata, and month-end behaviour.
 
 **Compatibility guarantee:** Phase 2 extensions must preserve the interpretation of all valid Phase 1 declarations.
 
