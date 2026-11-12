@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"a4calendar/internal/dsl"
+	"pinplan/internal/dsl"
 )
 
 // DebugInfo names the inputs in the export; Options is free-form.

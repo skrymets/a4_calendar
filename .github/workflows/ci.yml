@@ -71,8 +71,8 @@ jobs:
 
       - name: Binary reports VERSION
         run: |
-          got=$(go/dist/yearly-calendar-linux-amd64 --version)
-          if [ "$got" != "yearly-calendar $VERSION" ]; then
+          got=$(go/dist/pinplan-linux-amd64 --version)
+          if [ "$got" != "PinPlan $VERSION" ]; then
             echo "::error::the binary says '$got', VERSION says $VERSION"
             exit 1
           fi
@@ -80,7 +80,7 @@ jobs:
 
       - name: Smoke test
         run: |
-          bin=go/dist/yearly-calendar-linux-amd64
+          bin=go/dist/pinplan-linux-amd64
           "$bin" --start 2026-01-01 -o "$RUNNER_TEMP/jan1.pdf"
           "$bin" --start 2026-11-07 --period 90d -o "$RUNNER_TEMP/mid.pdf"
           ex=docs/timeline/examples

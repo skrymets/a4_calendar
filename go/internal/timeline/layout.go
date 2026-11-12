@@ -3,8 +3,8 @@ package timeline
 import (
 	"time"
 
-	"a4calendar/internal/dsl"
-	"a4calendar/internal/period"
+	"pinplan/internal/dsl"
+	"pinplan/internal/period"
 )
 
 // GroupMode controls group merging (REQ-CLI-6).

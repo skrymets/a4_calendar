@@ -31,7 +31,7 @@ type options struct {
 // newFlagSet defines the CLI and returns a function rendering the help text.
 func newFlagSet() (*pflag.FlagSet, *options, func() string) {
 	o := &options{}
-	fs := pflag.NewFlagSet("yearly-calendar", pflag.ContinueOnError)
+	fs := pflag.NewFlagSet("pinplan", pflag.ContinueOnError)
 	fs.SetOutput(io.Discard) // run() prints errors and help itself
 	fs.Usage = func() {}
 	fs.SortFlags = false
@@ -100,7 +100,8 @@ func newFlagSet() (*pflag.FlagSet, *options, func() string) {
 
 	help := func() string {
 		var b strings.Builder
-		b.WriteString("usage: yearly-calendar [options] [FILE.dates ...]\n\nGenerate a one-page yearly calendar PDF.\n\noptions:\n")
+		b.WriteString("usage: pinplan [options] [FILE.dates ...]\n\n" + product +
+			": a one-page calendar PDF, with your plan on it if you give one.\nPlan it. Print it. Pin it.\n\noptions:\n")
 		for _, r := range rows {
 			switch {
 			case r[1] == "":

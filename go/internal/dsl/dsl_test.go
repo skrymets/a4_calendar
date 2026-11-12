@@ -1,8 +1,8 @@
 package dsl
 
 import (
-	"a4calendar/internal/period"
 	"errors"
+	"pinplan/internal/period"
 	"strings"
 	"testing"
 	"time"

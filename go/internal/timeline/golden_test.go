@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"a4calendar/internal/dsl"
+	"pinplan/internal/dsl"
 )
 
 // a4Grid is the grid width of an A4 page with the default 10 mm margins.

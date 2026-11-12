@@ -83,8 +83,8 @@ jobs:
 
       - name: Binary reports VERSION
         run: |
-          got=$(go/dist/yearly-calendar-linux-amd64 --version)
-          if [ "$got" != "yearly-calendar $VERSION" ]; then
+          got=$(go/dist/pinplan-linux-amd64 --version)
+          if [ "$got" != "PinPlan $VERSION" ]; then
             echo "::error::the binary says '$got', the tag says $VERSION"
             exit 1
           fi
@@ -92,7 +92,7 @@ jobs:
       # ---------------------------------------------------------------------------------
       # Package. Files are named by the version, not the tag: the tag needs its `v` for the
       # trigger above, a file name does not. Inside an archive the program keeps the stable
-      # name yearly-calendar[.exe], so unpacking a newer one over an older one changes
+      # name pinplan[.exe], so unpacking a newer one over an older one changes
       # nothing that points at it.
       # ---------------------------------------------------------------------------------
 
@@ -103,14 +103,14 @@ jobs:
           assets=()
 
           for target in windows-amd64 linux-amd64 linux-arm64; do
-            name="yearly-calendar-$VERSION-$target"
+            name="pinplan-$VERSION-$target"
             stage="dist/$name"
             mkdir -p "$stage"
             if [[ $target == windows-* ]]; then
-              cp "go/dist/yearly-calendar-$target.exe" "$stage/yearly-calendar.exe"
+              cp "go/dist/pinplan-$target.exe" "$stage/pinplan.exe"
             else
-              cp "go/dist/yearly-calendar-$target" "$stage/yearly-calendar"
-              chmod +x "$stage/yearly-calendar"
+              cp "go/dist/pinplan-$target" "$stage/pinplan"
+              chmod +x "$stage/pinplan"
             fi
             cp go/README.md "$stage/README.md"
             cp go/dist/LICENSE go/dist/OFL.txt go/dist/THIRD_PARTY_LICENSES.txt "$stage/"
@@ -149,19 +149,19 @@ jobs:
           {
             echo "## Install"
             echo
-            echo "- **Windows:** unzip \`yearly-calendar-$VERSION-windows-amd64.zip\` and run \`yearly-calendar.exe\`."
-            echo "- **Linux:** \`tar -xzf yearly-calendar-$VERSION-linux-amd64.tar.gz\` (or \`-linux-arm64\`) and run \`./yearly-calendar\`."
+            echo "- **Windows:** unzip \`pinplan-$VERSION-windows-amd64.zip\` and run \`pinplan.exe\`."
+            echo "- **Linux:** \`tar -xzf pinplan-$VERSION-linux-amd64.tar.gz\` (or \`-linux-arm64\`) and run \`./pinplan\`."
             echo
             echo "## Verify the download"
             echo
             echo "The binaries are unsigned, so the \`.sha256\` beside each archive is the integrity check:"
             echo
             echo '```sh'
-            echo "sha256sum -c yearly-calendar-$VERSION-linux-amd64.tar.gz.sha256"
+            echo "sha256sum -c pinplan-$VERSION-linux-amd64.tar.gz.sha256"
             echo '```'
             echo
             echo '```powershell'
-            echo "(Get-FileHash yearly-calendar-$VERSION-windows-amd64.zip -Algorithm SHA256).Hash.ToLower()"
+            echo "(Get-FileHash pinplan-$VERSION-windows-amd64.zip -Algorithm SHA256).Hash.ToLower()"
             echo '```'
             echo
             echo "## What's new in $VERSION"
@@ -176,7 +176,7 @@ jobs:
 
           mapfile -t files < "$RUNNER_TEMP/assets.txt"
           args=(release create "$TAG" "${files[@]}"
-                --title "yearly-calendar $VERSION"
+                --title "PinPlan $VERSION"
                 --notes-file "$RUNNER_TEMP/notes.md"
                 --verify-tag)
           # A tag with a hyphen in it — v0.2.0-rc.1 — is a pre-release. Plain v0.2.0 is not.

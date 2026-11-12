@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"a4calendar/internal/dsl"
+	"pinplan/internal/dsl"
 )
 
 // Mark is a milestone's glyph (REQ-KEY-3).

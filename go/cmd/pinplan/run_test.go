@@ -32,8 +32,8 @@ func TestRunWritesPDF(t *testing.T) {
 	if err != nil || !bytes.HasPrefix(data, []byte("%PDF-")) {
 		t.Errorf("no PDF written: %v", err)
 	}
-	if !bytes.Contains(data, []byte("/Creator (yearly-calendar dev)")) {
-		t.Error("PDF metadata lacks Creator 'yearly-calendar dev'")
+	if !bytes.Contains(data, []byte("/Creator (PinPlan dev)")) {
+		t.Error("PDF metadata lacks Creator 'PinPlan dev'")
 	}
 }
 
@@ -164,7 +164,7 @@ func TestRunHelpVersionLicenses(t *testing.T) {
 			t.Errorf("--help: exit %d, missing %q", code, want)
 		}
 	}
-	if code, stdout, _ := call("--version"); code != 0 || !strings.HasPrefix(stdout, "yearly-calendar ") {
+	if code, stdout, _ := call("--version"); code != 0 || !strings.HasPrefix(stdout, "PinPlan ") {
 		t.Errorf("--version: exit %d, %q", code, stdout)
 	}
 	code, stdout, _ = call("--licenses")

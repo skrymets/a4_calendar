@@ -6,8 +6,8 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"a4calendar/internal/canvas"
-	"a4calendar/internal/timeline"
+	"pinplan/internal/canvas"
+	"pinplan/internal/timeline"
 )
 
 // Timeline drawing (docs/timeline/02 §2-5). Sizes in pt.

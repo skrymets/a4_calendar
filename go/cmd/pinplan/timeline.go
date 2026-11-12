@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"a4calendar/internal/dsl"
-	"a4calendar/internal/render"
-	"a4calendar/internal/timeline"
+	"pinplan/internal/dsl"
+	"pinplan/internal/render"
+	"pinplan/internal/timeline"
 )
 
 // timelineChoices are the timeline options with a fixed set of values.

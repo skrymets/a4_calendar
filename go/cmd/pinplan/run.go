@@ -15,11 +15,11 @@ import (
 
 	"github.com/spf13/pflag"
 
-	"a4calendar/internal/canvas"
-	"a4calendar/internal/dsl"
-	"a4calendar/internal/fonts"
-	"a4calendar/internal/period"
-	"a4calendar/internal/render"
+	"pinplan/internal/canvas"
+	"pinplan/internal/dsl"
+	"pinplan/internal/fonts"
+	"pinplan/internal/period"
+	"pinplan/internal/render"
 )
 
 //go:embed THIRD_PARTY_LICENSES.txt
@@ -51,14 +51,14 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	if o.version {
-		fmt.Fprintf(stdout, "yearly-calendar %s\n", version)
+		fmt.Fprintf(stdout, "%s %s\n", product, version)
 		return 0
 	}
 	if o.licenses {
-		fmt.Fprint(stdout, "yearly-calendar "+version+"\n"+
+		fmt.Fprint(stdout, product+" "+version+"\n"+
 			"Copyright (c) 2026 Sergii Krymets. Released under the MIT License;\n"+
 			"the full text is in the LICENSE file of the source and of every release archive.\n\n"+
-			"yearly-calendar embeds the PT Sans Narrow font, licensed under the\n"+
+			product+" embeds the PT Sans Narrow font, licensed under the\n"+
 			"SIL Open Font License, Version 1.1:\n\n"+fonts.OFL+
 			"\n\nThird-party software linked into this binary:\n\n"+thirdPartyLicenses)
 		return 0
@@ -116,7 +116,7 @@ func buildAndSave(cfg render.Config, output string) (res render.Result, err erro
 		}
 	}()
 	c := canvas.New(cfg.PaperW, cfg.PaperH)
-	c.SetCreator(fmt.Sprintf("yearly-calendar %s", version))
+	c.SetCreator(product + " " + version)
 	if res, err = render.Build(cfg, c); err != nil {
 		return res, err
 	}

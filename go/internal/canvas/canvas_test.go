@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"a4calendar/internal/fonts"
+	"pinplan/internal/fonts"
 )
 
 func TestHex(t *testing.T) {

@@ -14,7 +14,7 @@ package dsl
 import (
 	"time"
 
-	"a4calendar/internal/period"
+	"pinplan/internal/period"
 )
 
 // Kind restricts what a source may declare.

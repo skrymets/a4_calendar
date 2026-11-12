@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"a4calendar/internal/canvas"
-	"a4calendar/internal/period"
+	"pinplan/internal/canvas"
+	"pinplan/internal/period"
 )
 
 const months = "JAN,FEB,MAR,APR,MAY,JUN,JUL,AUG,SEP,OCT,NOV,DEC"

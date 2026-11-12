@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"a4calendar/internal/dsl"
-	"a4calendar/internal/period"
-	"a4calendar/internal/timeline"
+	"pinplan/internal/dsl"
+	"pinplan/internal/period"
+	"pinplan/internal/timeline"
 )
 
 // buildTimeline renders a 5-month A4 page (wide columns) with the given

@@ -8,8 +8,8 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"a4calendar/internal/canvas"
-	"a4calendar/internal/period"
+	"pinplan/internal/canvas"
+	"pinplan/internal/period"
 )
 
 // Align is the horizontal anchor of DrawSpaced's x.

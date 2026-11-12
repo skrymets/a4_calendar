@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"a4calendar/internal/canvas"
-	"a4calendar/internal/timeline"
+	"pinplan/internal/canvas"
+	"pinplan/internal/timeline"
 )
 
 // Legend and page budget (REQ-LG-1, -5, -6, docs/timeline/03 §8). Sizes in pt.

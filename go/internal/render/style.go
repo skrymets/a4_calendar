@@ -2,7 +2,7 @@
 // PDF-native coordinates.
 package render
 
-import "a4calendar/internal/canvas"
+import "pinplan/internal/canvas"
 
 var (
 	Ink       = canvas.MustHex("#1F1F1F")

@@ -7,7 +7,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"a4calendar/internal/dsl"
+	"pinplan/internal/dsl"
 )
 
 // Swatch is the small sample drawn before a legend entry.

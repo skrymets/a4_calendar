@@ -3,7 +3,7 @@ package render
 import (
 	"unicode/utf8"
 
-	"a4calendar/internal/canvas"
+	"pinplan/internal/canvas"
 )
 
 type drawn struct {

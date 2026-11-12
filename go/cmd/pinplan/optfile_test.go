@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"a4calendar/internal/period"
+	"pinplan/internal/period"
 )
 
 // writeFiles writes name → text into dir and returns dir.

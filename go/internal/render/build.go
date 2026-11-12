@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"time"
 
-	"a4calendar/internal/canvas"
-	"a4calendar/internal/period"
-	"a4calendar/internal/timeline"
+	"pinplan/internal/canvas"
+	"pinplan/internal/period"
+	"pinplan/internal/timeline"
 )
 
 // Config is the validated input of Build (one field per CLI option).

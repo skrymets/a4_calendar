@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"a4calendar/internal/dsl"
-	"a4calendar/internal/period"
+	"pinplan/internal/dsl"
+	"pinplan/internal/period"
 )
 
 // Days are handled as day numbers (days since 1970-01-01) in the engine.

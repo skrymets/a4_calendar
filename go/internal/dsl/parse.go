@@ -7,7 +7,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"a4calendar/internal/period"
+	"pinplan/internal/period"
 )
 
 // utf8BOM is skipped at the start of a file.

@@ -14,8 +14,8 @@ import (
 
 	"github.com/spf13/pflag"
 
-	"a4calendar/internal/dsl"
-	"a4calendar/internal/fonts"
+	"pinplan/internal/dsl"
+	"pinplan/internal/fonts"
 )
 
 // Options in .dates files: a line starting with -- sets an option as on

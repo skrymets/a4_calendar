@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"a4calendar/internal/dsl"
+	"pinplan/internal/dsl"
 )
 
 var today = time.Date(2026, 11, 11, 0, 0, 0, 0, time.UTC)
