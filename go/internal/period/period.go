@@ -117,5 +117,30 @@ func PeriodEnd(start time.Time, p Period) (time.Time, error) {
 	return end, nil
 }
 
+// FromEnd returns the shortest period from start whose last day is end
+// (inclusive, not before start): 1y, else <N>m, else <N>w, else <N>d.
+// It does not check the 1-year maximum.
+func FromEnd(start, end time.Time) Period {
+	for _, p := range append([]Period{FullYear}, months(11)...) {
+		if e, err := PeriodEnd(start, p); err == nil && e.Equal(end) {
+			return p
+		}
+	}
+	days := DaysBetween(start, end) + 1
+	if days%7 == 0 {
+		return Period{N: days / 7, Unit: 'w'}
+	}
+	return Period{N: days, Unit: 'd'}
+}
+
+// months returns the periods 1m … nm.
+func months(n int) []Period {
+	ps := make([]Period, n)
+	for i := range ps {
+		ps[i] = Period{N: i + 1, Unit: 'm'}
+	}
+	return ps
+}
+
 // MaxEnd is the last day of the longest allowed period: one year.
 func MaxEnd(start time.Time) time.Time { return AddDays(AddMonths(start, 12), -1) }

@@ -42,6 +42,12 @@ func TestRunDefaultOutputName(t *testing.T) {
 	for args, name := range map[string]string{
 		"--start 2026-11-07":              "calendar_2026-11-07.pdf",
 		"--start 2026-11-07 --period 90d": "calendar_2026-11-07_90d.pdf",
+		// --end/--until name the shortest matching period
+		"--start 2027-01-01 --end 2027-06-30":   "calendar_2027-01-01_6m.pdf",
+		"--start 2027-01-01 --until 2028-01-01": "calendar_2027-01-01.pdf",
+		"--start 2027-01-01 --end 2027-01-14":   "calendar_2027-01-01_2w.pdf",
+		"--start 2027-01-01 --until 2027-02-15": "calendar_2027-01-01_45d.pdf",
+		"--start 2027-01-01 --end 2027-01-01":   "calendar_2027-01-01_1d.pdf",
 	} {
 		if code, _, stderr := call(strings.Fields(args)...); code != 0 {
 			t.Fatalf("%s: exit %d, %s", args, code, stderr)
@@ -74,6 +80,18 @@ func TestRunUsageErrors(t *testing.T) {
 		{[]string{"--margin", "x"}, "argument --margin: invalid float value: 'x'"},
 		{[]string{"--start", "2026-13-01"}, "argument --start: invalid fromisoformat value: '2026-13-01'"},
 		{[]string{"--start", "0000-01-01"}, "argument --start: invalid fromisoformat value: '0000-01-01'"},
+		{[]string{"--period", "1y", "--end", "2027-01-01"}, "--period, --end and --until are mutually exclusive"},
+		{[]string{"--end", "2027-01-01", "--until", "2027-01-02"}, "--period, --end and --until are mutually exclusive"},
+		{[]string{"--start", "2027-03-01", "--end", "2027-02-28"},
+			"argument --end: 2027-02-28 is before the start 2027-03-01"},
+		{[]string{"--start", "2027-03-01", "--until", "2027-03-01"},
+			"argument --until: 2027-03-01 is not after the start 2027-03-01"},
+		{[]string{"--start", "2027-01-01", "--end", "2028-03-01"},
+			"--end 2028-03-01 (426 days) exceeds the 1-year maximum (365 days from 2027-01-01)"},
+		{[]string{"--start", "2027-01-01", "--until", "2028-01-02"},
+			"--until 2028-01-02 (366 days) exceeds the 1-year maximum (365 days from 2027-01-01)"},
+		{[]string{"--end", "2027-02-30"}, "argument --end: invalid fromisoformat value: '2027-02-30'"},
+		{[]string{"--until", ""}, "argument --until: expected a date"},
 		{[]string{"--bogus"}, "unknown flag: --bogus"},
 		{[]string{"extra"}, "unrecognized arguments: extra"},
 	}

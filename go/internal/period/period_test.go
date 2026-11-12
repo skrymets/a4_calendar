@@ -117,6 +117,37 @@ func TestPeriodEnd(t *testing.T) {
 	}
 }
 
+func TestFromEnd(t *testing.T) {
+	s := Date(2027, 1, 1)
+	cases := []struct {
+		start, end time.Time
+		want       Period
+	}{
+		{s, Date(2027, 12, 31), Period{1, 'y'}},
+		{s, Date(2027, 6, 30), Period{6, 'm'}},
+		{s, Date(2027, 1, 31), Period{1, 'm'}},
+		{s, Date(2027, 1, 14), Period{2, 'w'}},
+		{s, Date(2027, 2, 14), Period{45, 'd'}},
+		{s, s, Period{1, 'd'}},
+		{s, Date(2027, 1, 7), Period{1, 'w'}},
+		{Date(2026, 11, 7), Date(2027, 11, 6), Period{1, 'y'}},
+		{Date(2026, 11, 7), Date(2027, 2, 6), Period{3, 'm'}},
+		{Date(2027, 1, 31), Date(2027, 2, 28), Period{1, 'm'}}, // Jan 31 + 1m rolls to Mar 1
+		{Date(2027, 1, 31), Date(2027, 2, 27), Period{4, 'w'}},
+		{Date(2028, 2, 29), Date(2029, 2, 28), Period{1, 'y'}},
+		{s, Date(2028, 1, 1), Period{366, 'd'}}, // past the maximum: the caller checks
+	}
+	for _, c := range cases {
+		got := FromEnd(c.start, c.end)
+		if got != c.want {
+			t.Errorf("FromEnd(%s, %s) = %s; want %s", c.start.Format("2006-01-02"), c.end.Format("2006-01-02"), got, c.want)
+		}
+		if end, _ := PeriodEnd(c.start, got); !end.Equal(c.end) {
+			t.Errorf("FromEnd(%s, %s) = %s ends on %s", c.start.Format("2006-01-02"), c.end.Format("2006-01-02"), got, end.Format("2006-01-02"))
+		}
+	}
+}
+
 func TestMaxEnd(t *testing.T) {
 	cases := map[time.Time]int{ // start -> days in the 1-year maximum
 		Date(2026, 11, 7): 365,

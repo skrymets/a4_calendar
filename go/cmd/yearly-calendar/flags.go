@@ -16,10 +16,11 @@ const (
 // options holds raw flag values. Values that need converting (int, float,
 // date, choices) are kept as strings and validated in configure.
 type options struct {
-	start, period, output, weekMode, weekStart, weekLabels, weekend string
-	title, dayLetters, monthNames, font, paper, noteLines           string
-	workdayColor, weekendColor, margin, header                      string
-	noFooter, noNoteGuide, hideOutside, version, licenses           bool
+	start, period, end, until, output                     string
+	weekMode, weekStart, weekLabels, weekend              string
+	title, dayLetters, monthNames, font, paper, noteLines string
+	workdayColor, weekendColor, margin, header            string
+	noFooter, noNoteGuide, hideOutside, version, licenses bool
 
 	// timeline (docs/timeline, REQ-CLI-*)
 	files, milestones, intervals        []string
@@ -57,6 +58,8 @@ func newFlagSet() (*pflag.FlagSet, *options, func() string) {
 
 	str(&o.start, "start", "", "", "START", "first day of the period, YYYY-MM-DD (default: --today)")
 	str(&o.period, "period", "", "1y", "PERIOD", "length of the period: <N>d, <N>w, <N>m or 1y (default 1y, max 1 year)")
+	str(&o.end, "end", "", "", "END", "last day of the period, YYYY-MM-DD; instead of --period")
+	str(&o.until, "until", "", "", "UNTIL", "the day after the period, YYYY-MM-DD; instead of --period")
 	str(&o.output, "output", "o", "", "OUTPUT", "output PDF path")
 	str(&o.weekMode, "week-mode", "", "relative", "{relative,iso,rolling}",
 		"relative: w01 = calendar week containing start (default); iso: ISO-8601 week of year; rolling: blocks of 7 days from start")

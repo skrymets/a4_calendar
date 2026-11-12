@@ -128,9 +128,34 @@ func configure(o *options, changed func(string) bool, stderr io.Writer) (render.
 	if err != nil {
 		return cfg, "", err
 	}
+	lengths := 0
+	for _, f := range []string{"period", "end", "until"} {
+		if changed(f) {
+			lengths++
+		}
+	}
+	if lengths > 1 {
+		return cfg, "", usagef("--period, --end and --until are mutually exclusive")
+	}
 	p, err := period.ParsePeriod(o.period)
 	if err != nil {
 		return cfg, "", usagef("argument --period: %s", err)
+	}
+	endFlag, endText := "", ""
+	switch {
+	case changed("end"):
+		endFlag, endText = "--end", o.end
+	case changed("until"):
+		endFlag, endText = "--until", o.until
+	}
+	var endDate time.Time
+	if endFlag != "" {
+		if endText == "" {
+			return cfg, "", usagef("argument %s: expected a date", endFlag)
+		}
+		if endDate, err = parseDate(endFlag, endText, time.Time{}); err != nil {
+			return cfg, "", err
+		}
 	}
 	weekStart, err := parseInt("--week-start", o.weekStart)
 	if err != nil {
@@ -164,15 +189,9 @@ func configure(o *options, changed func(string) bool, stderr io.Writer) (render.
 		fmt.Fprintln(stderr, "Warning: --timeline-compact is ignored with --timeline-layout packed")
 	}
 
-	end, endErr := period.PeriodEnd(start, p)
-	maxEnd := period.MaxEnd(start)
-	if endErr != nil || end.After(maxEnd) {
-		length := ""
-		if endErr == nil {
-			length = fmt.Sprintf(" (%d days)", period.DaysBetween(start, end)+1)
-		}
-		return cfg, "", usagef("--period %s%s exceeds the 1-year maximum (%d days from %s)",
-			p, length, period.DaysBetween(start, maxEnd)+1, start.Format("2006-01-02"))
+	end, err := pageEnd(start, &p, endFlag, endText, endDate)
+	if err != nil {
+		return cfg, "", err
 	}
 
 	letters := []rune(o.dayLetters)
@@ -229,6 +248,47 @@ func configure(o *options, changed func(string) bool, stderr io.Writer) (render.
 	}
 	cfg.Timeline, err = loadTimeline(o, cfg, today, end, lanes, stderr)
 	return cfg, output, err
+}
+
+// pageEnd returns the last day of the page. Given --end or --until (flag,
+// as written in text, resolved to date) it sets *p to the matching period
+// (period.FromEnd); otherwise the end follows from *p. Either way the page
+// must start no later than it ends and stay within one year.
+func pageEnd(start time.Time, p *period.Period, flag, text string, date time.Time) (time.Time, error) {
+	var (
+		end  time.Time
+		err  error
+		what = flag + " " + text
+	)
+	switch flag {
+	case "":
+		end, err = period.PeriodEnd(start, *p)
+		what = "--period " + p.String()
+	case "--end":
+		end = date
+	case "--until":
+		end = period.AddDays(date, -1)
+	}
+	if flag != "" && end.Before(start) {
+		rel := "is before"
+		if flag == "--until" {
+			rel = "is not after"
+		}
+		return end, usagef("argument %s: %s %s the start %s", flag, text, rel, start.Format(time.DateOnly))
+	}
+	maxEnd := period.MaxEnd(start)
+	if err != nil || end.After(maxEnd) {
+		length := ""
+		if err == nil {
+			length = fmt.Sprintf(" (%d days)", period.DaysBetween(start, end)+1)
+		}
+		return end, usagef("%s%s exceeds the 1-year maximum (%d days from %s)",
+			what, length, period.DaysBetween(start, maxEnd)+1, start.Format(time.DateOnly))
+	}
+	if flag != "" {
+		*p = period.FromEnd(start, end)
+	}
+	return end, nil
 }
 
 // parseDate reads a YYYY-MM-DD option; empty means def, or the local
